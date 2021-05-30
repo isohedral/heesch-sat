@@ -7,13 +7,15 @@
 #include "ominogrid.h"
 #include "hexgrid.h"
 #include "iamondgrid.h"
+#include "octasquaregrid.h"
 
 using namespace std;
 
 enum GRID {
 	OMINO,
 	HEX,
-	IAMOND
+	IAMOND,
+	OCTASQUARE
 };
 
 static bool show_solution = false;
@@ -125,7 +127,9 @@ int main( int argc, char **argv )
 			grid_type = HEX;
 		} else if( !strcmp( argv[idx], "-iamond" ) ) {
 			grid_type = IAMOND;
-		}
+		} else if( !strcmp( argv[idx], "-octasquare" ) ) {
+            grid_type = OCTASQUARE;
+        }
 	}
 
 	if( grid_type == OMINO ) {
@@ -134,5 +138,7 @@ int main( int argc, char **argv )
 		mainLoop<HexGrid<int16_t>>( cin );
 	} else if( grid_type == IAMOND ) {
 		mainLoop<IamondGrid<int16_t>>( cin );
-	}
+	} else if( grid_type == OCTASQUARE ) {
+        mainLoop<OctaSquareGrid<int16_t>>( cin );
+    }
 }

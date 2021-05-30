@@ -14,7 +14,7 @@ all: sat
 sat: main.o 
 	$(CPP) $(LIBS) -o sat main.o
 
-main.o: main.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogrid.h hexgrid.h iamondgrid.h
+main.o: main.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogrid.h hexgrid.h iamondgrid.h octasquaregrid.h
 	$(CPP) $(CPPFLAGS) -c -o main.o main.cpp
 
 clean:
