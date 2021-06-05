@@ -36,7 +36,7 @@ public:
 
 	static bool translatable( const point_t& p, const point_t& q )
 	{
-		return true;
+		return getTileType(p) == getTileType(q);
 	}
 
 	static const size_t num_orientations;
