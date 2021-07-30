@@ -18,4 +18,4 @@ main.o: main.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogr
 	$(CPP) $(CPPFLAGS) -c -o main.o main.cpp
 
 clean:
-	rm *.o
+	rm *.o sat
