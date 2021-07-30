@@ -23,6 +23,7 @@ enum GRID {
 };
 
 static bool show_solution = false;
+static int max_level = INT_MAX;
 static GRID grid_type = OMINO;
 
 template<typename grid>
@@ -99,6 +100,7 @@ static void mainLoop( istream& is )
 			// solver.debug( cout );
 			Solution<coord_t> cur;
 
+			if( solver.getLevel() > max_level ) break;
 			if( solver.hasCorona( show_solution, has_holes, cur ) ) {
 				if( has_holes ) {
 					sh = cur;
@@ -125,6 +127,9 @@ int main( int argc, char **argv )
 	for( size_t idx = 1; idx < argc; ++idx ) {
 		if( !strcmp( argv[idx], "-show" ) ) {
 			show_solution = true;
+		} else if( !strcmp( argv[idx], "-maxlevel" ) ) {
+		    max_level = atoi(argv[idx+1]);
+		    ++idx;
 		} else if( !strcmp( argv[idx], "-omino" ) ) {
 			grid_type = OMINO;
 		} else if( !strcmp( argv[idx], "-hex" ) ) {
