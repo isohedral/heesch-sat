@@ -10,6 +10,7 @@
 #include "octasquaregrid.h"
 #include "grid3636.h"
 #include "abologrid.h"
+#include "draftergrid.h"
 
 using namespace std;
 
@@ -19,7 +20,8 @@ enum GRID {
 	IAMOND,
 	OCTASQUARE,
 	GRID3636,
-	ABOLO
+	ABOLO,
+	DRAFTER
 };
 
 static bool show_solution = false;
@@ -142,6 +144,8 @@ int main( int argc, char **argv )
             grid_type = GRID3636;
 		} else if( !strcmp( argv[idx], "-abolo" ) ) {
 		    grid_type = ABOLO;
+		} else if( !strcmp( argv[idx], "-drafter" ) ) {
+		    grid_type = DRAFTER;
 		}
 	}
 
@@ -157,5 +161,7 @@ int main( int argc, char **argv )
         mainLoop<Grid3636<int16_t>>( cin );
 	} else if( grid_type == ABOLO ) {
 	    mainLoop<AboloGrid<int16_t>>( cin );
+	} else if( grid_type == DRAFTER ) {
+	    mainLoop<DrafterGrid<int16_t>>( cin );
 	}
 }
