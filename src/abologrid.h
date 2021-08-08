@@ -237,10 +237,15 @@ const size_t AboloGrid<coord>::num_orientations = 8;
 
 template<typename coord>
 const xform<int8_t> AboloGrid<coord>::orientations[8] = {
-        { 1, 0, 0, 0, 1, 0 }, { 0, -1, 0, 1, 0, 0 },
-        { -1, 0, 0, 0, -1, 0 }, { 0, 1, 0, -1, 0, 0 },
-        { -1, 0, 0, 0, 1, 0 }, { 0, -1, 0, -1, 0, 0 },
-        { 1, 0, 0, 0, -1, 0 }, { 0, 1, 0, 1, 0, 0 } };
+        { 1, 0, 0, 0, 1, 0 },
+        { 0, -1, 1, 1, 0, 0 },
+        { -1, 0, 1, 0, -1, 1 },
+        { 0, 1, 0, -1, 0, 1 },
+
+        { -1, 0, 1, 0, 1, 0 },
+        { 0, -1, 1, -1, 0, 1 },
+        { 1, 0, 0, 0, -1, 1 },
+        { 0, 1, 0, 1, 0, 0 } };
 
 template<typename coord>
 const std::vector<point<int8_t>> AboloGrid<coord>::vertices[4] = {
