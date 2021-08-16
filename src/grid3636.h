@@ -98,6 +98,18 @@ public:
     static int8_t rotateDirection( int8_t dir ) { return (dir + 1) % boundaryWordDirections.size(); }
     static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
 
+    static point<double> vertexToGridCoords(point_t pt) {
+        return {pt.x_ / 2.0, pt.y_ / 2.0};
+    }
+
+    static point<double> gridToPageCoords(point<double> pt) {
+        const double sqrt3 = 1.73205080756887729353;
+        xform<double> T{
+                1.0, 1.0 / 2,0,
+                0, sqrt3 / 2, 0};
+        return T * pt;
+    }
+
 private:
     static std::vector<point_t> getTileVertices( const point_t& p )
     {
