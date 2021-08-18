@@ -162,7 +162,7 @@ const point<int8_t> DrafterGrid<coord>::all_neighbours[12][16] = {
                 {-5, 0},
                 {-4, -2},
                 {-3, -3},
-                {-1, 4},
+                {-1, -4},
                 {0, -4},
                 {1, -3},
                 {2, 1},
@@ -293,7 +293,7 @@ const point<int8_t> DrafterGrid<coord>::all_neighbours[12][16] = {
                 {-2, 3},
                 {-3, 0},
                 {-1, -2},
-                {0, -2},
+                {-3, 1},
                 {2, -3}
         },
         {
