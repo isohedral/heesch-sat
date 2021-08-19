@@ -112,13 +112,19 @@ public:
         return pt;
     }
 
+    static bool hasMates() { return false; }
+
+    static std::vector<std::vector<point_t>> getMatesList(const point_t &p) {
+        return {{}};
+    }
+
 private:
     static std::vector<point_t> getTileVertices( const point_t& p )
     {
         const auto &vertexVecs = (getTileType(p) == SQUARE ? squareVertices : octagonVertices);
         std::vector<point_t> ans(vertexVecs.size());
         for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = vertexVecs[i] + p + p;
+            ans[i] = p + p + vertexVecs[i];
         return ans;
     }
 };

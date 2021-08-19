@@ -120,14 +120,6 @@ public:
         return matesList;
     }
 
-    static point<double> vertexToGridCoords(point_t pt) {
-        return {pt.x_ / 2.0, pt.y_ / 2.0};
-    }
-
-    static point<double> gridToPageCoords(point<double> pt) {
-        return pt;
-    }
-
 private:
     static std::vector<point_t> getTileVertices( const point_t& p )
     {
@@ -135,7 +127,7 @@ private:
         std::vector<point_t> ans(vertexVecs.size());
         point_t pTrans = p + p;
         for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = vertexVecs[i] + pTrans;
+            ans[i] = pTrans + vertexVecs[i];
         return ans;
     }
 };
