@@ -109,6 +109,14 @@ public:
     static int8_t rotateDirection( int8_t dir ) { return (dir + 2) % boundaryWordDirections.size(); }
     static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
 
+    static point<double> vertexToGridCoords(point_t pt) {
+        return {pt.x_ / 2.0, pt.y_ / 2.0};
+    }
+
+    static point<double> gridToPageCoords(point<double> pt) {
+        return pt;
+    }
+
     static bool hasMates() { return true; }
 
     static std::vector<std::vector<point_t>> getMatesList(const point_t &p) {
@@ -120,14 +128,6 @@ public:
         return matesList;
     }
 
-    static point<double> vertexToGridCoords(point_t pt) {
-        return {pt.x_ / 2.0, pt.y_ / 2.0};
-    }
-
-    static point<double> gridToPageCoords(point<double> pt) {
-        return pt;
-    }
-
 private:
     static std::vector<point_t> getTileVertices( const point_t& p )
     {
@@ -135,7 +135,7 @@ private:
         std::vector<point_t> ans(vertexVecs.size());
         point_t pTrans = p + p;
         for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = vertexVecs[i] + pTrans;
+            ans[i] = pTrans + vertexVecs[i];
         return ans;
     }
 };

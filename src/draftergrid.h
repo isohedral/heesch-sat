@@ -145,7 +145,7 @@ private:
         std::vector<point_t> ans(vertexVecs.size());
         point_t pTrans{(coord) (p.x_ * 6), (coord) (p.y_ * 6)};
         for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = vertexVecs[i] + pTrans;
+            ans[i] = pTrans + vertexVecs[i];
         return ans;
     }
 };
