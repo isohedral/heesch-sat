@@ -65,7 +65,7 @@ public:
 	using point_t = typename grid::point_t;
 	using xform_t = typename grid::xform_t;
 
-	HeeschSolver( const Shape<grid>& shape );
+	HeeschSolver( const Shape<grid>& shape, Orientations ori = ALL );
 
 	void increaseLevel();
 	size_t getLevel() const
@@ -73,6 +73,7 @@ public:
 
 	bool hasCorona( 
 		bool get_solution, bool& has_holes, Solution<coord_t>& soln );
+	void allCoronas( std::vector<Solution<coord_t>>& solns );
 
 	void debug( std::ostream& os ) const;
 
@@ -151,9 +152,9 @@ void debugSolution(
 }
 
 template<typename grid>
-HeeschSolver<grid>::HeeschSolver( const Shape<grid>& shape )
+HeeschSolver<grid>::HeeschSolver( const Shape<grid>& shape, Orientations ori )
 	: shape_ { shape }
-	, cloud_ { shape }
+	, cloud_ { shape, ori }
 	, tiles_ {}
 	, cells_ {}
 	, tile_map_ {}
@@ -580,6 +581,54 @@ bool HeeschSolver<grid>::hasCorona(
 			// std::cout << "No solution with holes" << std::endl;
 			return false;
 		}
+	}
+}
+
+template<typename grid>
+void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns ) 
+{
+	if( !cloud_.surroundable_ ) {
+		// std::cout << "Not surroundable at all" << std::endl;
+		return;
+	}
+
+	solns.clear();
+
+	CMSat::SATSolver solver;
+	solver.new_vars( next_var_ );
+
+	getClauses( solver, false );
+	while( solver.solve() == CMSat::l_True ) {
+		// Got a solution, but it may have large holes.  Need to find
+		// them and iterate until they're gone.
+		// std::cout << "found a solution" << std::endl;
+
+		HoleFinder<grid> finder { shape_ };
+
+		std::vector<CMSat::Lit> cl;
+		const std::vector<CMSat::lbool>& model = solver.get_model();
+
+		// Get tile info for hole detection, while simultaneously
+		// building clause for forbidding this solution.
+		for( auto& ti : tiles_ ) {
+			for( auto& i : ti.vars_ ) {
+				if( model[i.second] == CMSat::l_True ) {
+					finder.addCopy( ti.index_, ti.T_ );
+					cl.push_back( neg( i.second ) );
+				}
+			}
+		}
+
+		std::vector<std::vector<tile_index>> holes;
+		if( !finder.getHoles( holes ) ) {
+			// No holes, so keep the solution
+			Solution<coord_t> soln;
+			getSolution( solver, soln );
+			solns.push_back( soln );
+		}
+
+		// Suppress this solution and keep going.
+		solver.add_clause( cl );
 	}
 }
 

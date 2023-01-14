@@ -199,6 +199,14 @@ public:
 	{
 		return (a_==1) && (b_==0) && (c_==0) && (d_==0) && (e_==1) && (f_==0);
 	}
+	bool isTranslation() const
+	{
+		return (a_==1) && (b_==0) && (d_==0) && (e_==1);
+	}
+	coord det() const
+	{
+		return a_*e_ - b_*d_;
+	}
 
 	size_t hash() const
 	{

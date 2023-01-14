@@ -24,10 +24,9 @@ enum GRID {
 	DRAFTER
 };
 
-static bool show_solution = false;
-static int max_level = INT_MAX;
+static bool no_reflections = false;
+static size_t heesch_level = 1;
 static GRID grid_type = OMINO;
-static Orientations ori = ALL;
 
 template<typename grid>
 static bool readShape( istream& is, Shape<grid>& shape, string& str )
@@ -56,15 +55,13 @@ static bool readShape( istream& is, Shape<grid>& shape, string& str )
 template<typename coord>
 static void reportConfig( ostream& os, const Solution<coord>& soln )
 {
-	if( show_solution ) {
-		if( !soln.empty() ) {
-			os << soln.size() << endl;
-			for( auto& pr : soln ) {
-				os << pr.first << " ; " << pr.second << endl;
-			}
-		} else {
-			os << "1" << endl << "0; <1,0,0,0,1,0>" << endl;
+	if( !soln.empty() ) {
+		os << soln.size() << endl;
+		for( auto& pr : soln ) {
+			os << pr.first << " ; " << pr.second << endl;
 		}
+	} else {
+		os << "1" << endl << "0; <1,0,0,0,1,0>" << endl;
 	}
 }
 
@@ -89,54 +86,28 @@ static void mainLoop( istream& is )
 	Shape<grid> shape;
 	string desc;
 
-	while( readShape( is, shape, desc ) ) {
-		size_t hc = 0;
-		Solution<coord_t> sc;
-		size_t hh = 0;
-		Solution<coord_t> sh;
-		bool has_holes;
+	readShape( is, shape, desc );
 
-		HeeschSolver<grid> solver { shape, ori };
+	HeeschSolver<grid> solver { shape, no_reflections };
+	for( size_t idx = 0; idx < heesch_level; ++idx ) {
 		solver.increaseLevel();
+	}
 
-		while( true ) {
-			// solver.debug( cout );
-			Solution<coord_t> cur;
-
-			if( solver.getLevel() > max_level ) break;
-			if( solver.hasCorona( show_solution, has_holes, cur ) ) {
-				if( has_holes ) {
-					sh = cur;
-					hh = solver.getLevel();
-					break;
-				} else {
-					hc = solver.getLevel();
-					hh = hc;
-					sh = cur;
-					sc = sh;
-					solver.increaseLevel();
-				}
-			} else {
-				break;
-			}
-		}
-
-		report<coord_t,grid>( cout, desc, hc, sc, hh, sh );
+	std::vector<Solution<coord_t>> cur;
+	solver.allCoronas( cur );
+	for( const auto& soln : cur ) {
+		report<coord_t,grid>( cout, desc, 1, soln, 1, soln );
 	}
 }
 
 int main( int argc, char **argv )
 {
 	for( size_t idx = 1; idx < argc; ++idx ) {
-		if( !strcmp( argv[idx], "-show" ) ) {
-			show_solution = true;
-		} else if( !strcmp( argv[idx], "-maxlevel" ) ) {
-		    max_level = atoi(argv[idx+1]);
+		if( !strcmp( argv[idx], "-level" ) ) {
+		    heesch_level = atoi(argv[idx+1]);
 		    ++idx;
-		} else if( !strcmp( argv[idx], "-translations" ) ) {
-			ori = TRANSLATIONS_ONLY;
-		} else if( !strcmp( argv[idx], "-rotations" ) ) {
-			ori = TRANSLATIONS_ROTATIONS;
+		} else if( !strcmp( argv[idx], "-noreflections" ) ) {
+		    no_reflections = true;
 		} else if( !strcmp( argv[idx], "-omino" ) ) {
 			grid_type = OMINO;
 		} else if( !strcmp( argv[idx], "-hex" ) ) {

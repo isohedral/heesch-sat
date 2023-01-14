@@ -4,6 +4,13 @@
 
 #include "shape.h"
 
+enum Orientations
+{
+	TRANSLATIONS_ONLY,
+	TRANSLATIONS_ROTATIONS,
+	ALL
+};
+
 // The cloud is the set of all transforms that relate to the central copy of a
 // shape.  Each transform can either be overlapping, cleanly adjacent, or
 // adjacent but not simply connected.
@@ -37,7 +44,7 @@ public:
 	using xform_t = typename grid::xform_t;
 	using point_t = typename grid::point_t;
 
-	Cloud( const Shape<grid>& shape );
+	Cloud( const Shape<grid>& shape, Orientations ori = ALL );
 
 	bool isOverlap( const xform_t& T ) const
 	{
@@ -60,7 +67,7 @@ public:
 		return isOverlap( T ) || isAdjacent( T ) || isHoleAdjacent( T );
 	}
 
-	void calcOrientations();
+	void calcOrientations( Orientations ori );
 
 	void debug( std::ostream& os ) const;
 	void debugTransform( std::ostream& os, const xform_t& T ) const;
@@ -78,13 +85,13 @@ public:
 };
 
 template<typename grid>
-Cloud<grid>::Cloud( const Shape<grid>& shape )
+Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori )
 	: shape_ { shape }
 {
 	surroundable_ = true;
 
 	shape.getHaloAndBorder( halo_, border_ );
-	calcOrientations();
+	calcOrientations( ori );
 
 	Shape<grid> new_shape;
 
@@ -170,7 +177,7 @@ Cloud<grid>::Cloud( const Shape<grid>& shape )
 }
 
 template<typename grid>
-void Cloud<grid>::calcOrientations()
+void Cloud<grid>::calcOrientations( Orientations ori )
 {
 	// It seems natural to want to factor out symmetric orientations of the
 	// shape.  But there are two considerations that get in the way of
@@ -185,6 +192,17 @@ void Cloud<grid>::calcOrientations()
 	// Construct oriented copies, factoring out symmetries.
 	for( size_t idx = 0; idx < grid::num_orientations; ++idx ) {
 		xform_t T { grid::orientations[idx] };
+
+		if( ori == TRANSLATIONS_ONLY ) {
+			if( !T.isTranslation() ) {
+				continue;
+			}
+		} else if( ori == TRANSLATIONS_ROTATIONS ) {
+			if( T.det() < 0 ) {
+				continue;
+			}
+		}
+
 		Shape<grid> oshape;
 		Shape<grid> ohalo;
 		Shape<grid> oborder;
@@ -281,19 +299,19 @@ void Cloud<grid>::debug( std::ostream& os ) const
 
 	os << "=========== OVERLAPPING ============" << std::endl;
 	for( auto & T : overlapping_ ) {
-		debugTransform( os, T );
-		// os << "  " << T << std::endl;
+		// debugTransform( os, T );
+		os << "  " << T << std::endl;
 	}
 
 	os << "=========== ADJACENT ============" << std::endl;
 	for( auto & T : adjacent_ ) {
-		debugTransform( os, T );
-		// os << "  " << T << std::endl;
+		// debugTransform( os, T );
+		os << "  " << T << std::endl;
 	}
 
 	os << "=========== HOLE ADJACENT ============" << std::endl;
 	for( auto & T : adjacent_hole_ ) {
-		debugTransform( os, T );
-		// os << "  " << T << std::endl;
+		// debugTransform( os, T );
+		os << "  " << T << std::endl;
 	}
 }

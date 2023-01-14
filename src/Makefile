@@ -14,8 +14,14 @@ all: sat
 sat: main.o 
 	$(CPP) $(LIBS) -o sat main.o
 
+surrounds: surrounds.o 
+	$(CPP) $(LIBS) -o surrounds surrounds.o
+
 main.o: main.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogrid.h hexgrid.h iamondgrid.h octasquaregrid.h
 	$(CPP) $(CPPFLAGS) -c -o main.o main.cpp
+
+surrounds.o: surrounds.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogrid.h hexgrid.h iamondgrid.h octasquaregrid.h
+	$(CPP) $(CPPFLAGS) -c -o surrounds.o surrounds.cpp
 
 clean:
 	rm *.o sat
