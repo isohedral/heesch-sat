@@ -7,6 +7,8 @@ OPT = -O3  -DNDEBUG
 CPPFLAGS = $(INCLUDES) $(OPT) -Wall -std=c++17  -stdlib=libc++ \
 	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk 
 
+GRIDS = grid.h ominogrid.h hexgrid.h iamondgrid.h octasquaregrid.h draftergrid.h kitegrid.h
+
 LIBS = -L/usr/local/lib -lcryptominisat5
 
 all: sat
@@ -17,11 +19,17 @@ sat: main.o
 surrounds: surrounds.o 
 	$(CPP) $(LIBS) -o surrounds surrounds.o
 
-main.o: main.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogrid.h hexgrid.h iamondgrid.h octasquaregrid.h
+isohedral: isohedral.o 
+	$(CPP) $(LIBS) -o isohedral isohedral.o
+
+main.o: main.cpp cloud.h common.h geom.h heesch.h holes.h shape.h $(GRIDS)
 	$(CPP) $(CPPFLAGS) -c -o main.o main.cpp
 
-surrounds.o: surrounds.cpp cloud.h common.h geom.h grid.h heesch.h holes.h shape.h ominogrid.h hexgrid.h iamondgrid.h octasquaregrid.h
+surrounds.o: surrounds.cpp cloud.h common.h geom.h heesch.h holes.h shape.h $(GRIDS)
 	$(CPP) $(CPPFLAGS) -c -o surrounds.o surrounds.cpp
+
+isohedral.o: isohedral.cpp cloud.h common.h geom.h heesch.h holes.h shape.h $(GRIDS)
+	$(CPP) $(CPPFLAGS) -c -o isohedral.o isohedral.cpp
 
 clean:
 	rm *.o sat

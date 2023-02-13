@@ -74,6 +74,7 @@ public:
 	bool hasCorona( 
 		bool get_solution, bool& has_holes, Solution<coord_t>& soln );
 	void allCoronas( std::vector<Solution<coord_t>>& solns );
+	bool isIsohedral( bool get_solution, Solution<coord_t>& soln );
 
 	void debug( std::ostream& os ) const;
 
@@ -84,6 +85,7 @@ private:
 	tile_index createNewTile( const xform_t& T );
 
 	var_id getShapeVariable( const xform_t& T, size_t level );
+	bool getShapeVariable( const xform_t& T, size_t level, var_id& id ) const;
 	bool hasCell( const point_t& p ) const;
 	var_id getCellVariable( const point_t& p );
 	var_id getCellVariable( const point_t& p ) const;
@@ -276,6 +278,33 @@ var_id HeeschSolver<grid>::getShapeVariable( const xform_t& T, size_t level )
 	} else {
 		return j->second;
 	}
+}
+
+// Try to retrieve the variable for the given shape at the given level
+// if it exists, but don't allocate a new variable if it doesn't.
+template<typename grid>
+bool HeeschSolver<grid>::getShapeVariable( 
+	const xform_t& T, size_t level, var_id& id ) const
+{
+	auto i = tile_map_.find( T );
+
+	if( i == tile_map_.end() ) {
+		return false;
+	}
+
+	tile_index index = i->second;
+
+	// The location is in the map.  Now check if the variable exists
+	// for this level.
+	tile_info<grid>& ti = tiles_[index];
+
+	auto j = ti.vars_.find( level );
+	if( j == ti.vars_.end() ) {
+		return false;
+	}
+
+	id = j->second;
+	return true;
 }
 
 template<typename grid>
@@ -480,6 +509,122 @@ void HeeschSolver<grid>::getSolution(
 				break;
 			}
 		}
+	}
+}
+
+template<typename grid> bool HeeschSolver<grid>::isIsohedral(
+	bool get_solution, Solution<coord_t>& ret ) 
+{
+	if( !cloud_.surroundable_ ) {
+		return false;
+	}
+
+	// Implicitly var_id 1
+	xform_t I = xform_t {};
+
+	if( level_ == 0 ) {
+		increaseLevel();
+	}
+
+	// Find all tile placements whose inverses are also valid
+	// placements
+	xform_map<coord_t,var_id> eligible;
+	for( const auto& T : cloud_.adjacent_ ) {
+		xform Ti = T.invert();
+		if( cloud_.isAdjacent( Ti ) ) {
+			eligible[T] = 0;
+		}
+	}
+
+	CMSat::SATSolver solv;
+	solv.new_vars( eligible.size() + 1 );
+
+	// Assign variables.
+	var_id id = 1;
+	for( auto& i : eligible ) {
+		i.second = id;
+		++id;
+	}
+
+	std::vector<CMSat::Lit> cl;
+
+	// Every halo cell is used
+	for( const auto& p : cloud_.halo_ ) {
+		cl.clear();
+		const auto& ci = cells_[ cell_map_[p] ];
+		for( const auto tindex : ci.tiles_ ) {
+			auto i = eligible.find( tiles_[tindex].T_ );
+			if( i != eligible.end() ) {
+				cl.push_back( pos( i->second ) );
+			}
+		}
+		solv.add_clause( cl );
+	}
+
+	cl.resize( 2 );
+
+	// No two tiles overlap
+	size_t idx = 0;
+	for( auto i : eligible ) {
+		size_t jdx = 0;
+		for( auto j : eligible ) {
+			++jdx;
+			if( jdx == idx ) {
+				break;
+			}
+			if( cloud_.isOverlap( i.first * j.first.invert() ) ) {
+				cl[0] = neg( i.second );
+				cl[1] = neg( j.second );
+				solv.add_clause( cl );
+			}
+		}
+		++idx;
+	}
+
+
+	/*
+	// For every halo cell around the central tile, exactly one
+	// eligible tile covers it.
+	for( const auto& p : cloud_.halo_ ) {
+		const auto& ci = cells_[ cell_map_[p] ];
+		for( const auto tindex : ci.tiles_ ) {
+			auto i = eligible.find( tiles_[tindex].T_ );
+			if( i != eligible.end() ) {
+				ids.push_back( i->second );
+			}
+		}
+		solv.add_xor_clause( ids, true );
+	}
+	*/
+	
+
+	// Every eligible transform implies its inverse -- they must be
+	// used in pairs.
+	for( auto i : eligible ) {
+		auto j = eligible.find( i.first.invert() );
+		cl[0] = neg( i.second );
+		cl[1] = pos( j->second );
+		solv.add_clause( cl );
+	}
+
+	cl.resize( 1 );
+	cl[0] = pos( 0 );
+	solv.add_clause( cl );
+
+	if( solv.solve() == CMSat::l_True ) {
+		if( get_solution ) {
+			ret.clear();
+			const std::vector<CMSat::lbool>& model = solv.get_model();
+			ret.emplace_back( 0, I );
+			for( auto i : eligible ) {
+				if( model[i.second] == CMSat::l_True ) {
+					ret.emplace_back( 1, i.first );
+				}
+			}
+		}
+		return true;
+	} else {
+		return false;
 	}
 }
 

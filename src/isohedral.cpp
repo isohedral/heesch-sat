@@ -11,7 +11,6 @@
 #include "grid3636.h"
 #include "abologrid.h"
 #include "draftergrid.h"
-#include "kitegrid.h"
 
 using namespace std;
 
@@ -22,14 +21,10 @@ enum GRID {
 	OCTASQUARE,
 	GRID3636,
 	ABOLO,
-	DRAFTER, 
-	KITE
+	DRAFTER
 };
 
-static bool show_solution = false;
-static int max_level = INT_MAX;
 static GRID grid_type = OMINO;
-static Orientations ori = ALL;
 
 template<typename grid>
 static bool readShape( istream& is, Shape<grid>& shape, string& str )
@@ -58,28 +53,13 @@ static bool readShape( istream& is, Shape<grid>& shape, string& str )
 template<typename coord>
 static void reportConfig( ostream& os, const Solution<coord>& soln )
 {
-	if( show_solution ) {
-		if( !soln.empty() ) {
-			os << soln.size() << endl;
-			for( auto& pr : soln ) {
-				os << pr.first << " ; " << pr.second << endl;
-			}
-		} else {
-			os << "1" << endl << "0; <1,0,0,0,1,0>" << endl;
+	if( !soln.empty() ) {
+		os << soln.size() << endl;
+		for( auto& pr : soln ) {
+			os << pr.first << " ; " << pr.second << endl;
 		}
-	}
-}
-
-template<typename coord, typename grid>
-static void report( ostream& os, const string& desc,
-	size_t hc, const Solution<coord>& sc, 
-	size_t hh, const Solution<coord>& sh )
-{
-	os << desc << endl;
-	os << "Hc = " << hc << " Hh = " << hh << endl;
-	reportConfig( os, sc );
-	if( hc != hh ) {
-		reportConfig( os, sh );
+	} else {
+		os << "1" << endl << "0 ; <1,0,0,0,1,0>" << endl;
 	}
 }
 
@@ -91,55 +71,37 @@ static void mainLoop( istream& is )
 	Shape<grid> shape;
 	string desc;
 
+	int total = 0;
+	int iso = 0;
+
 	while( readShape( is, shape, desc ) ) {
-		size_t hc = 0;
-		Solution<coord_t> sc;
-		size_t hh = 0;
-		Solution<coord_t> sh;
-		bool has_holes;
+		++total;
 
-		HeeschSolver<grid> solver { shape, ori };
-		solver.increaseLevel();
+		HeeschSolver<grid> solver { shape, ALL };
+		Solution<coord_t> soln;
 
-		while( true ) {
-			// solver.debug( cout );
-			Solution<coord_t> cur;
+		std::cout << "SHAPE" << std::endl;
+		std::cout << desc << std::endl;
 
-			if( solver.getLevel() > max_level ) break;
-			if( solver.hasCorona( show_solution, has_holes, cur ) ) {
-				if( has_holes ) {
-					sh = cur;
-					hh = solver.getLevel();
-					break;
-				} else {
-					hc = solver.getLevel();
-					hh = hc;
-					sh = cur;
-					sc = sh;
-					solver.increaseLevel();
-				}
-			} else {
-				break;
-			}
+		if( solver.isIsohedral( true, soln ) ) {
+			++iso;
+			std::cout << "Hc = 1 Hh = 1" << std::endl;
+			reportConfig( std::cout, soln );
+		} else {
+			std::cout << "Hc = 0 Hh = 0" << std::endl;
+			soln.clear();
+			reportConfig( std::cout, soln );
 		}
-
-		report<coord_t,grid>( cout, desc, hc, sc, hh, sh );
 	}
+
+	std::cerr << iso << " of " << total << " shapes tile isohedrally" 
+		<< std::endl;
 }
 
 int main( int argc, char **argv )
 {
 	for( size_t idx = 1; idx < argc; ++idx ) {
-		if( !strcmp( argv[idx], "-show" ) ) {
-			show_solution = true;
-		} else if( !strcmp( argv[idx], "-maxlevel" ) ) {
-		    max_level = atoi(argv[idx+1]);
-		    ++idx;
-		} else if( !strcmp( argv[idx], "-translations" ) ) {
-			ori = TRANSLATIONS_ONLY;
-		} else if( !strcmp( argv[idx], "-rotations" ) ) {
-			ori = TRANSLATIONS_ROTATIONS;
-		} else if( !strcmp( argv[idx], "-omino" ) ) {
+		if( !strcmp( argv[idx], "-omino" ) ) {
 			grid_type = OMINO;
 		} else if( !strcmp( argv[idx], "-hex" ) ) {
 			grid_type = HEX;
@@ -153,8 +115,6 @@ int main( int argc, char **argv )
 		    grid_type = ABOLO;
 		} else if( !strcmp( argv[idx], "-drafter" ) ) {
 		    grid_type = DRAFTER;
-		} else if( !strcmp( argv[idx], "-kite" ) ) {
-		    grid_type = KITE;
 		}
 	}
 
@@ -172,7 +132,5 @@ int main( int argc, char **argv )
 	    mainLoop<AboloGrid<int16_t>>( cin );
 	} else if( grid_type == DRAFTER ) {
 	    mainLoop<DrafterGrid<int16_t>>( cin );
-	} else if( grid_type == KITE ) {
-	    mainLoop<KiteGrid<int16_t>>( cin );
 	}
 }
