@@ -322,7 +322,23 @@ void HeeschSolver<grid>::extendLevelWithTransforms(
 
 				// This is a small optimization -- coronas beyond the
 				// first can't be anywhere near the kernel.
-				if( cloud_.isAny( Tnew ) || Tnew.isIdentity() ) {
+
+				// CSK: the check cloud_.isAny( Tnew ) worked for a long
+				// time, but was finally broken by a 14-kite in 2023.
+				// The problem was that there was a in cell in the halo
+				// of a Level-1 shape that wasn't covered by any Level-2
+				// shapes, because all possibilities happened to be near
+				// the kernel and were therefore eliminated.  Then, when
+				// we reached Level 2 and that shape tried to activate its
+				// halo, it discovered that some of those cells didn't have
+				// SAT variables!  
+
+				// It might be possible to keep this optimization and then
+				// to catch this problem at the other end, by treating
+				// the failure of getCellVariable() not as a fatal error,
+				// but as a sign that no corona can exist.  But it's a 
+				// small optimization, so just ignore it for now.
+				if( /* cloud_.isAny( Tnew ) || */ Tnew.isIdentity() ) {
 					continue;
 				}
 
@@ -397,6 +413,8 @@ void HeeschSolver<grid>::getClauses(
 		solv.add_clause( cl );
 	}
 
+//	std::cerr << "Interior copies of S must have covered haloes."
+//		<< std::endl;
 	// If a copy of S is used in an interior corona (a k-corona for k < n),
 	// then that copy’s halo cells must be used.
 	cl.resize( 2 );
@@ -413,6 +431,7 @@ void HeeschSolver<grid>::getClauses(
 			}
 		}
 	}
+//	std::cerr << "Done." << std::endl;
 
 	// Used copies of S cannot overlap.
 	cl.resize( 2 );
@@ -438,6 +457,7 @@ void HeeschSolver<grid>::getClauses(
 		}
 	}
 	
+	// Used copies of S cannot overlap.
 	// If a copy of S is used in a k-corona, it must be adjacent to a copy
 	// in a (k−1)-corona
 	// If a copy of S is used in a k-corona, it cannot be adjacent to a
@@ -795,6 +815,12 @@ void HeeschSolver<grid>::debug( std::ostream& os ) const
 		for( auto& i : ti.cells_ ) {
 			os << " " << i << ":" << cells_[i].pos_;
 		}
+		os << std::endl;
+		os << "    Halo:";
+		for( auto& p : cloud_.halo_ ) {
+			auto hp = ti.T_ * p;
+			os << " " << hp ;
+		}	
 		os << std::endl;
 		os << "    Vars:";
 		for( auto i : ti.vars_ ) {

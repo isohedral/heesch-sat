@@ -102,6 +102,7 @@ static void mainLoop( istream& is )
 		solver.increaseLevel();
 
 		while( true ) {
+			// std::cerr << "Now at level " << solver.getLevel() << std::endl;
 			// solver.debug( cout );
 			Solution<coord_t> cur;
 
