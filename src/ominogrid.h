@@ -12,6 +12,7 @@ public:
 	using coord_t = coord;
 	using point_t = point<coord>;
 	using xform_t = xform<coord>;
+	using edge_t = std::pair<point_t, point_t>;
 
 public:
 	static size_t numNeighbours( const point_t& p )
@@ -37,6 +38,32 @@ public:
 	static bool translatable( const point_t& p, const point_t& q )
 	{
 		return true;
+	}
+
+	static std::vector<edge_t> getCellEdges( const point_t& p )
+	{
+		coord_t x = p.getX();
+		coord_t xp1 = static_cast<coord_t>( x + 1 );
+		coord_t y = p.getY();
+		coord_t yp1 = static_cast<coord_t>( y + 1 );
+
+		return std::vector<edge_t> {
+			{ { x, y }, { xp1, y } },
+			{ { xp1, y }, { xp1, yp1 } },
+			{ { xp1, yp1 }, { x, yp1 } },
+			{ { x, yp1 }, { x, y } } };
+	}
+
+	static point<double> vertexToGrid( const point_t& pt ) 
+	{
+		return point<double>( 
+			static_cast<double>(pt.getX()) - 0.5,
+			static_cast<double>(pt.getY()) - 0.5 );
+	}
+
+	static point<double> gridToPage( const point<double>& pt )
+	{
+		return pt;
 	}
 
 	static const size_t num_orientations;

@@ -65,7 +65,7 @@ static void reportConfig( ostream& os, const Solution<coord>& soln )
 				os << pr.first << " ; " << pr.second << endl;
 			}
 		} else {
-			os << "1" << endl << "0; <1,0,0,0,1,0>" << endl;
+			os << "1" << endl << "0 ; <1,0,0,0,1,0>" << endl;
 		}
 	}
 }
@@ -122,6 +122,13 @@ static void mainLoop( istream& is )
 			} else {
 				break;
 			}
+
+/*
+			// Just surround.
+			if( hc > 0 ) {
+				break;
+			}
+*/
 		}
 
 		report<coord_t,grid>( cout, desc, hc, sc, hh, sh );
