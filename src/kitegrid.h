@@ -50,25 +50,30 @@ public:
 		return ((d%2)==0) && (((c-d)%6)==0);
 	}
 
-    static point<double> vertexToGridCoords(point_t pt) {
+	static std::vector<point_t> getCellVertices( const point_t& p )
+    {
+		size_t ori = getTileOrientation( p );
+		point_t cen = p - orientation_offsets[ ori ];
+		std::vector<point_t> ans( 4 );
+		for( size_t idx = 0; idx < 4; ++idx ) {
+			ans[idx] = cen + tile_vertices[ori][idx];
+		}
+			
+        return ans;
+    }
+
+    static point<double> vertexToGrid( const point_t& pt )
+	{
         return {pt.x_ / 2.0, pt.y_ / 2.0};
     }
 
-    static point<double> gridToPageCoords(point<double> pt) {
+    static point<double> gridToPage( const point<double>& pt )
+	{
         const double sqrt3 = 1.73205080756887729353;
         xform<double> T{
                 1.0, 1.0 / 2,0,
                 0, sqrt3 / 2, 0};
         return T * pt;
-    }
-
-    static std::vector<edge_t> getTileEdges( const point_t& p )
-    {
-        std::vector<edge_t> edges;
-        auto vertices = getTileVertices(p);
-        for (size_t i = 0; i < vertices.size(); ++i)
-            edges.emplace_back(vertices[i], vertices[(i+1) % vertices.size()]);
-        return edges;
     }
 
 	static const size_t num_orientations;
@@ -80,25 +85,6 @@ public:
 	static const size_t tile_orientations[36];
 	static const point<int8_t> orientation_offsets[6];
 	static const point<int8_t> tile_vertices[6][4];
-
-private:
-    static std::vector<point_t> getTileVertices( const point_t& p )
-    {
-		size_t ori = getTileOrientation( p );
-		point_t cen = p - orientation_offsets[ ori ];
-		std::vector<point_t> ans( 4 );
-		for( size_t idx = 0; idx < 4; ++idx ) {
-			ans[idx] = cen + tile_vertices[ori][idx];
-		}
-		/*
-		std::cerr << "For " << p << ", got vertices:" << std::endl;
-		for( auto q : ans ) {
-			std::cerr << "  " << q << std::endl;
-		}
-		*/
-			
-        return ans;
-    }
 };
 
 template<typename coord>

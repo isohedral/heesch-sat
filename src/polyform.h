@@ -127,10 +127,6 @@ private:
 				edges.push_back( e );
 				last = cur;
 			}
-/*
-            auto cellEdges = grid::getCellEdges(pt);
-            edges.insert(edges.end(), cellEdges.begin(), cellEdges.end());
-			*/
         }
         return edges;
     }
