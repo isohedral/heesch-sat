@@ -39,6 +39,34 @@ public:
 		return true;
 	}
 
+	static std::vector<point_t> getCellVertices( const point_t& p )
+	{
+		point_t two_p { 
+			static_cast<coord_t>( 3 * p.getX() ), 
+			static_cast<coord_t>( 3 * p.getY() ) };
+
+		return {
+			two_p + point_t { 1, 1 },
+			two_p + point_t { -1, 2 },
+			two_p + point_t { -2, 1 },
+			two_p + point_t { -1, -1 },
+			two_p + point_t { 1, -2 },
+			two_p + point_t { 2, -1 } };
+	}
+
+	static point<double> vertexToGrid( const point_t& pt ) 
+	{
+		return point<double>( 
+			static_cast<double>(pt.getX()) / 3.0,
+			static_cast<double>(pt.getY()) / 3.0 );
+	}
+
+	static point<double> gridToPage( const point<double>& pt )
+	{
+		const double sqrt3 = 1.73205080756887729353;
+		return { pt.getX() + 0.5 * pt.getY(), sqrt3 * pt.getY() / 2.0 };
+	}
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[12];
 	

@@ -40,18 +40,13 @@ public:
 		return true;
 	}
 
-	static std::vector<edge_t> getCellEdges( const point_t& p )
+	static std::vector<point_t> getCellVertices( const point_t& p )
 	{
-		coord_t x = p.getX();
-		coord_t xp1 = static_cast<coord_t>( x + 1 );
-		coord_t y = p.getY();
-		coord_t yp1 = static_cast<coord_t>( y + 1 );
-
-		return std::vector<edge_t> {
-			{ { x, y }, { xp1, y } },
-			{ { xp1, y }, { xp1, yp1 } },
-			{ { xp1, yp1 }, { x, yp1 } },
-			{ { x, yp1 }, { x, y } } };
+		return {
+			p, 
+			p + point_t { 1, 0 },
+			p + point_t { 1, 1 },
+			p + point_t { 0, 1 } };
 	}
 
 	static point<double> vertexToGrid( const point_t& pt ) 

@@ -53,7 +53,9 @@ public:
     [[nodiscard]] std::vector<point<double>> getGridOutlineVertices() const {
         auto outlineVertices = getOutlineVertices();
         std::vector<point<double>> answer{};
-        for (auto pt : outlineVertices) answer.push_back(grid::vertexToGrid(pt));
+        for (auto pt : outlineVertices) {
+			answer.push_back(grid::vertexToGrid(pt));
+		}
         return answer;
     }
 
@@ -76,6 +78,7 @@ private:
             vertices.push_back(v);
             v = mp[v];
         } while (v != start);
+
         return vertices;
     }
 
@@ -116,8 +119,18 @@ private:
     std::vector<edge_t> getAllTileEdges() const {
         std::vector<edge_t> edges;
         for (const point_t &pt : pts) {
+			std::vector<point_t> verts = grid::getCellVertices( pt );
+			point_t last = verts.back();
+			for( const point_t& cur : verts ) {
+				edge_t e { last, cur };
+				// canon( e );
+				edges.push_back( e );
+				last = cur;
+			}
+/*
             auto cellEdges = grid::getCellEdges(pt);
             edges.insert(edges.end(), cellEdges.begin(), cellEdges.end());
+			*/
         }
         return edges;
     }

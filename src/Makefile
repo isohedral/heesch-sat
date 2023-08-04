@@ -1,7 +1,8 @@
 INCLUDES = -I/usr/local/include/cryptominisat5 -I/usr/local/include -I/opt/local/include
 
 CXX = clang++
-OPT = -O3  -DNDEBUG
+OPT = -g
+# OPT = -O3  -DNDEBUG
 CXXFLAGS = -std=c++17 -Wall -MMD $(INCLUDES) $(OPT) -stdlib=libc++ \
 	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk 
 LIBS = -L/usr/local/lib -lcryptominisat5
@@ -17,14 +18,14 @@ sat: sat.o
 viz: viz.o
 	$(CXX) $(LIBS) -o viz viz.o
 
-bigpatch: bigpatch.o 
-	$(CPP) $(LIBS) -o bigpatch bigpatch.o
-
-surrounds: surrounds.o 
-	$(CPP) $(LIBS) -o surrounds surrounds.o
-
-isohedral: isohedral.o 
-	$(CPP) $(LIBS) -o isohedral isohedral.o
+# bigpatch: bigpatch.o 
+# 	$(CPP) $(LIBS) -o bigpatch bigpatch.o
+# 
+# surrounds: surrounds.o 
+# 	$(CPP) $(LIBS) -o surrounds surrounds.o
+# 
+# isohedral: isohedral.o 
+# 	$(CPP) $(LIBS) -o isohedral isohedral.o
 
 -include ${DEPENDS}
 

@@ -8,6 +8,7 @@
 // #include "draftergrid.h"
 // #include "kitegrid.h"
 #include "ominogrid.h"
+#include "hexgrid.h"
 
 /*
 enum GRID {
@@ -20,7 +21,8 @@ enum GRID {
 */
 
 enum GRID {
-	OMINO
+	OMINO,
+	HEX
 };
 
 static GRID grid_type = OMINO;
@@ -45,37 +47,20 @@ int main(int argc, char **argv) {
             ++idx;
 		} else if (!strcmp(argv[idx], "-maxonly")) {
 			max_only = true;
-			/*
-        } else if (!strcmp(argv[idx], "-3636")) {
-            grid_type = GRID3636;
-        } else if (!strcmp(argv[idx], "-abolo")) {
-            grid_type = ABOLO;
-        } else if (!strcmp(argv[idx], "-drafter")) {
-            grid_type = DRAFTER;
-        } else if (!strcmp(argv[idx], "-kite")) {
-            grid_type = KITE;
-			*/
+        } else if (!strcmp(argv[idx], "-omino")) {
+            grid_type = OMINO;
+        } else if (!strcmp(argv[idx], "-hex")) {
+            grid_type = HEX;
         } else if (!strcmp(argv[idx], "-orientation")) {
 			ori_col = true;
 		}
     }
 
-/*
-    if (grid_type == OCTASQUARE) {
-        mainLoop<OctaSquareGrid<int16_t>>(std::cin);
-    } else if (grid_type == GRID3636) {
-        mainLoop<Grid3636<int16_t>>(std::cin);
-    } else if (grid_type == ABOLO) {
-        mainLoop<AboloGrid<int16_t>>(std::cin);
-    } else if (grid_type == DRAFTER) {
-        mainLoop<DrafterGrid<int16_t>>(std::cin);
-    } else if (grid_type == KITE) {
-        mainLoop<KiteGrid<int16_t>>(std::cin);
+    if (grid_type == OMINO) {
+		mainLoop<OminoGrid<int16_t>>(std::cin);
+    } else if (grid_type == HEX) {
+		mainLoop<HexGrid<int16_t>>(std::cin);
 	}
-
-*/
-
-	mainLoop<OminoGrid<int16_t>>(std::cin);
 
     return 0;
 }
