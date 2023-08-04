@@ -9,6 +9,7 @@
 // #include "kitegrid.h"
 #include "ominogrid.h"
 #include "hexgrid.h"
+#include "iamondgrid.h"
 
 /*
 enum GRID {
@@ -22,7 +23,8 @@ enum GRID {
 
 enum GRID {
 	OMINO,
-	HEX
+	HEX,
+	IAMOND
 };
 
 static GRID grid_type = OMINO;
@@ -51,6 +53,8 @@ int main(int argc, char **argv) {
             grid_type = OMINO;
         } else if (!strcmp(argv[idx], "-hex")) {
             grid_type = HEX;
+        } else if (!strcmp(argv[idx], "-iamond")) {
+            grid_type = IAMOND;
         } else if (!strcmp(argv[idx], "-orientation")) {
 			ori_col = true;
 		}
@@ -60,6 +64,8 @@ int main(int argc, char **argv) {
 		mainLoop<OminoGrid<int16_t>>(std::cin);
     } else if (grid_type == HEX) {
 		mainLoop<HexGrid<int16_t>>(std::cin);
+    } else if (grid_type == IAMOND) {
+		mainLoop<IamondGrid<int16_t>>(std::cin);
 	}
 
     return 0;

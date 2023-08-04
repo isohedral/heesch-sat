@@ -11,6 +11,7 @@
 #include "grid3636.h"
 #include "abologrid.h"
 #include "draftergrid.h"
+#include "kitegrid.h"
 
 using namespace std;
 
@@ -21,7 +22,8 @@ enum GRID {
 	OCTASQUARE,
 	GRID3636,
 	ABOLO,
-	DRAFTER
+	DRAFTER, 
+	KITE
 };
 
 static bool no_reflections = false;
@@ -88,7 +90,7 @@ static void mainLoop( istream& is )
 
 	readShape( is, shape, desc );
 
-	HeeschSolver<grid> solver { shape, no_reflections };
+	HeeschSolver<grid> solver { shape, no_reflections ? TRANSLATIONS_ROTATIONS : ALL };
 	for( size_t idx = 0; idx < heesch_level; ++idx ) {
 		solver.increaseLevel();
 	}
@@ -122,6 +124,8 @@ int main( int argc, char **argv )
 		    grid_type = ABOLO;
 		} else if( !strcmp( argv[idx], "-drafter" ) ) {
 		    grid_type = DRAFTER;
+		} else if( !strcmp( argv[idx], "-kite" ) ) {
+		    grid_type = KITE;
 		}
 	}
 
@@ -139,5 +143,7 @@ int main( int argc, char **argv )
 	    mainLoop<AboloGrid<int16_t>>( cin );
 	} else if( grid_type == DRAFTER ) {
 	    mainLoop<DrafterGrid<int16_t>>( cin );
+	} else if( grid_type == KITE ) {
+	    mainLoop<KiteGrid<int16_t>>( cin );
 	}
 }

@@ -52,6 +52,34 @@ public:
 		return ((p.x_-q.x_) % 3) == 0;
 	}
 
+	static std::vector<point_t> getCellVertices( const point_t& p )
+	{
+		if( isBlack( p ) ) {
+			return { 
+				p + point_t { -1, 2 },
+				p + point_t { -1, -1 },
+				p + point_t { 2, -1 } };
+		} else {
+			return { 
+				p + point_t { 1, 1 },
+				p + point_t { -2, 1 },
+				p + point_t { 1, -2 } };
+		}
+	}
+
+	static point<double> vertexToGrid( const point_t& pt ) 
+	{
+		return point<double>( 
+			static_cast<double>(pt.getX()),
+			static_cast<double>(pt.getY()) );
+	}
+
+	static point<double> gridToPage( const point<double>& pt )
+	{
+		const double sqrt3 = 1.73205080756887729353;
+		return { pt.getX() + 0.5 * pt.getY(), sqrt3 * pt.getY() / 2.0 };
+	}
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[12];
 	

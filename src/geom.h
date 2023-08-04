@@ -16,7 +16,8 @@ public:
 	{}
 	template<typename ocoord>
 	point( const point<ocoord>& other ) 
-		: x_ { other.x_ }, y_ { other.y_ }
+		: x_ { static_cast<coord>( other.x_ ) }
+		, y_ { static_cast<coord>( other.y_ ) }
 	{}
 	point( coord x, coord y ) 
 		: x_ { x }, y_ { y }
@@ -122,8 +123,12 @@ public:
 	{}
 	template<typename ocoord>
 	xform( const xform<ocoord>& other )
-		: a_ { other.a_ } , b_ { other.b_ } , c_ { other.c_ }
-		, d_ { other.d_ } , e_ { other.e_ } , f_ { other.f_ }
+		: a_ { static_cast<coord>( other.a_ ) } 
+		, b_ { static_cast<coord>( other.b_ ) } 
+		, c_ { static_cast<coord>( other.c_ ) }
+		, d_ { static_cast<coord>( other.d_ ) } 
+		, e_ { static_cast<coord>( other.e_ ) } 
+		, f_ { static_cast<coord>( other.f_ ) }
 	{}
 
 	template<typename ocoord>
