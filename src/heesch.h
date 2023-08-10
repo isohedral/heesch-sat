@@ -539,6 +539,12 @@ template<typename grid> bool HeeschSolver<grid>::isIsohedral(
 		return false;
 	}
 
+	return true;
+
+#if 0
+	// Everything in here was just some preliminary playing around and
+	// doesn't work at all.
+
 	// Implicitly var_id 1
 	xform_t I = xform_t {};
 
@@ -646,6 +652,7 @@ template<typename grid> bool HeeschSolver<grid>::isIsohedral(
 	} else {
 		return false;
 	}
+#endif
 }
 
 template<typename grid>
