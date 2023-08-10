@@ -1,2 +1,6 @@
 .*
 !/.gitignore
+src/sat
+src/viz
+*.d
+*.o

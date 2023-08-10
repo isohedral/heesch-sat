@@ -121,8 +121,10 @@ private:
 			// tilings.push_back(readTiling());
 		}
 
-		std::cerr << "Skipped " << holes << " shapes with internal holes"
-			<< std::endl;
+		if( holes > 0 ) {
+			std::cerr << "Skipped " << holes << " shapes with internal holes"
+				<< std::endl;
+		}
     }
 
     Tiling readTiling() {

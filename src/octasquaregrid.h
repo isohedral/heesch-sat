@@ -82,13 +82,15 @@ public:
         return getTileShape(getTileType(p));
     }
 
-    static std::vector<edge_t> getTileEdges( const point_t& p )
+    static std::vector<point_t> getCellVertices( const point_t& p )
     {
-        std::vector<edge_t> edges;
-        auto vertices = getTileVertices(p);
-        for (size_t i = 0; i < vertices.size(); ++i)
-            edges.emplace_back(vertices[i], vertices[(i+1) % vertices.size()]);
-        return edges;
+        const auto &vertexVecs = (getTileType(p) == SQUARE ? squareVertices : octagonVertices);
+
+        std::vector<point_t> ans { vertexVecs.size() };
+        for (size_t i = 0; i < vertexVecs.size(); ++i) {
+            ans[i] = p + p + vertexVecs[i];
+		}
+        return ans;
     }
 
     // assumes dir is a valid direction
@@ -100,15 +102,18 @@ public:
     static int8_t rotateDirection( int8_t dir ) { return (dir + 2) % boundaryWordDirections.size(); }
     static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
 
-    static point<double> vertexToGridCoords(point_t pt) {
-        const double shift = 0.0857864376269049512; // (sqrt(2) − 1) / (2 + 2*sqrt(2))
-        // Shift vertices to make the octagons regular, instead of having edges of length 1 and sqrt(2).
+    static point<double> vertexToGrid( const point_t& pt ) {
+		// (sqrt(2) − 1) / (2 + 2*sqrt(2))
+        const double shift = 0.0857864376269049512; 
+
+        // Shift vertices to make the octagons regular, instead of 
+		// having edges of length 1 and sqrt(2).
         double x = pt.x_ % 2 == 0 ? pt.x_ - shift : pt.x_ + shift;
         double y = pt.y_ % 2 == 0 ? pt.y_ - shift : pt.y_ + shift;
         return {x / 2.0 - 0.25, y / 2.0 - 0.25};
     }
 
-    static point<double> gridToPageCoords(point<double> pt) {
+    static point<double> gridToPage( const point<double>& pt) {
         return pt;
     }
 

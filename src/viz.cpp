@@ -2,30 +2,18 @@
 
 #include "visualizer.h"
 
-// #include "octasquaregrid.h"
-// #include "grid3636.h"
-// #include "abologrid.h"
-// #include "draftergrid.h"
 #include "ominogrid.h"
 #include "hexgrid.h"
 #include "iamondgrid.h"
 #include "kitegrid.h"
-
-/*
-enum GRID {
-    OCTASQUARE,
-    GRID3636,
-    ABOLO,
-    DRAFTER,
-	KITE
-};
-*/
+#include "octasquaregrid.h"
 
 enum GRID {
 	OMINO,
 	HEX,
 	IAMOND,
-	KITE
+	KITE,
+	OCTASQUARE
 };
 
 static GRID grid_type = OMINO;
@@ -58,6 +46,8 @@ int main(int argc, char **argv) {
             grid_type = IAMOND;
         } else if (!strcmp(argv[idx], "-kite")) {
             grid_type = KITE;
+        } else if (!strcmp(argv[idx], "-octasquare")) {
+            grid_type = OCTASQUARE;
         } else if (!strcmp(argv[idx], "-orientation")) {
 			ori_col = true;
 		}
@@ -71,6 +61,8 @@ int main(int argc, char **argv) {
 		mainLoop<IamondGrid<int16_t>>(std::cin);
     } else if (grid_type == KITE) {
 		mainLoop<KiteGrid<int16_t>>(std::cin);
+    } else if (grid_type == OCTASQUARE) {
+		mainLoop<OctaSquareGrid<int16_t>>(std::cin);
 	}
 
     return 0;
