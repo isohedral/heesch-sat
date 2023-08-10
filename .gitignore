@@ -5,3 +5,4 @@ src/viz
 *.d
 *.o
 src/surrounds
+src/isohedral
