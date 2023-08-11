@@ -81,13 +81,13 @@ public:
         return getTileShape(getTileType(p));
     }
 
-    static std::vector<edge_t> getTileEdges( const point_t& p )
+    static std::vector<point_t> getCellVertices( const point_t& p )
     {
-        std::vector<edge_t> edges;
-        auto vertices = getTileVertices(p);
-        for (size_t i = 0; i < vertices.size(); ++i)
-            edges.emplace_back(vertices[i], vertices[(i+1) % vertices.size()]);
-        return edges;
+        const auto &vertexVecs = vertices[getTileType(p)];
+        std::vector<point_t> ans(vertexVecs.size());
+        for (size_t i = 0; i < vertexVecs.size(); ++i)
+            ans[i] = p + p + vertexVecs[i];
+        return ans;
     }
 
     static int8_t getBoundaryWordDirection( const point_t dir ) {
@@ -98,16 +98,15 @@ public:
     static int8_t rotateDirection( int8_t dir ) { return (dir + 1) % boundaryWordDirections.size(); }
     static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
 
-    static point<double> vertexToGridCoords(point_t pt) {
+    static point<double> vertexToGrid( const point_t& pt )
+	{
         return {pt.x_ / 2.0, pt.y_ / 2.0};
     }
 
-    static point<double> gridToPageCoords(point<double> pt) {
+    static point<double> gridToPage( const point<double>& pt )
+	{
         const double sqrt3 = 1.73205080756887729353;
-        xform<double> T{
-                1.0, 1.0 / 2,0,
-                0, sqrt3 / 2, 0};
-        return T * pt;
+		return { pt.x_ + 0.5*pt.y_, 0.5 * sqrt3 * pt.y_ };
     }
 
     static bool hasMates() { return false; }
@@ -117,14 +116,6 @@ public:
     }
 
 private:
-    static std::vector<point_t> getTileVertices( const point_t& p )
-    {
-        const auto &vertexVecs = vertices[getTileType(p)];
-        std::vector<point_t> ans(vertexVecs.size());
-        for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = p + p + vertexVecs[i];
-        return ans;
-    }
 };
 
 template<typename coord>

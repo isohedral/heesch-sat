@@ -29,6 +29,7 @@ inline GridType getGridType( int& argc, char **argv )
 		{ "-hex", HEX }, 
 		{ "-iamond", IAMOND },
 		{ "-octasquare", OCTASQUARE },
+		{ "-trihex", TRIHEX },
 		{ "-kite", KITE },
 	};
 
@@ -71,6 +72,8 @@ inline GridType getGridType( int& argc, char **argv )
 			func<IamondGrid<int16_t>>( argc, argv ); \
 		} else if( grid == OCTASQUARE ) { \
 			func<OctaSquareGrid<int16_t>>( argc, argv ); \
+		} else if( grid == TRIHEX ) { \
+			func<TriHexGrid<int16_t>>( argc, argv ); \
 		} else if( grid == KITE ) { \
 			func<KiteGrid<int16_t>>( argc, argv ); \
 		} \
