@@ -6,7 +6,7 @@
 #include "geom.h"
 
 template<typename coord>
-class Grid3636
+class TriHexGrid
 {
 public:
 	using coord_t = coord;
@@ -128,7 +128,7 @@ private:
 };
 
 template<typename coord>
-const point<int8_t> Grid3636<coord>::all_neighbours[3][12] = {
+const point<int8_t> TriHexGrid<coord>::all_neighbours[3][12] = {
     {
         { 0, -1 },
         { 1, -1 },
@@ -162,7 +162,7 @@ const point<int8_t> Grid3636<coord>::all_neighbours[3][12] = {
 };
 
 template<typename coord>
-const point<int8_t> Grid3636<coord>::edge_neighbours[3][6] = {
+const point<int8_t> TriHexGrid<coord>::edge_neighbours[3][6] = {
     {
         { 0, -1 },
         { 0, 1 },
@@ -184,17 +184,17 @@ const point<int8_t> Grid3636<coord>::edge_neighbours[3][6] = {
 };
 
 template<typename coord>
-const point<int8_t> Grid3636<coord>::origins[3] = {
+const point<int8_t> TriHexGrid<coord>::origins[3] = {
     {0, 0},
     {1,0},
     {2, 0}
 };
 
 template<typename coord>
-const size_t Grid3636<coord>::num_orientations = 12;
+const size_t TriHexGrid<coord>::num_orientations = 12;
 
 template<typename coord>
-const xform<int8_t> Grid3636<coord>::orientations[12] = {
+const xform<int8_t> TriHexGrid<coord>::orientations[12] = {
         { 1, 0, 0,     0, 1, 0 },
         { 0, -1, 0,    1, 1, 0 },
         { -1, -1, 0,   1, 0, 0 },
@@ -210,7 +210,7 @@ const xform<int8_t> Grid3636<coord>::orientations[12] = {
         { 1, 1, 0,     0, -1, 0 } };
 
 template<typename coord>
-const std::vector<point<int8_t>> Grid3636<coord>::vertices[3] = {
+const std::vector<point<int8_t>> TriHexGrid<coord>::vertices[3] = {
     {
         {-1, -1}, {-2, 1}, {-1, 2}, {1, 1}, {2, -1}, {1, -2}
     },
@@ -223,5 +223,5 @@ const std::vector<point<int8_t>> Grid3636<coord>::vertices[3] = {
 };
 
 template<typename coord>
-const std::vector<point<int8_t>> Grid3636<coord>::boundaryWordDirections = {
+const std::vector<point<int8_t>> TriHexGrid<coord>::boundaryWordDirections = {
         {2, -1}, {1, -2}, {-1, -1}, {-2, 1}, {-1, 2}, {1, 1}};

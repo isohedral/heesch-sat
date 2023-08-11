@@ -10,7 +10,7 @@ OBJECTS = sat.o viz.o
 
 DEPENDS = ${OBJECTS:.o=.d}
 
-all: sat viz
+all: sat viz surrounds
 
 sat: sat.o 
 	$(CXX) $(LIBS) -o sat sat.o
@@ -18,11 +18,12 @@ sat: sat.o
 viz: viz.o
 	$(CXX) $(LIBS) -o viz viz.o
 
+surrounds: surrounds.o 
+	$(CXX) $(LIBS) -o surrounds surrounds.o
+
 # bigpatch: bigpatch.o 
 # 	$(CPP) $(LIBS) -o bigpatch bigpatch.o
 # 
-# surrounds: surrounds.o 
-# 	$(CPP) $(LIBS) -o surrounds surrounds.o
 # 
 # isohedral: isohedral.o 
 # 	$(CPP) $(LIBS) -o isohedral isohedral.o

@@ -2,6 +2,77 @@
 
 #include "geom.h"
 
+#include "ominogrid.h"
+#include "hexgrid.h"
+#include "iamondgrid.h"
+#include "octasquaregrid.h"
+#include "trihexgrid.h"
+#include "abologrid.h"
+#include "draftergrid.h"
+#include "kitegrid.h"
+
+enum GridType {
+	OMINO,
+	HEX,
+	IAMOND,
+	OCTASQUARE,
+	TRIHEX,
+	ABOLO,
+	DRAFTER, 
+	KITE
+};
+
+// Ugh!  Surely there's a more elegant, non-macro way to make this work?
+#define bootstrap_grid( argc, argv, func ) \
+	{ \
+		size_t idx = 1; \
+		GridType grid = OMINO; \
+		while( idx < argc ) {  \
+			if( !strcmp( argv[idx], "-omino" ) ) { \
+				grid = OMINO; \
+				break; \
+			} else if( !strcmp( argv[idx], "-hex" ) ) { \
+				grid = HEX; \
+				break; \
+			} else if( !strcmp( argv[idx], "-iamond" ) ) { \
+				grid = IAMOND; \
+				break; \
+			} else if( !strcmp( argv[idx], "-octasquare" ) ) { \
+				grid = OCTASQUARE; \
+				break; \
+			} else if( !strcmp( argv[idx], "-trihex" ) ) { \
+				grid = TRIHEX; \
+				break; \
+			} else if( !strcmp( argv[idx], "-abolo" ) ) { \
+				grid = ABOLO; \
+				break; \
+			} else if( !strcmp( argv[idx], "-drafter" ) ) { \
+				grid = DRAFTER; \
+				break; \
+			} else if( !strcmp( argv[idx], "-kite" ) ) { \
+				grid = KITE; \
+				break; \
+			} \
+			++idx; \
+		} \
+		++idx; \
+		while( idx < argc ) { \
+			argv[idx-1] = argv[idx]; \
+			++idx; \
+		} \
+		if( grid == OMINO ) { \
+			func<OminoGrid<int16_t>>( argc, argv ); \
+		} else if( grid == HEX ) { \
+			func<HexGrid<int16_t>>( argc, argv ); \
+		} else if( grid == IAMOND ) { \
+			func<IamondGrid<int16_t>>( argc, argv ); \
+		} else if( grid == OCTASQUARE ) { \
+			func<OctaSquareGrid<int16_t>>( argc, argv ); \
+		} else if( grid == KITE ) { \
+			func<KiteGrid<int16_t>>( argc, argv ); \
+		} \
+	}
+
 template<typename grid>
 struct neighbour_maker
 {

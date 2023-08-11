@@ -1,35 +1,16 @@
 #include <iostream>
 
 #include "visualizer.h"
+#include "grid.h"
 
-#include "ominogrid.h"
-#include "hexgrid.h"
-#include "iamondgrid.h"
-#include "kitegrid.h"
-#include "octasquaregrid.h"
-
-enum GRID {
-	OMINO,
-	HEX,
-	IAMOND,
-	KITE,
-	OCTASQUARE
-};
-
-static GRID grid_type = OMINO;
 static int max_level = INT_MAX;
 static bool max_only = false;
 
 static bool ori_col = false;
 
 template<typename grid>
-static void mainLoop(std::istream& in) {
-    Visualizer<grid> p{std::cin, std::cout, false, max_level, max_only, ori_col};
-    p.run();
-}
-
-int main(int argc, char **argv) {
-
+static void gridMain( int argc, char **argv )
+{
     for (int idx = 1; idx < argc; ++idx) {
         if( !strcmp( argv[idx], "-maxlevel" ) ) {
             // Display the shapes whose Heesch number is maximum
@@ -38,32 +19,18 @@ int main(int argc, char **argv) {
             ++idx;
 		} else if (!strcmp(argv[idx], "-maxonly")) {
 			max_only = true;
-        } else if (!strcmp(argv[idx], "-omino")) {
-            grid_type = OMINO;
-        } else if (!strcmp(argv[idx], "-hex")) {
-            grid_type = HEX;
-        } else if (!strcmp(argv[idx], "-iamond")) {
-            grid_type = IAMOND;
-        } else if (!strcmp(argv[idx], "-kite")) {
-            grid_type = KITE;
-        } else if (!strcmp(argv[idx], "-octasquare")) {
-            grid_type = OCTASQUARE;
         } else if (!strcmp(argv[idx], "-orientation")) {
 			ori_col = true;
 		}
     }
 
-    if (grid_type == OMINO) {
-		mainLoop<OminoGrid<int16_t>>(std::cin);
-    } else if (grid_type == HEX) {
-		mainLoop<HexGrid<int16_t>>(std::cin);
-    } else if (grid_type == IAMOND) {
-		mainLoop<IamondGrid<int16_t>>(std::cin);
-    } else if (grid_type == KITE) {
-		mainLoop<KiteGrid<int16_t>>(std::cin);
-    } else if (grid_type == OCTASQUARE) {
-		mainLoop<OctaSquareGrid<int16_t>>(std::cin);
-	}
+    Visualizer<grid> p
+		{std::cin, std::cout, false, max_level, max_only, ori_col};
+    p.run();
+}
 
-    return 0;
+int main( int argc, char **argv )
+{
+	bootstrap_grid( argc, argv, gridMain ) 
+	return 0;
 }
