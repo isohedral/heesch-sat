@@ -22,44 +22,47 @@ enum GridType {
 	KITE
 };
 
+inline GridType getGridType( int& argc, char **argv )
+{
+	static const std::pair<const char *, GridType> types[] = {
+		{ "-omino", OMINO }, 
+		{ "-hex", HEX }, 
+		{ "-iamond", IAMOND },
+		{ "-octasquare", OCTASQUARE },
+		{ "-kite", KITE },
+	};
+
+	size_t idx = 1; 
+	GridType grid = OMINO; 
+	bool found = false;
+	while( idx < argc ) {  
+		for( auto& p : types ) {
+			if( !strcmp( argv[idx], p.first ) ) {
+				grid = p.second;
+				found = true;
+				break;
+			}
+		}
+		if( found ) {
+			break;
+		}
+		++idx;
+	}
+
+	++idx; 
+	while( idx < argc ) { 
+		argv[idx-1] = argv[idx]; 
+		++idx; 
+	} 
+
+	--argc;
+	return grid;
+}
+
 // Ugh!  Surely there's a more elegant, non-macro way to make this work?
 #define bootstrap_grid( argc, argv, func ) \
 	{ \
-		size_t idx = 1; \
-		GridType grid = OMINO; \
-		while( idx < argc ) {  \
-			if( !strcmp( argv[idx], "-omino" ) ) { \
-				grid = OMINO; \
-				break; \
-			} else if( !strcmp( argv[idx], "-hex" ) ) { \
-				grid = HEX; \
-				break; \
-			} else if( !strcmp( argv[idx], "-iamond" ) ) { \
-				grid = IAMOND; \
-				break; \
-			} else if( !strcmp( argv[idx], "-octasquare" ) ) { \
-				grid = OCTASQUARE; \
-				break; \
-			} else if( !strcmp( argv[idx], "-trihex" ) ) { \
-				grid = TRIHEX; \
-				break; \
-			} else if( !strcmp( argv[idx], "-abolo" ) ) { \
-				grid = ABOLO; \
-				break; \
-			} else if( !strcmp( argv[idx], "-drafter" ) ) { \
-				grid = DRAFTER; \
-				break; \
-			} else if( !strcmp( argv[idx], "-kite" ) ) { \
-				grid = KITE; \
-				break; \
-			} \
-			++idx; \
-		} \
-		++idx; \
-		while( idx < argc ) { \
-			argv[idx-1] = argv[idx]; \
-			++idx; \
-		} \
+		GridType grid = getGridType( argc, argv ); \
 		if( grid == OMINO ) { \
 			func<OminoGrid<int16_t>>( argc, argv ); \
 		} else if( grid == HEX ) { \

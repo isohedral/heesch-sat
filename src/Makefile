@@ -6,7 +6,7 @@ OPT = -g
 CXXFLAGS = -std=c++17 -Wall -MMD $(INCLUDES) $(OPT) -stdlib=libc++ \
 	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk 
 LIBS = -L/usr/local/lib -lcryptominisat5
-OBJECTS = sat.o viz.o
+OBJECTS = sat.o viz.o surrounds.o
 
 DEPENDS = ${OBJECTS:.o=.d}
 
@@ -21,26 +21,9 @@ viz: viz.o
 surrounds: surrounds.o 
 	$(CXX) $(LIBS) -o surrounds surrounds.o
 
-# bigpatch: bigpatch.o 
-# 	$(CPP) $(LIBS) -o bigpatch bigpatch.o
-# 
-# 
-# isohedral: isohedral.o 
-# 	$(CPP) $(LIBS) -o isohedral isohedral.o
-
 -include ${DEPENDS}
 
 .PHONY: clean
 
 clean:
-	rm ${OBJECTS} ${DEPENDS} sat viz
-
-# sat.o: sat.cpp cloud.h common.h geom.h heesch.h holes.h shape.h $(GRIDS)
-# 	$(CPP) $(CPPFLAGS) -c -o sat.o sat.cpp
-
-# surrounds.o: surrounds.cpp cloud.h common.h geom.h heesch.h holes.h shape.h $(GRIDS)
-# 	$(CPP) $(CPPFLAGS) -c -o surrounds.o surrounds.cpp
-
-# isohedral.o: isohedral.cpp cloud.h common.h geom.h heesch.h holes.h shape.h $(GRIDS)
-# 	$(CPP) $(CPPFLAGS) -c -o isohedral.o isohedral.cpp
-
+	rm ${OBJECTS} ${DEPENDS} sat viz surrounds
