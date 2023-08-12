@@ -80,6 +80,8 @@ public:
 		return { pt.getX() + 0.5 * pt.getY(), sqrt3 * pt.getY() / 2.0 };
 	}
 
+	static const point_t origins[2];
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[12];
 	
@@ -87,6 +89,12 @@ public:
 	static const point<int8_t> all_neighbours_grey[12];
 	static const point<int8_t> edge_neighbours_black[3];
 	static const point<int8_t> edge_neighbours_grey[3];
+};
+
+template<typename coord>
+const point<coord> IamondGrid<coord>::origins[2] = {
+	{ 0, 0 }, 
+	{ 1, -2 }
 };
 
 template<typename coord>

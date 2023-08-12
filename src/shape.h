@@ -162,6 +162,14 @@ bool Shape<grid>::simplyConnected() const
 	Shape<grid> halo;
 	Shape<grid> border;
 	getHaloAndBorder( halo, border );
+	
+	/*
+	std::cerr << "Halo:";
+	for( auto p : halo ) {
+		std::cerr << " " << p;
+	} 
+	std::cerr << std::endl;
+	*/
 
 	// Make it easy to look things up in the halo
 	point_set<coord_t> halo_set;

@@ -18,10 +18,6 @@ public:
         HEXAGON, TRIANGLE_RIGHT, TRIANGLE_LEFT
     };
 
-	enum TileShape {
-	    HEXAGON_SHAPE, TRIANGLE_SHAPE
-	};
-
 public:
     static size_t numTileTypes() { return 3; }
     static size_t numTileShapes() { return 2; }
@@ -69,16 +65,6 @@ public:
     static TileType getTileType( const point_t& p )
     {
         return (TileType) (((p.x_ - p.y_) % 3 + 3) % 3);
-    }
-
-    static TileShape getTileShape( const TileType t )
-    {
-        return t == HEXAGON ? HEXAGON_SHAPE : TRIANGLE_SHAPE;
-    }
-
-    static TileShape getTileShape( const point_t& p )
-    {
-        return getTileShape(getTileType(p));
     }
 
     static std::vector<point_t> getCellVertices( const point_t& p )

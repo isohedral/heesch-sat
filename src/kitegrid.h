@@ -76,6 +76,8 @@ public:
         return T * pt;
     }
 
+	static const point_t origins[6];
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[12];
 	
@@ -85,6 +87,16 @@ public:
 	static const size_t tile_orientations[36];
 	static const point<int8_t> orientation_offsets[6];
 	static const point<int8_t> tile_vertices[6][4];
+};
+
+template<typename coord>
+const point<coord> KiteGrid<coord>::origins[6] = {
+	{ 0, 1 },
+	{ -1, 1 }, 
+	{ -1, 0 }, 
+	{ 0, -1 }, 
+	{ 1, -1 }, 
+	{ 1, 0 } 
 };
 
 template<typename coord>

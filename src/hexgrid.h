@@ -67,10 +67,17 @@ public:
 		return { pt.getX() + 0.5 * pt.getY(), sqrt3 * pt.getY() / 2.0 };
 	}
 
+	static const point_t origins[1];
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[12];
 	
 	static const point<int8_t> all_neighbours[6];
+};
+
+template<typename coord>
+const point<coord> HexGrid<coord>::origins[1] = {
+	{ 0, 0 }
 };
 
 template<typename coord>

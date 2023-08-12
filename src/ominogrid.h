@@ -40,6 +40,8 @@ public:
 		return true;
 	}
 
+	// Functions to assist with rendering
+
 	static std::vector<point_t> getCellVertices( const point_t& p )
 	{
 		return {
@@ -61,11 +63,18 @@ public:
 		return pt;
 	}
 
+	static const point_t origins[1];
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[8];
 	
 	static const point<int8_t> all_neighbours[8];
 	static const point<int8_t> edge_neighbours[4];
+};
+
+template<typename coord>
+const point<coord> OminoGrid<coord>::origins[1] = {
+	{ 0, 0 }
 };
 
 template<typename coord>

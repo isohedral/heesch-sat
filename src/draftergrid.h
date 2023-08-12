@@ -22,10 +22,6 @@ public:
         INVALID
     };
 
-    enum TileShape {
-        TRIANGLE_SHAPE
-    };
-
 public:
     static size_t numTileTypes() { return 12; }
     static size_t numTileShapes() { return 1; }
@@ -75,29 +71,40 @@ public:
 
     static TileType getTileType( const point_t& p )
     {
-        return (TileType) (std::find(
-                origins, origins + numTileTypes() + 1,
-                point<int8_t>{(int8_t) ((p.x_ % 7 + 7) % 7), (int8_t) ((p.y_ % 7 + 7) % 7)})
-                - origins);
+		coord_t mx = ((p.x_ % 7) + 7) % 7;
+		coord_t my = ((p.y_ % 7) + 7) % 7;
+		point_t mp { mx, my };
+
+		for( size_t idx = 0; idx < numTileTypes(); ++idx ) {
+			if( origins[idx] == mp ) {
+				return (TileType) idx;
+			}
+		}
+
+		std::cerr << "invalid!" << std::endl;
+		return INVALID;
     }
 
-    static TileShape getTileShape( const TileType t )
+    static std::vector<point_t> getCellVertices( const point_t& p )
     {
-        return TRIANGLE_SHAPE;
-    }
+		static const point_t los[12] = {
+			{ -2, -1 }, { -1, -2 },
+			{ 1, -3 }, { 2, -3 },
+			{ 3, -2 }, { 3, -1 },
+			{ 2, 1 }, { 1, 2 },
+			{ -1, 3 }, { -2, 3 },
+			{ -3, 2 }, { -3, 1 } };
 
-    static TileShape getTileShape( const point_t& p )
-    {
-        return getTileShape(getTileType(p));
-    }
+		auto ttype = getTileType( p );
+        const auto &vertexVecs = vertices[ttype];
+        std::vector<point_t> ans(vertexVecs.size());
+        point_t pTrans = p + los[ttype];
+		// std::cerr << pTrans << std::endl;
+		pTrans = point_t { (coord_t)(pTrans.x_ * 12 / 7), (coord_t)(pTrans.y_ * 12 / 7) };
 
-    static std::vector<edge_t> getTileEdges( const point_t& p )
-    {
-        std::vector<edge_t> edges;
-        auto vertices = getTileVertices(p);
-        for (size_t i = 0; i < vertices.size(); ++i)
-            edges.emplace_back(vertices[i], vertices[(i+1) % vertices.size()]);
-        return edges;
+        for (size_t i = 0; i < vertexVecs.size(); ++i)
+            ans[i] = pTrans + vertexVecs[i];
+        return ans;
     }
 
     static std::vector<int8_t> getBoundaryWordDirection( const point_t &dir ) {
@@ -126,27 +133,15 @@ public:
         return matesList;
     }
 
-    static point<double> vertexToGridCoords(point_t pt) {
-        return {pt.x_ / 6.0, pt.y_ / 6.0};
+    static point<double> vertexToGrid( const point_t& pt )
+	{
+        return {pt.x_ / 6.0 * 3.5, (double)pt.y_ / 6.0 * 3.5};
     }
 
-    static point<double> gridToPageCoords(point<double> pt) {
-        const double sqrt3 = 1.73205080756887729353;
-        xform<double> T{
-            1.0, 1.0 / 2,0,
-            0, sqrt3 / 2, 0};
-        return T * pt;
-    }
-
-private:
-    static std::vector<point_t> getTileVertices( const point_t& p )
-    {
-        const auto &vertexVecs = vertices[getTileType(p)];
-        std::vector<point_t> ans(vertexVecs.size());
-        point_t pTrans{(coord) (p.x_ * 6), (coord) (p.y_ * 6)};
-        for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = pTrans + vertexVecs[i];
-        return ans;
+    static point<double> gridToPage( const point<double>& pt )
+	{
+        const double hr3 = 0.5 * 1.73205080756887729353;
+		return { pt.x_ + 0.5*pt.y_, hr3 * pt.y_ };
     }
 };
 
@@ -471,41 +466,41 @@ const xform<int8_t> DrafterGrid<coord>::orientations[12] = {
 
 template<typename coord>
 const std::vector<point<int8_t>> DrafterGrid<coord>::vertices[12] = {
-        {
-                {2, 8}, {9, -6}, {-12, -6}
+        { // {2,1}
+                {0, 0}, {6, 0}, {4, 4}
         },
-        {
-                {-6, 9}, {8, 2}, {-6, -12}
+        { // {1,2}
+                {4, 4}, {0, 6}, {0, 0}
         },
-        {
-                {-8, 10}, {6, 3}, {6, -18}
+        { // {6,3}
+                {0, 0}, {0,6}, {-4,8}
         },
-        {
-                {-9, 3}, {-2, 10}, {12, -18}
+        { // {5,3}
+                {0, 0}, {-4, 8}, {-6,6}
         },
-        {
-                {-10, 2}, {-3, 9}, {18, -12}
+        { // {4,2}
+                {0, 0}, {-6, 6}, {-8, 4}
         },
-        {
-                {-3, -6}, {-10, 8}, {18, -6}
+        { // {4,1}
+                {0, 0}, {-8, 4}, {-6, 0}
         },
-        {
-                {-2, -8}, {-9, 6}, {12, 6}
+        { // {5,6}
+                {0, 0}, {-6, 0}, {-4, -4}
         },
-        {
-                {6, -9}, {-8, -2}, {6, 12}
+        { // {6,5}
+                {0, 0}, {-4, -4}, {0, -6}
         },
-        {
-                {8, -10}, {-6, -3}, {-6, 18}
+        { // {1,4}
+                {0, 0}, {0, -6}, {4, -8}
         },
-        {
-                {9, -3}, {2, -10}, {-12, 18}
+        { // {2,4}
+                {0, 0}, {4, -8}, {6, -6}
         },
-        {
-                {10, -2}, {3, -9}, {-18, 12}
+        { // {3,5}
+                {0, 0}, {6, -6}, {8, -4}
         },
-        {
-                {3, 6}, {10, -8}, {-18, 6}
+        { // {3,6}
+                {0, 0}, {8, -4}, {6, 0}
         }
 };
 

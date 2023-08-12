@@ -28,19 +28,6 @@ public:
         //canonizalizeBoundaryWord();
     }
 
-    void printBoundary() {
-        for (auto x : boundaryWord) std::cout << (int) x << ' ';
-        std::cout << '\n';
-    }
-
-    bool operator<(const Polyform<grid> &other) const {
-        if (boundaryWord.size() == other.boundaryWord.size()) return boundaryWord < other.boundaryWord;
-        return boundaryWord.size() < other.boundaryWord.size();
-    }
-    bool operator==(const Polyform<grid> &other) const {
-        return boundaryWord == other.boundaryWord;
-    }
-
     [[nodiscard]] bool simplyConnected() const { return shape.simplyConnected(); }
 
     [[nodiscard]] std::string toString() const {
@@ -82,40 +69,6 @@ private:
         return vertices;
     }
 
-    void fillBoundaryWord() {
-        auto outlineVertices = getOutlineVertices();
-        for (size_t i = 0; i < outlineVertices.size(); ++i) {
-            auto dir = outlineVertices[(i+1) % outlineVertices.size()] - outlineVertices[i];
-            boundaryWord.push_back(grid::getBoundaryWordDirection(dir));
-        }
-    }
-
-    void canonizalizeBoundaryWord() {
-        std::vector<int8_t> word = canonicalRotation(boundaryWord);
-        std::vector<int8_t> reflectedWord = canonicalRotation(reflectBoundaryWord(boundaryWord));
-        boundaryWord = word < reflectedWord ? word : reflectedWord;
-    }
-
-    std::vector<int8_t> canonicalRotation(std::vector<int8_t> word) {
-        std::vector<int8_t> least = lexoLeastRotation(word);
-        for (size_t i = 0; i < grid::numRotations() - 1; ++i) {
-            word = lexoLeastRotation(rotateBoundaryWord(word));
-            if (word < least) least = word;
-        }
-        return least;
-    }
-
-    std::vector<int8_t> rotateBoundaryWord(std::vector<int8_t> word) {
-        for (auto &dir : word) dir = grid::rotateDirection(dir);
-        return word;
-    }
-
-    std::vector<int8_t> reflectBoundaryWord(std::vector<int8_t> word) {
-        for (auto &dir : word) dir = grid::reflectDirection(dir);
-        std::reverse(word.begin(), word.end());
-        return word;
-    }
-
     std::vector<edge_t> getAllTileEdges() const {
         std::vector<edge_t> edges;
         for (const point_t &pt : pts) {
@@ -143,8 +96,3 @@ private:
         return a.first == b.first && a.second == b.second;
     }
 };
-
-template <typename grid>
-inline std::ostream& operator <<(std::ostream &os, const Polyform<grid> &poly) {
-    return os << poly.toString();
-}
