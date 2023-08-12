@@ -6,15 +6,17 @@
 #include "grid.h"
 
 template<typename grid>
-using polyform_cb = 
-	std::function<void( const std::vector<typename grid::point_t>& )>;
+using polyform_cb = std::function<
+	void( const typename grid::point_t&, 
+		  const std::vector<typename grid::point_t>& )>;
 
 // Just enumerate fixed polyforms over this grid.
-template<typename grid, typename CB = polyform_cb<grid>>
+template<typename grid>
 class RedelmeierSimple
 {
     using coord_t = typename grid::coord_t;
     using point_t = typename grid::point_t;
+    using shape_t = std::vector<point_t>;
 
     enum CellStatus {
         FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
@@ -22,55 +24,115 @@ class RedelmeierSimple
 
 	using cell_map = point_map<coord_t, CellStatus>;
 
-	CB out;
-	size_t size;
+	cell_map shape;
+	point_t origin;
+	std::vector<point_t> untried;
 
 public:
-	explicit RedelmeierSimple( CB out, size_t sz )
-		: out { out }
-		, size { sz }
+	explicit RedelmeierSimple()
+		: shape {}
+		, origin {}
+		, untried {}
 	{}
 
-	size_t solve()
+	template<typename CB = polyform_cb<grid>>
+	size_t solve( size_t size, CB out )
 	{
 		cell_map shape;
 		size_t total = 0;
+
 		for( const auto& o : grid::origins ) {
-			std::vector<point_t> untried = { o };
-			total += solve( 0, o, shape, untried, 0 );
+			origin = o;
+			shape.clear();
+			untried.clear();
+			untried.push_back( o );
+			total += solve( size, 0, out );
 		}
 
 		return total;
 	}
 
 private:
-	bool contains( cell_map& shape, const point_t& p )
+	bool contains( const point_t& p )
 	{
 		return shape.find( p ) != shape.end();
 	}
 
-	size_t solve( size_t sz, const point_t& origin, cell_map& shape, 
-		std::vector<point_t>& untried, size_t from );
+	template<typename CB>
+	size_t solve( size_t size, size_t from, CB out );
 };
 
-template<typename grid, typename CB>
-size_t RedelmeierSimple<grid, CB>::solve(
-	size_t sz, const RedelmeierSimple::point_t& origin, 
-	RedelmeierSimple::cell_map& shape,
-	std::vector<RedelmeierSimple::point_t>& untried, size_t from )
+// Filter fixed polyforms to obtain free polyforms
+template<typename grid>
+class FreeFilter
 {
-	//	std::cerr << "Solving " << sz << std::endl;
+    using coord_t = typename grid::coord_t;
+    using point_t = typename grid::point_t;
+    using xform_t = typename grid::xform_t;
+    using shape_t = std::vector<point_t>;
 
-	if( sz == size ) {
+	RedelmeierSimple<grid> fixed;
+
+public:
+	explicit FreeFilter()
+		: fixed {}
+		, syms {}
+	{}
+
+	template<typename CB = polyform_cb<grid>>
+	size_t solve( size_t size, CB out )
+	{
+		return fixed.solve( size, [this, out]( 
+			const point_t& origin, const std::vector<point_t>& shape ) {
+				if( checkShape( origin, shape ) ) {
+					out( origin, shape ); 
+				}
+			} );
+	}
+
+private:
+	bool checkShape( const point_t& origin, const shape_t& shape );
+	static int compareShapes( const shape_t& A, const shape_t& B );
+	static shape_t transformShape( 
+		const shape_t& shape, const xform_t& T, const point_t& origin );
+
+	static void dbg( const std::string& s, const shape_t& shape )
+	{
+		std::cerr << s;
+
+		for( const auto& p : shape ) {
+			std::cerr << ' ' << p.x_ << ' ' << p.y_;
+		}
+
+		std::cerr << std::endl;
+	}
+
+	std::vector<shape_t> syms;
+};
+
+template<typename grid>
+template<typename CB>
+size_t RedelmeierSimple<grid>::solve( size_t size, size_t from, CB out )
+{
+	if( size == 0 ) {
 		std::vector<point_t> pts;
+		// size_t evens = 0;
 
 		for( auto& p : shape ) {
 			if( p.second == OCCUPIED ) {
 				pts.push_back( p.first );
+				/*
+				if( (p.first.x_ + p.first.y_) % 2 == 0 ) {
+					++evens;
+				}
+				*/
 			}
 		}
 
-		out( pts );
+		// if( evens == 3 ) {
+			out( origin, pts );
+		// }
+
 		return 1;
 	} else {
 		size_t total = 0;
@@ -81,7 +143,7 @@ size_t RedelmeierSimple<grid, CB>::solve(
 			shape[p] = OCCUPIED;
 
 			for( auto pn : edge_neighbours<grid> { p } ) {
-				if( !(pn < origin) && !contains( shape, pn ) ) {
+				if( !(pn < origin) && !contains( pn ) ) {
 					// FIXME -- this is an inefficient way to check
 					// whether this is a new untried cell.
 					if( std::find( untried.begin(), untried.end(), pn )
@@ -91,7 +153,7 @@ size_t RedelmeierSimple<grid, CB>::solve(
 				}
 			}
 
-			total += solve( sz + 1, origin, shape, untried, idx + 1 );
+			total += solve( size - 1, idx + 1, out );
 			shape[p] = REACHABLE;
 			untried.resize( usz );
 		}
@@ -104,127 +166,123 @@ size_t RedelmeierSimple<grid, CB>::solve(
 	}
 }
 
-#if 0
+template<typename grid>
+bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
+{
+	bool is_symmetric = false;
+
+	shape_t cshape = transformShape( shape, xform_t {}, origin );
+	// dbg( "Checking ", shape );
+
+	// If the shape is asymmetric, output it if it's the lexicographically
+	// first among its transformed copies.  If a symmetry is detected, 
+	// deal with that separately.
+
+	for( size_t idx = 1; idx < grid::num_orientations; ++idx ) {
+		const xform_t& T = grid::orientations[idx];
+		shape_t tshape = transformShape( cshape, T, origin );
+		int cmp = compareShapes( tshape, cshape );
+		if( cmp < 0 ) {
+			// Sorry, you're not canonical
+			return false;
+		} else if( cmp == 0 ) {
+			// Ooh, you're symmetric
+			is_symmetric = true;
+			break;
+		}
+	}
+
+	if( !is_symmetric ) {
+		// No symmetries, so you must be canonical
+		return true;
+	}
+
+	// Store symmetric shapes explicitly.  Must store the lex-min transformed
+	// copy.  Repeat the transform process above -- costs a bit, but it
+	// happens rarely.
+	shape_t min_shape = cshape;
+	for( size_t idx = 1; idx < grid::num_orientations; ++idx ) {
+		const xform_t& T = grid::orientations[idx];
+		shape_t tshape = transformShape( cshape, T, origin );
+		int cmp = compareShapes( tshape, min_shape );
+		if( cmp < 0 ) {
+			min_shape = tshape;
+		}
+	}
+
+	for( const auto& sshape : syms ) {
+		if( compareShapes( sshape, min_shape ) == 0 ) {
+			// We've already seen this one
+			return false;
+		}
+	}
+
+	syms.push_back( min_shape );
+	return true;
+}
 
 template<typename grid>
-class Redelmeier {
-    using point_t = typename grid::point_t;
-    using TileType = typename grid::TileType;
+int FreeFilter<grid>::compareShapes( const shape_t& A, const shape_t& B )
+{
+	// Lex-compare the points in two shapes, which are presumed to contain
+	// the same numbers of points.
 
-    enum CellStatus {
-        FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
-    };
+	for( size_t idx = 0; idx < A.size(); ++idx ) {
+		if( A[idx] < B[idx] ) {
+			return -1;
+		} else if( B[idx] < A[idx] ) {
+			return 1;
+		}
+	}
 
-    std::ostream &out;
-    point_t origin;
-    std::vector<int8_t> tilesLeft;
-    std::map<point_t, CellStatus> cells;
-    std::vector<point_t> occupiedCells;
-    std::vector<Polyform<grid>> symmetricPolys;
-    size_t totalPolys;
+	return 0;
+}
 
-public:
-    explicit Redelmeier(std::ostream &out, std::vector<int8_t> numTiles):
-        out{out}, origin{}, tilesLeft{std::move(numTiles)},
-        cells{}, occupiedCells{}, symmetricPolys{}, totalPolys{0}
-    {}
-
-    size_t solve() {
-        symmetricPolys.clear();
-        totalPolys = 0;
-        for (size_t t = 0; t < grid::numTileTypes(); ++t) {
-            if (tilesLeft[grid::getTileShape((TileType) t)] > 0) {
-                cells.clear();
-                occupiedCells.clear();
-                origin = grid::getTileTypeOrigin((TileType) t);
-                cells[origin] = UNTRIED;
-                solveHelper({origin});
-            }
-        }
-        addSymmetricPolysToAnswer();
-        return totalPolys;
-    }
-
-private:
-    void addSymmetricPolysToAnswer() {
-        std::sort(symmetricPolys.begin(), symmetricPolys.end());
-        symmetricPolys.erase(std::unique(symmetricPolys.begin(), symmetricPolys.end()), symmetricPolys.end());
-        for (auto &poly : symmetricPolys) printPoly(poly);
-    }
-
-    void printPoly(const Polyform<grid> &poly) {
-        out << poly << '\n';
-        ++totalPolys;
-    }
-
-    void solveHelper(const std::vector<point_t> &untriedList) {
-        if (noTilesAreLeft()) {
-            addPolyToAnswer(Polyform<grid>{occupiedCells});
-            return;
-        }
-        for (size_t i = 0; i < untriedList.size(); ++i)
-            if (canPlaceTile(untriedList[i]))
-                placeTile(i, untriedList[i], untriedList);
-        for (const auto &pos : untriedList) cells[pos] = UNTRIED;
-    }
-
-    void addPolyToAnswer(const Polyform<grid> &poly) {
-        if (!poly.simplyConnected()) return;
-        if (poly.isSymmetric()) symmetricPolys.push_back(poly);
-        else if (poly.isCanonical()) printPoly(poly);
-    }
-
-    void placeTile(int i, const point_t &pos, const std::vector<point_t> &untriedList) {
-        --tilesLeft[grid::getTileShape(pos)];
-        cells[pos] = OCCUPIED;
-        occupiedCells.push_back(pos);
-
-        ++tilesLeft[grid::getTileShape(pos)];
-        cells[pos] = REACHABLE;
-        occupiedCells.pop_back();
-    }
-
+template<typename grid>
+typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape( 
+	const shape_t& shape, const xform_t& T, const point_t& origin )
+{
 /*
-    std::vector<point_t> getChildUntriedList(int i, const point_t &pos, const std::vector<point_t> &untriedList ) {
-        std::vector<point_t> childUntriedList(untriedList.begin() + i + 1, untriedList.end());
-        return childUntriedList;
-    }
-
-    std::vector<point_t> getNewUntriedList(const point_t &pos ) {
-        auto newUntriedList = getNewUntriedList(pos);
-        return newUntriedList;
-    }
-
-    std::vector<point_t> getNewUntriedList(const point_t &pos) {
-        std::vector<point_t> newUntriedList{};
-        for (const auto &nxt : edge_neighbours<grid>(pos)) {
-            if (getCellStatus(nxt) == FREE) {
-                cells[nxt] = UNTRIED;
-                newUntriedList.emplace_back(nxt);
-            }
-        }
-        return newUntriedList;
-    }
+	std::cerr << "Transforming";
+	for( auto p : shape ) {
+		std::cerr << ' ' << p;
+	}
+	std::cerr << std::endl;
+	std::cerr << "  by " << T << std::endl;
 */
 
-    CellStatus getCellStatus(const point_t &pos) const {
-        if (pos.y_ < origin.y_ ||
-            (pos.y_ == origin.y_ && pos.x_ < origin.x_))
-            return BLOCKED;
-        try {
-            return cells.at(pos);
-        } catch (std::out_of_range &e) {
-            return FREE;
-        }
-    }
+	// Apply the transform matrix
+	shape_t nshape;
+	for( auto& p : shape ) {
+		nshape.push_back( T * p );
+	}
 
-    [[nodiscard]] bool canPlaceTile(const point_t &pos) const {
-        return tilesLeft[grid::getTileShape(pos)] > 0 && getCellStatus(pos) == UNTRIED;
-    }
+	// Translate so that the lex-first-est point lies at the origin.
+	std::sort( nshape.begin(), nshape.end() );
 
-    [[nodiscard]] bool noTilesAreLeft() const {
-        return std::accumulate(tilesLeft.begin(), tilesLeft.end(), 0) == 0;
-    }
-};
+	point_t mpt;
 
-#endif
+	for( auto& p : nshape ) {
+		if( grid::translatable( p, origin ) ) {
+			mpt = p;
+			break;
+		}
+	}
+
+	point_t d = origin - mpt;
+	for( auto& p : nshape ) {
+		// This actually changes nshape, right?
+		p = p + d;
+	}
+
+/*
+	std::cerr << "Result";
+	for( auto p : nshape ) {
+		std::cerr << ' ' << p;
+	}
+	std::cerr << std::endl;
+	*/
+
+	// FIXME Does this need some sort of move constructor?  Ugh.
+	return nshape;
+}

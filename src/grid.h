@@ -75,27 +75,12 @@ inline GridType getGridType( int& argc, char **argv )
 			func<KiteGrid<int16_t>>( argc, argv ); \
 		} else if( grid == DRAFTER ) { \
 			func<DrafterGrid<int16_t>>( argc, argv ); \
-		} \
-	} \
-
-// Ugh!  Surely there's a more elegant, non-macro way to make this work?
-#define bootstrap_grid_bak( argc, argv, func ) \
-	{ \
-		GridType grid = getGridType( argc, argv ); \
-		if( grid == OMINO ) { \
-			func<OminoGrid<int16_t>>( argc, argv ); \
-		} else if( grid == HEX ) { \
-			func<HexGrid<int16_t>>( argc, argv ); \
-		} else if( grid == IAMOND ) { \
-			func<IamondGrid<int16_t>>( argc, argv ); \
 		} else if( grid == OCTASQUARE ) { \
 			func<OctaSquareGrid<int16_t>>( argc, argv ); \
 		} else if( grid == TRIHEX ) { \
 			func<TriHexGrid<int16_t>>( argc, argv ); \
-		} else if( grid == KITE ) { \
-			func<KiteGrid<int16_t>>( argc, argv ); \
 		} \
-	}
+	} 
 
 template<typename grid>
 struct neighbour_maker

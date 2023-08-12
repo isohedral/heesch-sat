@@ -51,6 +51,8 @@ public:
 		return getTileType(p) == getTileType(q);
 	}
 
+	static const point_t origins[2];
+
 	static const size_t num_orientations;
 	static const xform<int8_t> orientations[8];
 	
@@ -132,6 +134,12 @@ private:
             ans[i] = p + p + vertexVecs[i];
         return ans;
     }
+};
+
+template<typename coord>
+const point<coord> OctaSquareGrid<coord>::origins[2] = {
+	{ 0, 0 }, 
+	{ 1, 0 }, 
 };
 
 template<typename coord>
