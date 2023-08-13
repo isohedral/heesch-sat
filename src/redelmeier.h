@@ -10,7 +10,9 @@ using polyform_cb = std::function<
 	void( const typename grid::point_t&, 
 		  const std::vector<typename grid::point_t>& )>;
 
-// Just enumerate fixed polyforms over this grid.
+// Just enumerate fixed polyforms over this grid.  It's important to
+// enumerate exhaustively; otherwise, it's possible that FreeFilter will
+// get confused about canonicity and miss some free polyforms.
 template<typename grid>
 class RedelmeierSimple
 {
@@ -172,7 +174,9 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 	bool is_symmetric = false;
 
 	shape_t cshape = transformShape( shape, xform_t {}, origin );
-	// dbg( "Checking ", shape );
+	dbg( "Incoming ", shape );
+	std::cerr << "Origin: " << origin << std::endl;
+	dbg( "Checking ", cshape );
 
 	// If the shape is asymmetric, output it if it's the lexicographically
 	// first among its transformed copies.  If a symmetry is detected, 
@@ -181,12 +185,15 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 	for( size_t idx = 1; idx < grid::num_orientations; ++idx ) {
 		const xform_t& T = grid::orientations[idx];
 		shape_t tshape = transformShape( cshape, T, origin );
+
 		int cmp = compareShapes( tshape, cshape );
 		if( cmp < 0 ) {
 			// Sorry, you're not canonical
+			dbg( "  ... Not canonical: ", tshape );
 			return false;
 		} else if( cmp == 0 ) {
 			// Ooh, you're symmetric
+			std::cerr << "  ... Symmetric!" << std::endl;
 			is_symmetric = true;
 			break;
 		}
@@ -210,13 +217,17 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 		}
 	}
 
+	dbg( "  ... Converted to ", min_shape );
+
 	for( const auto& sshape : syms ) {
 		if( compareShapes( sshape, min_shape ) == 0 ) {
 			// We've already seen this one
+			std::cerr << "  ... Already seen this shape" << std::endl;
 			return false;
 		}
 	}
 
+	std::cerr << "  ... New sym shape, saving it." << std::endl;
 	syms.push_back( min_shape );
 	return true;
 }
@@ -242,15 +253,6 @@ template<typename grid>
 typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape( 
 	const shape_t& shape, const xform_t& T, const point_t& origin )
 {
-/*
-	std::cerr << "Transforming";
-	for( auto p : shape ) {
-		std::cerr << ' ' << p;
-	}
-	std::cerr << std::endl;
-	std::cerr << "  by " << T << std::endl;
-*/
-
 	// Apply the transform matrix
 	shape_t nshape;
 	for( auto& p : shape ) {
@@ -262,6 +264,9 @@ typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape(
 
 	point_t mpt;
 
+/*
+	// Not this way.  Need to find the lex-first point in the shape, and
+	// move that to whatever origin is appropriate for its type.
 	for( auto& p : nshape ) {
 		if( grid::translatable( p, origin ) ) {
 			mpt = p;
@@ -270,19 +275,23 @@ typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape(
 	}
 
 	point_t d = origin - mpt;
+	*/
+
+	point_t d;
+
+	// FIXME This doesn't have to be a loop, it can be sped up using
+	// a method like Ava's "getTileType", which selects an appropriate origin
+	// directly from nshape[0]'s x and y coordinates.
+	for( auto& o : grid::origins ) {
+		if( grid::translatable( o, nshape[0] ) ) {
+			d = o - nshape[0];
+			break;
+		}
+	}
+
 	for( auto& p : nshape ) {
-		// This actually changes nshape, right?
 		p = p + d;
 	}
 
-/*
-	std::cerr << "Result";
-	for( auto p : nshape ) {
-		std::cerr << ' ' << p;
-	}
-	std::cerr << std::endl;
-	*/
-
-	// FIXME Does this need some sort of move constructor?  Ugh.
 	return nshape;
 }
