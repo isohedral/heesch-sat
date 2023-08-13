@@ -6,3 +6,4 @@ src/viz
 *.o
 src/surrounds
 src/isohedral
+src/gen
