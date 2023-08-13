@@ -243,7 +243,9 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 		}
 	}
 
-	std::cerr << "  ... New sym shape, saving it." << std::endl;
+	if( debug ) {
+		std::cerr << "  ... New sym shape, saving it." << std::endl;
+	}
 	syms.push_back( min_shape );
 	return true;
 }
