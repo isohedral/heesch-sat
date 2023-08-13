@@ -9,6 +9,7 @@ using namespace std;
 
 static bool show_solution = false;
 static int max_level = INT_MAX;
+static bool reject_max = false;
 static Orientations ori = ALL;
 
 template<typename grid>
@@ -86,7 +87,10 @@ static void mainLoop( istream& is )
 			// solver.debug( cout );
 			Solution<coord_t> cur;
 
-			if( solver.getLevel() > max_level ) break;
+			if( solver.getLevel() > max_level ) {
+				break;
+			}
+
 			if( solver.hasCorona( show_solution, has_holes, cur ) ) {
 				if( has_holes ) {
 					sh = cur;
@@ -105,6 +109,10 @@ static void mainLoop( istream& is )
 
 		}
 
+		if( (solver.getLevel() > max_level) && reject_max ) {
+			continue;
+		}
+	
 		report<coord_t,grid>( cout, desc, hc, sc, hh, sh );
 	}
 }
@@ -118,6 +126,8 @@ static void gridMain( int argc, char **argv )
 		} else if( !strcmp( argv[idx], "-maxlevel" ) ) {
 		    max_level = atoi(argv[idx+1]);
 		    ++idx;
+		} else if( !strcmp( argv[idx], "-reject" ) ) {
+			reject_max = true;
 		} else if( !strcmp( argv[idx], "-translations" ) ) {
 			ori = TRANSLATIONS_ONLY;
 		} else if( !strcmp( argv[idx], "-rotations" ) ) {
