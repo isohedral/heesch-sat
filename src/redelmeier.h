@@ -74,11 +74,14 @@ class FreeFilter
     using shape_t = std::vector<point_t>;
 
 	RedelmeierSimple<grid> fixed;
+	std::vector<shape_t> syms;
+	bool debug;
 
 public:
 	explicit FreeFilter()
 		: fixed {}
 		, syms {}
+		, debug { false }
 	{}
 
 	template<typename CB = polyform_cb<grid>>
@@ -90,6 +93,11 @@ public:
 					out( origin, shape ); 
 				}
 			} );
+	}
+
+	void setDebug( bool b )
+	{
+		debug = b;
 	}
 
 private:
@@ -108,8 +116,6 @@ private:
 
 		std::cerr << std::endl;
 	}
-
-	std::vector<shape_t> syms;
 };
 
 template<typename grid>
@@ -174,9 +180,11 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 	bool is_symmetric = false;
 
 	shape_t cshape = transformShape( shape, xform_t {}, origin );
-	dbg( "Incoming ", shape );
-	std::cerr << "Origin: " << origin << std::endl;
-	dbg( "Checking ", cshape );
+	if( debug ) {
+		dbg( "Incoming ", shape );
+		std::cerr << "Origin: " << origin << std::endl;
+		dbg( "Checking ", cshape );
+	}
 
 	// If the shape is asymmetric, output it if it's the lexicographically
 	// first among its transformed copies.  If a symmetry is detected, 
@@ -189,11 +197,15 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 		int cmp = compareShapes( tshape, cshape );
 		if( cmp < 0 ) {
 			// Sorry, you're not canonical
-			dbg( "  ... Not canonical: ", tshape );
+			if( debug ) {
+				dbg( "  ... Not canonical: ", tshape );
+			}
 			return false;
 		} else if( cmp == 0 ) {
 			// Ooh, you're symmetric
-			std::cerr << "  ... Symmetric!" << std::endl;
+			if( debug ) {
+				std::cerr << "  ... Symmetric!" << std::endl;
+			}
 			is_symmetric = true;
 			break;
 		}
@@ -217,12 +229,16 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 		}
 	}
 
-	dbg( "  ... Converted to ", min_shape );
+	if( debug ) {
+		dbg( "  ... Converted to ", min_shape );
+	}
 
 	for( const auto& sshape : syms ) {
 		if( compareShapes( sshape, min_shape ) == 0 ) {
 			// We've already seen this one
-			std::cerr << "  ... Already seen this shape" << std::endl;
+			if( debug ) {
+				std::cerr << "  ... Already seen this shape" << std::endl;
+			}
 			return false;
 		}
 	}
