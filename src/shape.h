@@ -81,6 +81,7 @@ public:
 	}
 
 	void getHaloAndBorder( Shape<grid>& halo, Shape<grid>& border ) const;
+	void getEdgeHalo( Shape<grid>& halo ) const;
 	bool simplyConnected() const;
 
 	auto begin()
@@ -150,6 +151,32 @@ void Shape<grid>::getHaloAndBorder( Shape<grid>& halo, Shape<grid>& border ) con
 
 	halo.complete();
 	border.complete();
+}
+
+// Like the halo above, but only includes neighbours across edges, not
+// vertices.
+template<typename grid>
+void Shape<grid>::getEdgeHalo( Shape<grid>& halo ) const
+{
+	halo.reset();
+
+	point_set<coord_t> shalo;
+
+	for( auto& p : pts_ ) {
+		for( const auto& pn : edge_neighbours<grid> { p } ) {
+			shalo.insert( pn );
+		}
+	}
+
+	for( auto& p : pts_ ) {
+		shalo.erase( p );
+	}
+
+	for( auto& p : shalo ) {
+		halo.add( p );
+	}
+
+	halo.complete();
 }
 
 // Does this shape contain any internal holes?

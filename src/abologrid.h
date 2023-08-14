@@ -22,8 +22,8 @@ public:
     };
 
 public:
-    inline static size_t numTileTypes = 4; 
-    inline static size_t numTileShapes = 1;
+    inline static size_t num_tile_types = 4; 
+    inline static size_t num_tile_shapes = 1;
 	inline static TileType getTileType( const point_t& p )
 	{
 		if( p.x_ % 2 == 0 ) {

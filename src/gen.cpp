@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include "redelmeier.h"
 #include "grid.h"
@@ -22,29 +23,75 @@ static void output( const typename grid::point_t&,
 }
 
 template<typename grid>
-static void gridMain( int argc, char **argv )
+static bool readShape( istream& is, Shape<grid>& shape )
 {
-	bool free = false;
+	using coord_t = typename grid::coord_t;
+	using point_t = typename grid::point_t;
 
-	for( size_t idx = 1; idx < argc; ++idx ) {
-		if( !strcmp( argv[idx], "-free" ) ) {
-			free = true;
-		}
+	char buf[1000];
+	is.getline( buf, 1000 );
+	string str = buf;
+
+	shape.reset();
+	istringstream iss( buf );
+
+	coord_t x;
+	coord_t y;
+
+	while( iss >> x >> y ) {
+		shape.add( point_t { x, y } );
 	}
 
+	shape.complete();
+	return shape.size() > 0;
+}
+
+template<typename grid>
+static vector<Shape<grid>> readShapes( istream& is )
+{
+	vector<Shape<grid>> ret;
+
+	Shape<grid> cur;
+	while( readShape( is, cur ) ) {
+		ret.push_back( cur );
+	}
+
+	return ret;
+}
+
+template<typename grid>
+static void gridMain( int argc, char **argv )
+{
 	polyform_cb<grid> cb { output<grid> };
 
+	bool free = false;
+	bool units = false;
 	size_t size = 1;
-	size_t idx = 1;
+	size_t idx = 0;
+
 	while( idx < argc ) {
 		if( !strcmp( argv[idx], "-size" ) ) {
 			size = atoi( argv[idx+1] );
 			++idx;
+		} else if( !strcmp( argv[idx], "-free" ) ) {
+			free = true;
+		} else if( !strcmp( argv[idx], "-units" ) ) {
+			units = true;
 		}
 		++idx;
 	}
 
-	if( free ) {
+/*
+	cerr << "units: " << units << endl;
+	cerr << "free: " << free << endl;
+	cerr << "size: " << size << endl;
+*/
+
+	if( units ) {
+		vector<Shape<grid>> shapes = readShapes<grid>( cin );
+		RedelmeierCompound<grid> r { shapes };
+		r.solve( size, cb );
+	} else if( free ) {
     	FreeFilter<grid> r {};
 		r.solve( size, cb );
 	} else {
