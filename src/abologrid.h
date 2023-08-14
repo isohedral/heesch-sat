@@ -12,20 +12,34 @@ public:
     using coord_t = coord;
     using point_t = point<coord>;
     using xform_t = xform<coord>;
-    using edge_t = std::pair<point_t, point_t>;
 
     enum TileType {
-        TRIANGLE_UR, TRIANGLE_UL, TRIANGLE_LL, TRIANGLE_LR,
-        INVALID
-    };
-
-    enum TileShape {
-        TRIANGLE_SHAPE
+	//	INVALID = -1,
+        TRIANGLE_UR = 0, 
+		TRIANGLE_UL = 1,
+		TRIANGLE_LL = 2,
+		TRIANGLE_LR = 3,
     };
 
 public:
-    static size_t numTileTypes() { return 4; }
-    static size_t numTileShapes() { return 1; }
+    inline static size_t numTileTypes = 4; 
+    inline static size_t numTileShapes = 1;
+	inline static TileType getTileType( const point_t& p )
+	{
+		if( p.x_ % 2 == 0 ) {
+			if( p.y_ % 2 == 0 ) {
+				return TRIANGLE_UR;
+			} else {
+				return TRIANGLE_LR;
+			}
+		} else {
+			if( p.y_ % 2 == 0 ) {
+				return TRIANGLE_UL;
+			} else {
+				return TRIANGLE_LL;
+			}
+		}
+	}
 
     static size_t numNeighbours( const point_t& p )
     {
@@ -49,8 +63,7 @@ public:
 
     static bool translatable( const point_t& p, const point_t& q )
     {
-        TileType t1 = getTileType(p), t2 = getTileType(q);
-        return t1 == t2 && t1 != INVALID && t2 != INVALID;
+        return getTileType( p ) == getTileType( q );
     }
 
     static const size_t num_orientations;
@@ -61,75 +74,8 @@ public:
     static const point<int8_t> origins[4];
 
     static const std::vector<point<int8_t>> vertices[4];
-    static const std::vector<point<int8_t>> boundaryWordDirections;
 
-    static const std::vector<std::vector<point<int8_t>>> mates[4];
-
-    static point_t getTileTypeOrigin(TileType t)
-    {
-        return origins[t];
-    }
-
-    static TileType getTileType( const point_t& p )
-    {
-        point_t p2 = p;
-        if ((p2.y_/2) % 2 == 0) p2.x_ -= 2;
-        p2.x_ = (p2.x_%2 + 2) % 2;
-        p2.y_ = (p2.y_%2 + 2) % 2;
-        return (TileType) (std::find(
-                origins, origins + numTileTypes() + 1,
-                p2)
-                - origins);
-    }
-
-    static TileShape getTileShape( const TileType t )
-    {
-        return TRIANGLE_SHAPE;
-    }
-
-    static TileShape getTileShape( const point_t& p )
-    {
-        return getTileShape(getTileType(p));
-    }
-
-    static std::vector<edge_t> getTileEdges( const point_t& p )
-    {
-        std::vector<edge_t> edges;
-        auto vertices = getTileVertices(p);
-        for (size_t i = 0; i < vertices.size(); ++i)
-            edges.emplace_back(vertices[i], vertices[(i+1) % vertices.size()]);
-        return edges;
-    }
-
-    static int8_t getBoundaryWordDirection( const point_t &dir ) {
-        return std::find(boundaryWordDirections.begin(), boundaryWordDirections.end(), dir) - boundaryWordDirections.begin();
-    }
-
-    static size_t numRotations() { return 4; }
-    static int8_t rotateDirection( int8_t dir ) { return (dir + 2) % boundaryWordDirections.size(); }
-    static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
-
-    static point<double> vertexToGridCoords(point_t pt) {
-        return {pt.x_ / 2.0, pt.y_ / 2.0};
-    }
-
-    static point<double> gridToPageCoords(point<double> pt) {
-        return pt;
-    }
-
-    static bool hasMates() { return true; }
-
-    static std::vector<std::vector<point_t>> getMatesList(const point_t &p) {
-        std::vector<std::vector<point_t>> matesList;
-        for (auto &v : mates[getTileType(p)]) {
-            matesList.emplace_back();
-            for (auto &dir : v) matesList.back().push_back(dir + p);
-        }
-        return matesList;
-    }
-
-private:
-    static std::vector<point_t> getTileVertices( const point_t& p )
+    static std::vector<point_t> getCellVertices( const point_t& p )
     {
         const auto &vertexVecs = vertices[getTileType(p)];
         std::vector<point_t> ans(vertexVecs.size());
@@ -137,6 +83,16 @@ private:
         for (size_t i = 0; i < vertexVecs.size(); ++i)
             ans[i] = pTrans + vertexVecs[i];
         return ans;
+    }
+
+    static point<double> vertexToGrid( const point_t& pt )
+	{
+        return {pt.x_ / 2.0, pt.y_ / 2.0};
+    }
+
+    static point<double> gridToPage( const point<double>& pt )
+	{
+        return pt;
     }
 };
 
@@ -268,29 +224,5 @@ const std::vector<point<int8_t>> AboloGrid<coord>::vertices[4] = {
         },
         {
                 {1, -1}, {-3, -1}, {1, 3}
-        }
-};
-
-template<typename coord>
-const std::vector<point<int8_t>> AboloGrid<coord>::boundaryWordDirections = {
-        {4, 0}, {4, -4}, {0, -4}, {-4, -4}, {-4, 0}, {-4, 4}, {0, 4}, {4, 4}};
-
-template<typename coord>
-const std::vector<std::vector<point<int8_t>>> AboloGrid<coord>::mates[4] = {
-        {
-                {{1, 0}},
-                {{0, 1}}
-        },
-        {
-                {{-1, 0}},
-                {{0, 1}}
-        },
-        {
-                {{-1, 0}},
-                {{0, -1}},
-        },
-        {
-                {{1, 0}},
-                {{0, -1}}
         }
 };

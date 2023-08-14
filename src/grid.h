@@ -10,7 +10,7 @@
 #include "abologrid.h"
 #include "draftergrid.h"
 #include "kitegrid.h"
-#include "berglund1grid.h"
+#include "halfcairogrid.h"
 
 enum GridType {
 	OMINO,
@@ -21,7 +21,7 @@ enum GridType {
 	ABOLO,
 	DRAFTER, 
 	KITE, 
-	BERGLUND1
+	HALFCAIRO
 };
 
 inline GridType getGridType( int& argc, char **argv )
@@ -34,7 +34,8 @@ inline GridType getGridType( int& argc, char **argv )
 		{ "-trihex", TRIHEX },
 		{ "-kite", KITE },
 		{ "-drafter", DRAFTER },
-		{ "-berglund1", BERGLUND1 },
+		{ "-abolo", ABOLO },
+		{ "-halfcairo", HALFCAIRO },
 	};
 
 	size_t idx = 1; 
@@ -78,12 +79,14 @@ inline GridType getGridType( int& argc, char **argv )
 			func<KiteGrid<int16_t>>( argc, argv ); \
 		} else if( grid == DRAFTER ) { \
 			func<DrafterGrid<int16_t>>( argc, argv ); \
+		} else if( grid == ABOLO ) { \
+			func<AboloGrid<int16_t>>( argc, argv ); \
 		} else if( grid == OCTASQUARE ) { \
 			func<OctaSquareGrid<int16_t>>( argc, argv ); \
 		} else if( grid == TRIHEX ) { \
 			func<TriHexGrid<int16_t>>( argc, argv ); \
-		} else if( grid == BERGLUND1 ) { \
-			func<Berglund1Grid<int16_t>>( argc, argv ); \
+		} else if( grid == HALFCAIRO ) { \
+			func<HalfCairoGrid<int16_t>>( argc, argv ); \
 		} \
 	} 
 

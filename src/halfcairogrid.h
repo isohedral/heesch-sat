@@ -6,7 +6,7 @@
 #include "geom.h"
 
 template<typename coord>
-class Berglund1Grid
+class HalfCairoGrid
 {
 public:
 	using coord_t = coord;
@@ -120,14 +120,14 @@ public:
 };
 
 template<typename coord>
-const point<coord> Berglund1Grid<coord>::origins[8] = {
+const point<coord> HalfCairoGrid<coord>::origins[8] = {
 	{ 1, 0 }, { 1, 1 }, { 0, 1 }, 
 	{ -1, 1 }, { -1, 0 }, { -1, -1 }, 
 	{ 0, -1 }, { 1, -1 }
 };
 
 template<typename coord>
-const point<int8_t> Berglund1Grid<coord>::neighbour_vectors[8][12] = {
+const point<int8_t> HalfCairoGrid<coord>::neighbour_vectors[8][12] = {
 	{ 
 		{ 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 1 }, { -2, 1 }, { -2, 0 },
 		{ -2, -1 }, { -1, -1 }, { 0, -1 }, { 1, -1 }
@@ -163,7 +163,7 @@ const point<int8_t> Berglund1Grid<coord>::neighbour_vectors[8][12] = {
 };
 
 template<typename coord>
-const point<int8_t> Berglund1Grid<coord>::edge_neighbour_vectors[8][4] = {
+const point<int8_t> HalfCairoGrid<coord>::edge_neighbour_vectors[8][4] = {
 	{ { 1, 0 }, { 0, 1 }, { 0, -1 } }, 
 	{ { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } },
 	{ { 1, 0 }, { 0, 1 }, { -1, 0 } }, 
@@ -175,7 +175,7 @@ const point<int8_t> Berglund1Grid<coord>::edge_neighbour_vectors[8][4] = {
 };
 
 template<typename coord>
-const xform<int8_t> Berglund1Grid<coord>::orientations[8] = {
+const xform<int8_t> HalfCairoGrid<coord>::orientations[8] = {
 	{ 1, 0, 0, 0, 1, 0 }, { 0, -1, 0, 1, 0, 0 }, 
 	{ -1, 0, 0, 0, -1, 0 }, { 0, 1, 0, -1, 0, 0 },
 	{ -1, 0, 0, 0, 1, 0 }, { 0, -1, 0, -1, 0, 0 },
