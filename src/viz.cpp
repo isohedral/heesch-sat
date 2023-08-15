@@ -8,6 +8,8 @@ static bool max_only = false;
 
 static bool ori_col = false;
 
+using namespace std;
+
 template<typename grid>
 static void gridMain( int argc, char **argv )
 {
@@ -21,6 +23,10 @@ static void gridMain( int argc, char **argv )
 			max_only = true;
         } else if (!strcmp(argv[idx], "-orientation")) {
 			ori_col = true;
+		} else {
+			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
+				<< endl;
+			exit( 0 );
 		}
     }
 

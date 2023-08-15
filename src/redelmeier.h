@@ -27,19 +27,20 @@ class RedelmeierSimple
 
 	using cell_map = point_map<coord_t, CellStatus>;
 
+	bool holes;
 	cell_map shape;
 	point_t origin;
 	std::vector<point_t> untried;
 
 public:
-	explicit RedelmeierSimple()
-		: shape {}
+	explicit RedelmeierSimple( bool holes = false )
+		: holes { holes }
+		, shape {}
 		, origin {}
 		, untried {}
 	{}
 
-	template<typename CB = polyform_cb<grid>>
-	size_t solve( size_t size, CB out )
+	size_t solve( size_t size, polyform_cb<grid> out )
 	{
 		cell_map shape;
 		size_t total = 0;
@@ -61,8 +62,7 @@ private:
 		return shape.find( p ) != shape.end();
 	}
 
-	template<typename CB>
-	size_t solve( size_t size, size_t from, CB out );
+	size_t solve( size_t size, size_t from, const polyform_cb<grid>& out );
 };
 
 template<typename grid>
@@ -96,6 +96,7 @@ class RedelmeierCompound
 
 	using cell_map = std::unordered_map<adj_t, CellStatus, adj_hash<grid>>;
 
+	bool holes;
 	std::vector<shape_t> shapes;
 	// For each shape, a vector of its possible adjacencies
 	std::vector<std::vector<adj_t>> adjs;
@@ -104,8 +105,10 @@ class RedelmeierCompound
 	std::vector<adj_t> untried;
 
 public:
-	explicit RedelmeierCompound( const std::vector<shape_t>& shapes )
-		: shapes { shapes }
+	explicit RedelmeierCompound( 
+			const std::vector<shape_t>& shapes, bool holes = false )
+		: holes { holes }
+		, shapes { shapes }
 		, adjs { shapes.size() }
 		, shape {}
 		, untried {}
@@ -139,8 +142,7 @@ public:
 	*/
 	}
 
-	template<typename CB = polyform_cb<grid>>
-	size_t solve( size_t size, CB out )
+	size_t solve( size_t size, polyform_cb<grid> out )
 	{
 		cell_map shape;
 		size_t total = 0;
@@ -167,8 +169,7 @@ private:
 		return shape.find( adj ) != shape.end();
 	}
 
-	template<typename CB>
-	size_t solve( size_t size, size_t from, CB out );
+	size_t solve( size_t size, size_t from, const polyform_cb<grid>& out );
 
 };
 
@@ -183,21 +184,19 @@ class FreeFilter
     using xform_t = typename grid::xform_t;
     using shape_t = std::vector<point_t>;
 
-	RedelmeierSimple<grid> fixed;
 	std::vector<shape_t> syms;
 	bool debug;
 
 public:
 	explicit FreeFilter()
-		: fixed {}
-		, syms {}
+		: syms {}
 		, debug { false }
 	{}
 
-	template<typename CB = polyform_cb<grid>>
-	size_t solve( size_t size, CB out )
+	template<class Sub>
+	size_t solve( size_t size, Sub& sub, polyform_cb<grid> out )
 	{
-		return fixed.solve( size, [this, out]( 
+		return sub.solve( size, [this, out]( 
 			const point_t& origin, const std::vector<point_t>& shape ) {
 				if( checkShape( origin, shape ) ) {
 					out( origin, shape ); 
@@ -229,20 +228,24 @@ private:
 };
 
 template<typename grid>
-template<typename CB>
-size_t RedelmeierSimple<grid>::solve( size_t size, size_t from, CB out )
+size_t RedelmeierSimple<grid>::solve( 
+	size_t size, size_t from, const polyform_cb<grid>& out )
 {
 	if( size == 0 ) {
-		std::vector<point_t> pts;
+		Shape<grid> shp;
 
 		for( auto& p : shape ) {
 			if( p.second == OCCUPIED ) {
-				pts.push_back( p.first );
+				shp.add( p.first );
 			}
 		}
 
-		out( origin, pts );
-		return 1;
+		if( holes || shp.simplyConnected() ) {
+			out( origin, std::vector<point_t> { shp.begin(), shp.end() } );
+			return 1;
+		}
+
+		return 0;
 	} else {
 		size_t total = 0;
 		size_t usz = untried.size();
@@ -559,8 +562,8 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 }
 
 template<typename grid>
-template<typename CB>
-size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
+size_t RedelmeierCompound<grid>::solve( 
+	size_t size, size_t from, const polyform_cb<grid>& out )
 {
 	if( size == 0 ) {
 		// std::vector<point_t> pts;
@@ -582,25 +585,14 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 		}
 
 		shape_t canon = canonicalize( res );
-		std::vector<point_t> fpts;
-		for( const auto& p : canon ) {
-			fpts.push_back( p );
+
+		if( holes || canon.simplyConnected() ) {
+			out( *canon.begin(),
+				 std::vector<point_t> { canon.begin(), canon.end() } );
+			return 1;
 		}
 
-		/*
-		shape_t shp;
-		for( const auto& p : pts ) {
-			shp.add( p );
-		}
-		shp.complete();
-		if( !shp.simplyConnected() ) {
-			std::cerr << "Made something not simply connected " << 
-				v << std::endl;
-		}
-		*/
-
-		out( point_t {}, fpts );
-		return 1;
+		return 0;
 	} else {
 		size_t total = 0;
 		size_t usz = untried.size();

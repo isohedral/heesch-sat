@@ -9,7 +9,5 @@ Start testing the use of SAT to check for isohedral tiling.
 
 Better generation of fixed compound polyforms, to make free filtering easier.
 
-Decouple FreeFilter from RedelmeierSimple
-
 Incorporate standard compounds for polyabolos, polydrafters, polyhalfcairos,
 etc.

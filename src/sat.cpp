@@ -132,6 +132,10 @@ static void gridMain( int argc, char **argv )
 			ori = TRANSLATIONS_ONLY;
 		} else if( !strcmp( argv[idx], "-rotations" ) ) {
 			ori = TRANSLATIONS_ROTATIONS;
+		} else {
+			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
+				<< endl;
+			exit( 0 );
 		}
 	}
 

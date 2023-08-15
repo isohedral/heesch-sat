@@ -66,8 +66,9 @@ static void gridMain( int argc, char **argv )
 
 	bool free = false;
 	bool units = false;
+	bool holes = false;
 	size_t size = 1;
-	size_t idx = 0;
+	size_t idx = 1;
 
 	while( idx < argc ) {
 		if( !strcmp( argv[idx], "-size" ) ) {
@@ -77,6 +78,12 @@ static void gridMain( int argc, char **argv )
 			free = true;
 		} else if( !strcmp( argv[idx], "-units" ) ) {
 			units = true;
+		} else if( !strcmp( argv[idx], "-holes" ) ) {
+			holes = true;
+		} else {
+			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
+				<< endl;
+			exit( 0 );
 		}
 		++idx;
 	}
@@ -89,14 +96,16 @@ static void gridMain( int argc, char **argv )
 
 	if( units ) {
 		vector<Shape<grid>> shapes = readShapes<grid>( cin );
-		RedelmeierCompound<grid> r { shapes };
-		r.solve( size, cb );
-	} else if( free ) {
-    	FreeFilter<grid> r {};
+		RedelmeierCompound<grid> r { shapes, holes };
 		r.solve( size, cb );
 	} else {
-		RedelmeierSimple<grid> r {};
-		r.solve( size, cb );
+		RedelmeierSimple<grid> simp { holes };
+		if( free ) {
+			FreeFilter<grid> filt {};
+			filt.solve( size, simp, cb );
+		} else {
+			simp.solve( size, cb );
+		}
 	}
 }
 

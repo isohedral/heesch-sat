@@ -44,9 +44,24 @@ void populate(
 }
 
 template<typename grid>
+static void debugPatch( 
+	const Shape<grid>& shape, const typename grid::xform_t *ts, size_t sz )
+{
+	for( const auto& p : shape ) {
+		cout << p.x_ << ' ' << p.y_ << ' ';
+	}
+	cout << endl;
+	cout << "Hc = 1 Hh = 1" << endl;
+	cout << (sz+1) << endl;
+	cout << "0 ; <1,0,0,0,1,0>" << endl;
+	for( size_t idx = 0; idx < sz; ++idx ) {
+		cout << "1 ; " << ts[idx] << endl;
+	}
+}
+
+template<typename grid>
 static bool tilesByTranslation( const Shape<grid>& shape )
 {
-	// cout << "Checking ";
 	// shape.debug();
 
 	Cloud<grid> cloud( shape );
@@ -57,14 +72,14 @@ static bool tilesByTranslation( const Shape<grid>& shape )
 	xform_map<coord_t, xform_t> tpairs;
 
 	for( const auto& T : cloud.adjacent_ ) {
-		if( T.isTranslation() ) {
+// 		if( T.isTranslation() ) {
 			xform_t Ti = T.invert();
 			if( cloud.isAdjacent( Ti ) ) {
 				if( tpairs.find( Ti ) == tpairs.end() ) {
 					tpairs[ T ] = Ti;
 				}
 			}
-		}
+//		}
 	}
 
 	point_set<coord_t> shape_set;
@@ -90,35 +105,6 @@ static bool tilesByTranslation( const Shape<grid>& shape )
 				continue;
 			}
 				
-				/*
-			// OK, try a manual surround and see what happens.
-			point_set<coord_t> draw;
-			populate( shape, i->first, draw );
-			populate( shape, i->second, draw );
-			populate( shape, j->first, draw );
-			populate( shape, j->second, draw );
-			populate( shape, i->first * j->second, draw );
-			populate( shape, j->first * i->second, draw );
-			populate( shape, i->first * j->first, draw );
-			populate( shape, j->second * i->second, draw );
-
-			// Just in case there were overlaps.  Can this happen?
-			if( draw.size() != 8 * shape.size() ) {
-				cerr << "Overlaps" << endl;
-				continue;
-			}
-
-			bool halo_ok = true;
-
-			for( const auto& p : cloud.halo_ ) {
-				if( draw.find( p ) == draw.end() ) {
-					// Uh oh, didn't cover the whole halo
-					halo_ok = false;
-					break;
-				}
-			}
-			*/
-
 			xform_t nts[] = {
 				i->first, i->second, j->first, j->second, 
 				i->first * j->second, j->first * i->second,
@@ -142,6 +128,7 @@ static bool tilesByTranslation( const Shape<grid>& shape )
 			}
 
 			if( !halo_ok ) {
+				debugPatch( shape, nts, 8 );
 				continue;
 			}
 
@@ -150,6 +137,13 @@ static bool tilesByTranslation( const Shape<grid>& shape )
 			return true;
 		}
 	}
+
+/*
+	shape.debug();
+	for( const auto& p : tpairs ) {
+		cout << "  " << p.first << " / " << p.second << endl;
+	}
+*/
 
 	return false;
 }

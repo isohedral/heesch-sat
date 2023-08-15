@@ -91,6 +91,10 @@ static void gridMain( int argc, char **argv )
 		    ++idx;
 		} else if( !strcmp( argv[idx], "-noreflections" ) ) {
 		    no_reflections = true;
+		} else {
+			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
+				<< endl;
+			exit( 0 );
 		}
 	}
 
