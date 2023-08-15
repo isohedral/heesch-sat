@@ -24,6 +24,9 @@ gen: gen.o
 surrounds: surrounds.o 
 	$(CXX) $(LIBS) -o surrounds surrounds.o
 
+tile: tile.o 
+	$(CXX) $(LIBS) -o tile tile.o
+
 -include ${DEPENDS}
 
 .PHONY: clean
