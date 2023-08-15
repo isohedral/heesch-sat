@@ -87,6 +87,7 @@ class RedelmeierCompound
     using coord_t = typename grid::coord_t;
     using point_t = typename grid::point_t;
     using xform_t = typename grid::xform_t;
+	using shape_t = Shape<grid>;
     using adj_t = adj_info<grid>;
 
     enum CellStatus {
@@ -95,7 +96,7 @@ class RedelmeierCompound
 
 	using cell_map = std::unordered_map<adj_t, CellStatus, adj_hash<grid>>;
 
-	std::vector<Shape<grid>> shapes;
+	std::vector<shape_t> shapes;
 	// For each shape, a vector of its possible adjacencies
 	std::vector<std::vector<adj_t>> adjs;
 
@@ -103,7 +104,7 @@ class RedelmeierCompound
 	std::vector<adj_t> untried;
 
 public:
-	explicit RedelmeierCompound( const std::vector<Shape<grid>>& shapes )
+	explicit RedelmeierCompound( const std::vector<shape_t>& shapes )
 		: shapes { shapes }
 		, adjs { shapes.size() }
 		, shape {}
@@ -112,6 +113,11 @@ public:
 		calculateAdjacencies();
 
 /*
+		for( size_t idx = 0; idx < adjs.size(); ++idx ) {
+			std::cerr << "Shape " << idx << " has " << adjs[idx].size()
+				<< " adjacencies" << std::endl;
+		}
+
 		std::cerr << "Adjacencies" << std::endl;
 		for( size_t idx = 0; idx < adjs.size(); ++idx ) {
 			std::cerr << "=== " << idx << " ===" << std::endl;
@@ -149,33 +155,12 @@ public:
 		return total;
 	}
 
+	static void calculateInequivalentOrientations(
+		const shape_t& shp, std::vector<xform_t>& Ts );
+	static bool equivalent( const shape_t& A, const shape_t& B );
+
 private:
 	void calculateAdjacencies();
-
-	/*
-	void set( const Shape<grid>& sh, const xform_t& T, CellStatus cs )
-	{
-		if( cs == FREE ) {
-			for( const auto& p : sh ) {
-				shape.erase( T * p );
-			}
-		} else {
-			for( const auto& p : sh ) {
-				shape[ T * p ] = cs;
-			}
-		}
-	}
-
-	bool contains( const Shape<grid>& sh, const xform_t& T )
-	{
-		for( const auto& p : sh ) {
-			if( shape.find( T * p ) != shape.end() ) {
-				return true;
-			}
-		}
-		return false;
-	}
-	*/
 
 	bool contains( const adj_t& adj )
 	{
@@ -184,9 +169,12 @@ private:
 
 	template<typename CB>
 	size_t solve( size_t size, size_t from, CB out );
+
 };
 
 // Filter fixed polyforms to obtain free polyforms
+// FIXME Obviously this is dumb -- the constructor should accept some other
+// Polyform generator as input, and consume its solutions.
 template<typename grid>
 class FreeFilter
 {
@@ -414,6 +402,38 @@ typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape(
 }
 
 template<typename grid>
+void RedelmeierCompound<grid>::calculateInequivalentOrientations(
+	const shape_t& shp, std::vector<xform_t>& Ts )
+{
+	std::vector<shape_t> canon;
+	shape_t new_shape;
+
+	Ts.clear();
+
+	for( const auto& T : grid::orientations ) {
+		new_shape.reset( shp, T );
+		bool ok = true;
+
+		for( const auto& sh : canon ) {
+			if( new_shape.equivalent( sh ) ) {
+				ok = false;
+				break;
+			}
+		}
+
+		if( ok ) {
+			Ts.push_back( T );
+			canon.push_back( new_shape );
+		}
+	}
+
+/*
+	std::cerr << "Found " << canon.size() << " inequivalent orientations"
+		<< std::endl;
+	*/
+}
+
+template<typename grid>
 void RedelmeierCompound<grid>::calculateAdjacencies()
 {
 	// This basically must recapitulate all the work done in the Cloud
@@ -427,11 +447,11 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 		size_t idx;
 		xform_t T;
 
-		Shape<grid> shape;
-		Shape<grid> halo;
+		shape_t shape;
+		shape_t halo;
 
 		explicit ShapeInfo( size_t idx, const xform_t& T, 
-				const Shape<grid>& shape, const Shape<grid>& halo )
+				const shape_t& shape, const shape_t& halo )
 			: idx { idx }
 			, T { T }
 			, shape { shape }
@@ -443,8 +463,8 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 
 	// Start by populating the array with untransformed copies of the units.
 	for( size_t idx = 0; idx < shapes.size(); ++idx ) {
-		const Shape<grid>& sh = shapes[idx];
-		Shape<grid> halo;
+		const shape_t& sh = shapes[idx];
+		shape_t halo;
 
 		sh.getEdgeHalo( halo );
 		all_shapes.emplace_back( idx, grid::orientations[0], sh, halo );
@@ -452,37 +472,39 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 
 	// Generate the remaining infos by applying all non-identity 
 	// orientations to all input shapes.
-	Shape<grid> oshape;
-	Shape<grid> ohalo;
+	shape_t oshape;
+	shape_t ohalo;
 
 	for( size_t idx = 0; idx < shapes.size(); ++idx ) {
-		for( size_t tidx = 1; tidx < grid::num_orientations; ++tidx ) {
-			// Need to get this reference afresh every time, because
-			// the emplace_back call below can cause the reference to
-			// become invalid in the outer loop.
-			const ShapeInfo& si = all_shapes[idx];
+		std::vector<xform_t> orientations;
+		calculateInequivalentOrientations( shapes[idx], orientations );
 
-			const xform_t& T = grid::orientations[tidx];
+		for( size_t tidx = 1; tidx < orientations.size(); ++tidx ) {
+			const ShapeInfo& si = all_shapes[idx];
+			const xform_t& T = orientations[tidx];
 
 			oshape.reset( si.shape, T );
 			ohalo.reset( si.halo, T );
-			all_shapes.emplace_back( idx, T, oshape, ohalo );
+			all_shapes.emplace_back( 
+				idx, T, std::move( oshape ), std::move( ohalo ) );
 		}
 	}
 
-	Shape<grid> new_shape;
+	shape_t new_shape;
 
 	// Check all pairwise combinations of these puppies.
 	// all_shapes doesn't change any longer, so references are fine.
 	for( size_t idx = 0; idx < shapes.size(); ++idx ) {
-		const Shape<grid>& sh = all_shapes[idx].shape;
-		const Shape<grid>& halo = all_shapes[idx].halo;
+		const shape_t& sh = all_shapes[idx].shape;
+		const shape_t& halo = all_shapes[idx].halo;
 
 		for( const auto& oa : all_shapes ) {
-			const Shape<grid> osh = oa.shape;
+			const shape_t osh = oa.shape;
 			const xform_t& T = oa.T;
 			size_t oidx = oa.idx;
 			// Check all translations of osh into the halo of oa
+
+			point_set<coord_t> t_seen;
 
 			for( const point_t& hp : halo ) {
 				for( const point_t& osp : osh ) {
@@ -491,9 +513,16 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 						continue;
 					}
 
-					xform_t Tnew = xform_t {}.translate( hp - osp );
+					point_t dp = hp - osp;
+					if( t_seen.find( dp ) != t_seen.end() ) {
+						// We've already tried this translation, no need
+						// to try it again.
+						continue;
+					}
+
+					t_seen.insert( dp );
 					// Translate osh so it occupies the halo cell
-					new_shape.reset( osh, Tnew );
+					new_shape.reset( osh, dp );
 
 					// If new_shape overlaps sh, stop immediately
 					if( sh.intersects( new_shape ) ) {
@@ -509,7 +538,7 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 
 					// You've passed all the tests, congratulations!  You're
 					// a legitimate neighbour for this unit.
-					Tnew = T.translate( hp - osp );
+					xform_t Tnew = T.translate( dp );
 					adjs[idx].emplace_back( oidx, Tnew );
 				}
 			}
@@ -523,7 +552,7 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 {
 	if( size == 0 ) {
 		std::vector<point_t> pts;
-		point_set<typename grid::coord_t> pset;
+		point_set<coord_t> pset;
 
 		for( auto& a : shape ) {
 			if( a.second == OCCUPIED ) {
@@ -552,7 +581,8 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 			p = p + v;
 		}
 
-		Shape<grid> shp;
+		/*
+		shape_t shp;
 		for( const auto& p : pts ) {
 			shp.add( p );
 		}
@@ -561,6 +591,7 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 			std::cerr << "Made something not simply connected " << 
 				v << std::endl;
 		}
+		*/
 
 		out( point_t {}, pts );
 		return 1;
@@ -592,7 +623,7 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 		}
 
 		for( size_t idx = from; idx < usz; ++idx ) {
-			shape[untried[idx]] = FREE;
+			shape.erase( untried[idx] );
 		}
 
 		return total;

@@ -68,6 +68,14 @@ public:
 			p += dp;
 		}
 	}
+	// Reset with translation
+	void reset( const Shape& other, const point_t& dp )
+	{
+		pts_.clear();
+		for( auto p : other ) {
+			pts_.push_back( p + dp );
+		}
+	}
 
 	bool intersects( const Shape<grid>& other ) const;
 	bool operator ==( const Shape<grid>& other ) const
@@ -78,6 +86,33 @@ public:
 	bool operator !=( const Shape<grid>& other ) const
 	{
 		return (*this) != other;
+	}
+
+	// Are these shapes equivalent under translation?
+	bool equivalent( const Shape<grid>& other ) const
+	{
+		if( size() != other.size() ) {
+			return false;
+		}
+
+		if( !grid::translatable( pts_.front(), other.pts_.front() ) ) {
+			return false;
+		}
+		
+		point_t d = pts_.front() - other.pts_.front();
+
+		auto i = pts_.begin();
+		auto j = other.pts_.begin();
+
+		while( i != pts_.end() ) {
+			if( (*i) != ((*j)+d) ) {
+				return false;
+			}
+			++i;
+			++j;
+		}
+
+		return true;
 	}
 
 	void getHaloAndBorder( Shape<grid>& halo, Shape<grid>& border ) const;
