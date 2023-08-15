@@ -87,7 +87,7 @@ public:
 	point<coord>& operator -=( const point<ocoord>& other ) 
 	{
 		x_ -= other.x_;
-		y_ += other.y_;
+		y_ -= other.y_;
 		return *this;
 	}
 

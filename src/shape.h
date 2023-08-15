@@ -115,6 +115,51 @@ public:
 		return true;
 	}
 
+	// Move this shape so its minimum point lies at an origin of the grid.
+	void untranslate()
+	{
+		// FIXME -- add the ability for the grid to select the origin
+		// point.
+		point_t p = pts_.front();
+		point_t v;
+		for( const auto& op : grid::origins ) {
+			if( grid::translatable( op, p ) ) {
+				v = op - p;
+				break;
+			}
+		}
+
+		for( auto& sp : pts_ ) {
+			sp += v;
+		}
+	}
+
+	int compare( const Shape<grid>& other ) const
+	{
+		auto i = pts_.begin();
+		auto j = other.pts_.begin();
+
+		while( true ) {
+			bool ei = (i == pts_.end());
+			bool ej = (j == other.pts_.end());
+
+			if( ei && ej ) {
+				return 0;
+			} else if( ei ) {
+				return -1;
+			} else if( ej ) {
+				return 1;
+			} else if( *i < *j ) {
+				return -1;
+			} else if( *j < *i ) {
+				return 1;
+			}
+
+			++i;
+			++j;
+		}
+	}
+
 	void getHaloAndBorder( Shape<grid>& halo, Shape<grid>& border ) const;
 	void getEdgeHalo( Shape<grid>& halo ) const;
 	bool simplyConnected() const;

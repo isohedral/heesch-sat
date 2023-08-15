@@ -157,7 +157,7 @@ public:
 
 	static void calculateInequivalentOrientations(
 		const shape_t& shp, std::vector<xform_t>& Ts );
-	static bool equivalent( const shape_t& A, const shape_t& B );
+	static shape_t canonicalize( const shape_t& shp );
 
 private:
 	void calculateAdjacencies();
@@ -402,6 +402,28 @@ typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape(
 }
 
 template<typename grid>
+Shape<grid> RedelmeierCompound<grid>::canonicalize( const shape_t& shp )
+{
+	shape_t canon;
+	bool at_start = true;
+	shape_t tshape;
+
+	for( const auto& T : grid::orientations ) {
+		tshape.reset( shp, T );
+		tshape.untranslate();
+
+		if( at_start ) {
+			at_start = false;
+			canon = tshape;
+		} else if( tshape.compare( canon ) < 0 ) {
+			canon = tshape;
+		}
+	}
+
+	return canon;
+}
+
+template<typename grid>
 void RedelmeierCompound<grid>::calculateInequivalentOrientations(
 	const shape_t& shp, std::vector<xform_t>& Ts )
 {
@@ -551,7 +573,8 @@ template<typename CB>
 size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 {
 	if( size == 0 ) {
-		std::vector<point_t> pts;
+		// std::vector<point_t> pts;
+		shape_t res;
 		point_set<coord_t> pset;
 
 		for( auto& a : shape ) {
@@ -563,11 +586,12 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 						return 0;
 					}
 					pset.insert( np );
-					pts.push_back( np );
+					res.add( np );
 				}
 			}
 		}
 
+/*
 		std::sort( pts.begin(), pts.end() );
 		point_t o;
 		for( const auto& p : grid::origins ) {
@@ -579,6 +603,12 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 		point_t v = o - pts[0];
 		for( auto& p : pts ) {
 			p = p + v;
+		}
+*/
+		shape_t canon = canonicalize( res );
+		std::vector<point_t> fpts;
+		for( const auto& p : canon ) {
+			fpts.push_back( p );
 		}
 
 		/*
@@ -593,7 +623,7 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 		}
 		*/
 
-		out( point_t {}, pts );
+		out( point_t {}, fpts );
 		return 1;
 	} else {
 		size_t total = 0;
