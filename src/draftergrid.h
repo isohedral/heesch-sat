@@ -40,6 +40,19 @@ public:
 		coord_t mx = ((p.x_ % 7) + 7) % 7;
 		coord_t my = ((p.y_ % 7) + 7) % 7;
 
+		static const TileType types[] = {
+			INVALID, INVALID, INVALID, INVALID, INVALID, INVALID, INVALID,
+			INVALID, INVALID, TRIANGLE_0, INVALID, TRIANGLE_5, INVALID,
+			INVALID, INVALID, TRIANGLE_1, INVALID, INVALID, TRIANGLE_4,
+			INVALID, INVALID, INVALID, INVALID, INVALID, INVALID, INVALID,
+			TRIANGLE_3, TRIANGLE_2, INVALID, TRIANGLE_8, TRIANGLE_9, INVALID,
+			INVALID, INVALID, INVALID, INVALID, INVALID, INVALID, TRIANGLE_10,
+			INVALID, INVALID, TRIANGLE_7, INVALID, INVALID, INVALID,
+			TRIANGLE_11, INVALID, TRIANGLE_6, INVALID
+		};
+
+		return types[ my*7 + mx ];
+/*
 		// FIXME turn this into a table
 		point_t mp { mx, my };
 
@@ -50,6 +63,7 @@ public:
 		}
 
 		return INVALID;
+	*/
     }
 
     inline static point_t getOrigin( const point_t& p ) 
