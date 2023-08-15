@@ -1,0 +1,10 @@
+Consider a more robust file format, e.g., one in which every shape can tell
+you what grid it's on, whether it has Heesch info, and if so, its transforms.
+That would avoid a lot o duplication of command line parameters.
+
+Modify viz so that it can show individual shapes without needing to compute
+any Heesch info.
+
+Start testing the use of SAT to check for isohedral tiling.
+
+
