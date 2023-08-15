@@ -13,8 +13,26 @@ public:
 	using point_t = point<coord>;
 	using xform_t = xform<coord>;
 
+    enum TileType {
+		INVALID = -1,
+		HEXAGON = 0
+    };
+
 public:
-	static size_t numNeighbours( const point_t& p )
+    inline static size_t num_tile_types = 1; 
+    inline static size_t num_tile_shapes = 1;
+
+	inline static TileType getTileType( const point_t& p )
+	{
+		return HEXAGON;
+	}
+
+	inline static point_t getOrigin( const point_t& p )
+	{
+		return { 0, 0 };
+	}
+
+	inline static size_t numNeighbours( const point_t& p )
 	{
 		return 6;
 	}

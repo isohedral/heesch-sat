@@ -15,12 +15,25 @@ public:
 	using edge_t = std::pair<point_t, point_t>;
 
     enum TileType {
-        HEXAGON, TRIANGLE_RIGHT, TRIANGLE_LEFT
+		INVALID = -1,
+        HEXAGON = 0,
+		TRIANGLE_RIGHT = 1,
+		TRIANGLE_LEFT = 2
     };
 
 public:
-    static size_t numTileTypes() { return 3; }
-    static size_t numTileShapes() { return 2; }
+    inline static size_t num_tile_types = 3; 
+    inline static size_t num_tile_shapes = 2;
+
+    static TileType getTileType( const point_t& p )
+    {
+        return (TileType) (((p.x_ - p.y_) % 3 + 3) % 3);
+    }
+
+    inline static point_t getOrigin( const point_t& p ) 
+    {
+		return origins[ (size_t)getTileType( p ) ];
+    }
 
 	static size_t numNeighbours( const point_t& p )
 	{
@@ -55,17 +68,6 @@ public:
     static const point<int8_t> origins[3];
 
 	static const std::vector<point<int8_t>> vertices[3];
-    static const std::vector<point<int8_t>> boundaryWordDirections;
-
-    static point_t getTileTypeOrigin(TileType t)
-    {
-        return origins[t];
-    }
-
-    static TileType getTileType( const point_t& p )
-    {
-        return (TileType) (((p.x_ - p.y_) % 3 + 3) % 3);
-    }
 
     static std::vector<point_t> getCellVertices( const point_t& p )
     {
@@ -75,14 +77,6 @@ public:
             ans[i] = p + p + vertexVecs[i];
         return ans;
     }
-
-    static int8_t getBoundaryWordDirection( const point_t dir ) {
-        return std::find(boundaryWordDirections.begin(), boundaryWordDirections.end(), dir) - boundaryWordDirections.begin();
-    }
-
-    static size_t numRotations() { return 6; }
-    static int8_t rotateDirection( int8_t dir ) { return (dir + 1) % boundaryWordDirections.size(); }
-    static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
 
     static point<double> vertexToGrid( const point_t& pt )
 	{
@@ -94,14 +88,6 @@ public:
         const double sqrt3 = 1.73205080756887729353;
 		return { pt.x_ + 0.5*pt.y_, 0.5 * sqrt3 * pt.y_ };
     }
-
-    static bool hasMates() { return false; }
-
-    static std::vector<std::vector<point_t>> getMatesList(const point_t &p) {
-        return {{}};
-    }
-
-private:
 };
 
 template<typename coord>
@@ -162,9 +148,9 @@ const point<int8_t> TriHexGrid<coord>::edge_neighbours[3][6] = {
 
 template<typename coord>
 const point<int8_t> TriHexGrid<coord>::origins[3] = {
-    {0, 0},
-    {1,0},
-    {2, 0}
+    { 0, 0 },
+    { 1, 0 },
+    { 2, 0 }
 };
 
 template<typename coord>
@@ -198,7 +184,3 @@ const std::vector<point<int8_t>> TriHexGrid<coord>::vertices[3] = {
         {-1, 0}, {0, 1}, {1, -1}
     }
 };
-
-template<typename coord>
-const std::vector<point<int8_t>> TriHexGrid<coord>::boundaryWordDirections = {
-        {2, -1}, {1, -2}, {-1, -1}, {-2, 1}, {-1, 2}, {1, 1}};

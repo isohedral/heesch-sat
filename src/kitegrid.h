@@ -15,7 +15,31 @@ public:
 	using xform_t = xform<coord>;
     using edge_t = std::pair<point_t, point_t>;
 
+    enum TileType {
+        // Kites in CCW order starting from the +x-axis
+        INVALID = -1,
+		KITE_E = 0,
+		KITE_NE = 1,
+		KITE_NW = 2,
+		KITE_W = 3,
+		KITE_SW = 4,
+		KITE_SE = 5
+	};
+
 public:
+    inline static size_t num_tile_types = 6; 
+    inline static size_t num_tile_shapes = 1;
+
+    inline static TileType getTileType( const point_t& p )
+    {
+		return (TileType)getTileOrientation( p );
+    }
+
+    inline static point_t getOrigin( const point_t& p ) 
+    {
+		return origins[ (size_t)getTileType( p ) ];
+    }
+
 	static size_t numNeighbours( const point_t& p )
 	{
 		return 9;
@@ -24,7 +48,6 @@ public:
     static size_t getTileOrientation( const point_t& p )
     {
 		const size_t idx = (((p.y_%6)+6)%6)*6 + (((p.x_%6)+6)%6);
-		// std::cerr << "Tile orientation of " << p << " (" << idx << ") is " << tile_orientations[idx] << std::endl;
 		return tile_orientations[idx];
     }
 
@@ -78,7 +101,7 @@ public:
 
 	static const point_t origins[6];
 
-	static const size_t num_orientations;
+	inline static size_t num_orientations = 12;
 	static const xform<int8_t> orientations[12];
 	
 	static const point<int8_t> edge_neighbours[6][4];
@@ -91,16 +114,13 @@ public:
 
 template<typename coord>
 const point<coord> KiteGrid<coord>::origins[6] = {
+	{ 1, 0 },
 	{ 0, 1 },
 	{ -1, 1 }, 
 	{ -1, 0 }, 
 	{ 0, -1 }, 
 	{ 1, -1 }, 
-	{ 1, 0 } 
 };
-
-template<typename coord>
-const size_t KiteGrid<coord>::num_orientations = 12;
 
 template<typename coord>
 const xform<int8_t> KiteGrid<coord>::orientations[12] = {

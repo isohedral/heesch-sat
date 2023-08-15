@@ -41,6 +41,11 @@ public:
 		return types[ (ym*3) + xm ];
 	}
 
+    inline static point_t getOrigin( const point_t& p ) 
+    {
+		return p - getCellHub( p );
+	}
+
 	static size_t numNeighbours( const point_t& p )
 	{
 		return (getTileType(p) % 2 == 0) ? 10 : 12;

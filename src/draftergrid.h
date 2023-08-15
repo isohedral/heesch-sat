@@ -16,15 +16,46 @@ public:
 
     enum TileType {
         // Triangles in CCW order starting from the +x-axis
-        TRIANGLE_0, TRIANGLE_1, TRIANGLE_2, TRIANGLE_3,
-        TRIANGLE_4, TRIANGLE_5, TRIANGLE_6, TRIANGLE_7,
-        TRIANGLE_8, TRIANGLE_9, TRIANGLE_10, TRIANGLE_11,
-        INVALID
+        INVALID = -1,
+        TRIANGLE_0 = 0,
+		TRIANGLE_1 = 1,
+		TRIANGLE_2 = 2,
+		TRIANGLE_3 = 3,
+        TRIANGLE_4 = 4,
+		TRIANGLE_5 = 5,
+		TRIANGLE_6 = 6,
+		TRIANGLE_7 = 7,
+		TRIANGLE_8 = 8, 
+		TRIANGLE_9 = 9,
+		TRIANGLE_10 = 10,
+		TRIANGLE_11 = 11
     };
 
 public:
-    static size_t numTileTypes() { return 12; }
-    static size_t numTileShapes() { return 1; }
+    inline static size_t num_tile_types = 12; 
+    inline static size_t num_tile_shapes = 1;
+
+    inline static TileType getTileType( const point_t& p )
+    {
+		coord_t mx = ((p.x_ % 7) + 7) % 7;
+		coord_t my = ((p.y_ % 7) + 7) % 7;
+
+		// FIXME turn this into a table
+		point_t mp { mx, my };
+
+		for( size_t idx = 0; idx < num_tile_types; ++idx ) {
+			if( origins[idx] == mp ) {
+				return (TileType) idx;
+			}
+		}
+
+		return INVALID;
+    }
+
+    inline static point_t getOrigin( const point_t& p ) 
+    {
+		return origins[ (size_t)getTileType( p ) ];
+    }
 
     static size_t numNeighbours( const point_t& p )
     {
@@ -62,29 +93,6 @@ public:
     static const std::vector<point<int8_t>> vertices[12];
     static const std::vector<point<int8_t>> boundaryWordDirections;
 
-    static const std::vector<std::vector<point<int8_t>>> mates[12];
-
-    static point_t getTileTypeOrigin(TileType t)
-    {
-        return origins[t];
-    }
-
-    static TileType getTileType( const point_t& p )
-    {
-		coord_t mx = ((p.x_ % 7) + 7) % 7;
-		coord_t my = ((p.y_ % 7) + 7) % 7;
-		point_t mp { mx, my };
-
-		for( size_t idx = 0; idx < numTileTypes(); ++idx ) {
-			if( origins[idx] == mp ) {
-				return (TileType) idx;
-			}
-		}
-
-		std::cerr << "invalid!" << std::endl;
-		return INVALID;
-    }
-
     static std::vector<point_t> getCellVertices( const point_t& p )
     {
 		static const point_t los[12] = {
@@ -99,38 +107,12 @@ public:
         const auto &vertexVecs = vertices[ttype];
         std::vector<point_t> ans(vertexVecs.size());
         point_t pTrans = p + los[ttype];
-		// std::cerr << pTrans << std::endl;
-		pTrans = point_t { (coord_t)(pTrans.x_ * 12 / 7), (coord_t)(pTrans.y_ * 12 / 7) };
+		pTrans = point_t { 
+			(coord_t)(pTrans.x_ * 12 / 7), (coord_t)(pTrans.y_ * 12 / 7) };
 
         for (size_t i = 0; i < vertexVecs.size(); ++i)
             ans[i] = pTrans + vertexVecs[i];
         return ans;
-    }
-
-    static std::vector<int8_t> getBoundaryWordDirection( const point_t &dir ) {
-        // A bit more complicated here, since drafters can have sides with the same orientation but different length
-        auto it = std::find(boundaryWordDirections.begin(), boundaryWordDirections.end(), dir);
-        if (it == boundaryWordDirections.end()) {
-            // dir is a double-length side, so find the appropriate single-length direction and return it twice
-            int8_t ans = std::find(boundaryWordDirections.begin(), boundaryWordDirections.end(), point_t{(coord) (dir.x_/2), (coord) (dir.y_/2)}) - boundaryWordDirections.begin();
-            return {ans, ans};
-        }
-        return {(int8_t) (it - boundaryWordDirections.begin())};
-    }
-
-    static size_t numRotations() { return 6; }
-    static int8_t rotateDirection( int8_t dir ) { return (dir + 2) % boundaryWordDirections.size(); }
-    static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
-
-    static bool hasMates() { return true; }
-
-    static std::vector<std::vector<point_t>> getMatesList(const point_t &p) {
-        std::vector<std::vector<point_t>> matesList;
-        for (auto &v : mates[getTileType(p)]) {
-            matesList.emplace_back();
-            for (auto &dir : v) matesList.back().push_back(dir + p);
-        }
-        return matesList;
     }
 
     static point<double> vertexToGrid( const point_t& pt )
@@ -501,75 +483,5 @@ const std::vector<point<int8_t>> DrafterGrid<coord>::vertices[12] = {
         },
         { // {3,6}
                 {0, 0}, {8, -4}, {6, 0}
-        }
-};
-
-template<typename coord>
-const std::vector<point<int8_t>> DrafterGrid<coord>::boundaryWordDirections = {
-        {-7, 14}, {0, 21}, {7, 7}, {21, 0}, {14, -7}, {21, -21},
-        {7, -14}, {0, -21}, {-7, -7}, {-21, 0}, {-14, 7}, {-21, 21},
-};
-
-template<typename coord>
-const std::vector<std::vector<point<int8_t>>> DrafterGrid<coord>::mates[12] = {
-        {
-                {{2, 0}, {2, 1}},
-                {{-1, 1}, {-1, 3}},
-                {{-1, 1}, {2, 0}},
-        },
-        {
-                {{0, 2}, {1, 2}},
-                {{0, 2}, {1, -1}},
-                {{1, -1}, {3, -1}}
-        },
-        {
-                {{0, 2}, {-1, 3}},
-                {{0, 2}, {-1, 0}},
-                {{-1, 0}, {-3, 2}}
-        },
-        {
-                {{1, 0}, {1, 2}},
-                {{1, 0}, {-2, 2}},
-                {{-2, 2}, {-2, 3}}
-        },
-        {
-                {{-2, 2}, {-3, 2}},
-                {{0, -1}, {-2, 2}},
-                {{0, -1}, {-2, -1}}
-        },
-        {
-                {{0, 1}, {-2, 3}},
-                {{0, 1}, {-2, 0}},
-                {{-2, 0}, {-3, 1}}
-        },
-        {
-                {{-2, 0}, {-2, -1}},
-                {{1, -1}, {1, -3}},
-                {{1, -1}, {-2, 0}},
-        },
-        {
-                {{0, -2}, {-1, -2}},
-                {{0, -2}, {-1, 1}},
-                {{-1, 1}, {-3, 1}}
-        },
-        {
-                {{0, -2}, {1, -3}},
-                {{0, -2}, {1, 0}},
-                {{1, 0}, {3, -2}}
-        },
-        {
-                {{-1, 0}, {-1, -2}},
-                {{-1, 0}, {2, -2}},
-                {{2, -2}, {2, -3}}
-        },
-        {
-                {{2, -2}, {3, -2}},
-                {{0, 1}, {2, -2}},
-                {{0, 1}, {2, 1}}
-        },
-        {
-                {{0, -1}, {2, -3}},
-                {{0, -1}, {2, 0}},
-                {{2, 0}, {3, -1}}
         }
 };

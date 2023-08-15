@@ -15,16 +15,24 @@ public:
 	using edge_t = std::pair<point_t, point_t>;
 
     enum TileType {
-        SQUARE, OCTAGON
-    };
-
-    enum TileShape {
-        SQUARE_SHAPE, OCTAGON_SHAPE
+		INVALID = -1,
+        SQUARE = 0,
+		OCTAGON = 1
     };
 
 public:
-    static size_t numTileTypes() { return 2; }
-    static size_t numTileShapes() { return 2; }
+    inline static size_t num_tile_types = 2; 
+    inline static size_t num_tile_shapes = 2;
+
+    inline static TileType getTileType( const point_t& p )
+    {
+        return (p.x_ + p.y_) % 2 == 0 ? SQUARE : OCTAGON;
+    }
+
+    inline static point_t getOrigin( const point_t& p ) 
+    {
+		return origins[ (size_t)getTileType( p ) ];
+    }
 
 	static size_t numNeighbours( const point_t& p )
 	{
@@ -64,26 +72,6 @@ public:
 
     static const std::vector<point<int8_t>> boundaryWordDirections;
 
-    static point_t getTileTypeOrigin(TileType t)
-    {
-        return t == SQUARE ? point_t{0, 0} : point_t{1, 0};
-    }
-
-    static TileType getTileType( const point_t& p )
-    {
-        return (p.x_ + p.y_) % 2 == 0 ? SQUARE : OCTAGON;
-    }
-
-    static TileShape getTileShape( const TileType t )
-    {
-        return (TileShape) t;
-    }
-
-    static TileShape getTileShape( const point_t& p )
-    {
-        return getTileShape(getTileType(p));
-    }
-
     static std::vector<point_t> getCellVertices( const point_t& p )
     {
         const auto &vertexVecs = (getTileType(p) == SQUARE ? squareVertices : octagonVertices);
@@ -94,15 +82,6 @@ public:
 		}
         return ans;
     }
-
-    // assumes dir is a valid direction
-    static int8_t getBoundaryWordDirection( const point_t dir ) {
-        return std::find(boundaryWordDirections.begin(), boundaryWordDirections.end(), dir) - boundaryWordDirections.begin();
-    }
-
-    static size_t numRotations() { return 4; }
-    static int8_t rotateDirection( int8_t dir ) { return (dir + 2) % boundaryWordDirections.size(); }
-    static int8_t reflectDirection( int8_t dir ) { return (boundaryWordDirections.size() - dir) % boundaryWordDirections.size(); }
 
     static point<double> vertexToGrid( const point_t& pt ) {
 		// (sqrt(2) − 1) / (2 + 2*sqrt(2))
@@ -117,22 +96,6 @@ public:
 
     static point<double> gridToPage( const point<double>& pt) {
         return pt;
-    }
-
-    static bool hasMates() { return false; }
-
-    static std::vector<std::vector<point_t>> getMatesList(const point_t &p) {
-        return {{}};
-    }
-
-private:
-    static std::vector<point_t> getTileVertices( const point_t& p )
-    {
-        const auto &vertexVecs = (getTileType(p) == SQUARE ? squareVertices : octagonVertices);
-        std::vector<point_t> ans(vertexVecs.size());
-        for (size_t i = 0; i < vertexVecs.size(); ++i)
-            ans[i] = p + p + vertexVecs[i];
-        return ans;
     }
 };
 

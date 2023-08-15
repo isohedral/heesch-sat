@@ -118,16 +118,16 @@ public:
 	// Move this shape so its minimum point lies at an origin of the grid.
 	void untranslate()
 	{
-		// FIXME -- add the ability for the grid to select the origin
-		// point.
 		point_t p = pts_.front();
-		point_t v;
+		point_t v = grid::getOrigin( p ) - p;
+		/*
 		for( const auto& op : grid::origins ) {
 			if( grid::translatable( op, p ) ) {
 				v = op - p;
 				break;
 			}
 		}
+		*/
 
 		for( auto& sp : pts_ ) {
 			sp += v;

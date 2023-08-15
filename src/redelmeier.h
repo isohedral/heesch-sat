@@ -382,17 +382,7 @@ typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape(
 	std::sort( nshape.begin(), nshape.end() );
 
 	point_t mpt;
-	point_t d;
-
-	// FIXME This doesn't have to be a loop, it can be sped up using
-	// a method like Ava's "getTileType", which selects an appropriate origin
-	// directly from nshape[0]'s x and y coordinates.
-	for( auto& o : grid::origins ) {
-		if( grid::translatable( o, nshape[0] ) ) {
-			d = o - nshape[0];
-			break;
-		}
-	}
+	point_t d = grid::getOrigin( nshape[0] ) - nshape[0];;
 
 	for( auto& p : nshape ) {
 		p = p + d;
@@ -591,20 +581,6 @@ size_t RedelmeierCompound<grid>::solve( size_t size, size_t from, CB out )
 			}
 		}
 
-/*
-		std::sort( pts.begin(), pts.end() );
-		point_t o;
-		for( const auto& p : grid::origins ) {
-			if( grid::translatable( p, pts[0] ) ) {
-				o = p;
-				break;
-			}
-		}
-		point_t v = o - pts[0];
-		for( auto& p : pts ) {
-			p = p + v;
-		}
-*/
 		shape_t canon = canonicalize( res );
 		std::vector<point_t> fpts;
 		for( const auto& p : canon ) {

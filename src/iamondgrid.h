@@ -13,8 +13,27 @@ public:
 	using point_t = point<coord>;
 	using xform_t = xform<coord>;
 
+    enum TileType {
+		INVALID = -1,
+		TRIANGLE_UP = 0,
+		TRIANGLE_DOWN = 1,
+    };
+
 public:
-	static size_t numNeighbours( const point_t& p )
+    inline static size_t num_tile_types = 2; 
+    inline static size_t num_tile_shapes = 1;
+
+	inline static TileType getTileType( const point_t& p )
+	{
+		return ((p.x_ % 3) == 0) ? TRIANGLE_UP : TRIANGLE_DOWN;
+	}
+
+	inline static point_t getOrigin( const point_t& p )
+	{
+		return origins[ (size_t)getTileType( p ) ];
+	}
+
+	inline static size_t numNeighbours( const point_t& p )
 	{
 		return 12;
 	}
