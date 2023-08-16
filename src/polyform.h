@@ -23,12 +23,21 @@ class Polyform {
 
 public:
     explicit Polyform(std::vector<point_t> p): boundaryWord{}, shape{}, pts{std::move(p)} {
-        for (auto pt : pts) shape.add(pt);
+        for (auto pt : pts) {
+			shape.add(pt);
+		}
+		shape.complete();
     }
 
-    [[nodiscard]] bool simplyConnected() const { return shape.simplyConnected(); }
+    [[nodiscard]] bool simplyConnected() const
+	{ 
+		return shape.simplyConnected(); 
+	}
 
-	void debug() const { shape.debug(); }
+	void debug() const 
+	{ 
+		shape.debug(); 
+	}
 
     [[nodiscard]] std::string toString() const {
         std::string ans;

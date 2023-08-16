@@ -43,7 +43,10 @@ public:
 
     inline static point_t getOrigin( const point_t& p ) 
     {
-		return p - getCellHub( p );
+		// return p - getCellHub( p );
+		return point_t { 
+			(coord_t)((((p.x_+1)%3)+3) % 3 - 1), 
+			(coord_t)((((p.y_+1)%3)+3) % 3 - 1) };
 	}
 
 	static size_t numNeighbours( const point_t& p )

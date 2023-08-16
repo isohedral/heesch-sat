@@ -120,14 +120,6 @@ public:
 	{
 		point_t p = pts_.front();
 		point_t v = grid::getOrigin( p ) - p;
-		/*
-		for( const auto& op : grid::origins ) {
-			if( grid::translatable( op, p ) ) {
-				v = op - p;
-				break;
-			}
-		}
-		*/
 
 		for( auto& sp : pts_ ) {
 			sp += v;
@@ -313,6 +305,15 @@ bool Shape<grid>::simplyConnected() const
 			}
 		}
 	}
+
+/*
+	debug();
+	if( visited.size() == halo.size() ) {
+		std::cerr << " ... is simply connected" << std::endl;
+	} else {
+		std::cerr << " ... is NOT simply connected" << std::endl;
+	}
+*/
 
 	return visited.size() == halo.size();
 }

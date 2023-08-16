@@ -584,11 +584,22 @@ size_t RedelmeierCompound<grid>::solve(
 			}
 		}
 
+
 		shape_t canon = canonicalize( res );
 
+/*
+		std::cerr << "Canonicalizing: ";
+		res.debug();
+		std::cerr << "        Result: ";
+		canon.debug();
+		if( res.simplyConnected() != canon.simplyConnected() ) {
+			std::cerr << "They disagree!" << std::endl;
+		}
+	*/
+
 		if( holes || canon.simplyConnected() ) {
-			out( *canon.begin(),
-				 std::vector<point_t> { canon.begin(), canon.end() } );
+			std::vector<point_t> ret { canon.begin(), canon.end() };
+			out( ret[0], std::move( ret ) );
 			return 1;
 		}
 

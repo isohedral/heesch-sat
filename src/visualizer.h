@@ -116,7 +116,7 @@ private:
 			if( tiling.poly.simplyConnected() ) {
 				tilings.push_back(tiling);
 			} else {
-				// tiling.poly.debug();
+				tiling.poly.debug();
 				++holes;
 			}
 			// tilings.push_back(readTiling());
