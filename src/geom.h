@@ -200,6 +200,12 @@ public:
 			&& (e_ == other.e_) 
 			&& (f_ == other.f_);
 	}
+	template<typename ocoord>
+	bool operator !=( const xform<ocoord>& other ) const
+	{
+		return !(*this == other);
+	}
+
 	bool isIdentity() const
 	{
 		return (a_==1) && (b_==0) && (c_==0) && (d_==0) && (e_==1) && (f_==0);
@@ -207,6 +213,10 @@ public:
 	bool isTranslation() const
 	{
 		return (a_==1) && (b_==0) && (d_==0) && (e_==1);
+	}
+	bool isHalfturn() const
+	{
+		return (a_==-1) && (b_==0) && (d_==0) && (e_==-1);
 	}
 	coord det() const
 	{

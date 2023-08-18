@@ -88,6 +88,18 @@ public:
 		return (*this) != other;
 	}
 
+	void getSymmetries( std::vector<xform_t>& syms ) const
+	{
+		Shape<grid> other;
+		syms.clear();
+		for( size_t idx = 1; idx < grid::num_orientations; ++idx ) {
+			other.reset( *this, grid::orientations[idx] );
+			if( equivalent( other ) ) {
+				syms.push_back( grid::orientations[idx] );
+			}
+		}
+	}
+
 	// Are these shapes equivalent under translation?
 	bool equivalent( const Shape<grid>& other ) const
 	{

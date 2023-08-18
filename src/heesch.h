@@ -11,6 +11,14 @@
 
 using var_id = uint32_t;
 
+template<typename coord_t>
+using Solution = std::vector<std::pair<size_t,xform<coord_t>>>;
+
+// The callback should return true if it wants more solutions, false
+// if it's seen enough.
+template<typename coord_t>
+using solution_cb = std::function<bool( const Solution<coord_t>& )>;
+
 template<typename grid>
 struct tile_info
 {
@@ -54,9 +62,6 @@ struct cell_info
 	std::list<tile_index> tiles_;
 };
 
-template<typename coord_t>
-using Solution = std::vector<std::pair<size_t,xform<coord_t>>>;
-
 template<typename grid>
 class HeeschSolver
 {
@@ -71,10 +76,19 @@ public:
 	size_t getLevel() const
 	{ return level_; }
 
+	void setCheckIsohedral( bool b ) 
+	{ 
+		check_isohedral_ = b;
+	}
+
+	bool tilesIsohedrally() const
+	{
+		return tiles_isohedrally_;
+	}
+
 	bool hasCorona( 
 		bool get_solution, bool& has_holes, Solution<coord_t>& soln );
 	void allCoronas( std::vector<Solution<coord_t>>& solns );
-	bool isIsohedral( bool get_solution, Solution<coord_t>& soln );
 
 	void debug( std::ostream& os ) const;
 
@@ -96,6 +110,11 @@ private:
 	void addHolesToLevel();
 	void extendLevelWithTransforms( size_t lev, const xform_set<coord_t>& Ts );
 
+	void allCoronas( CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const;
+	bool checkIsohedralTiling( CMSat::SATSolver& solv );
+	bool isSurroundIsohedral( 
+		const Solution<coord_t>& soln, const std::vector<xform_t>& syms ) const;
+
 	Shape<grid> shape_;
 	Cloud<grid> cloud_;
 
@@ -107,6 +126,8 @@ private:
 
 	size_t level_;
 	var_id next_var_;
+	bool check_isohedral_;
+	bool tiles_isohedrally_;;
 };
 
 template<typename grid, typename coord>
@@ -163,6 +184,8 @@ HeeschSolver<grid>::HeeschSolver( const Shape<grid>& shape, Orientations ori )
 	, cell_map_ {}
 	, level_ { 0 }
 	, next_var_ { 0 }
+	, check_isohedral_ { false }
+	, tiles_isohedrally_ { false }
 {
 	// Create the 0th corona.
 	getShapeVariable( grid::orientations[0], 0 );
@@ -296,7 +319,7 @@ bool HeeschSolver<grid>::getShapeVariable(
 
 	// The location is in the map.  Now check if the variable exists
 	// for this level.
-	tile_info<grid>& ti = tiles_[index];
+	const tile_info<grid>& ti = tiles_[ index ];
 
 	auto j = ti.vars_.find( level );
 	if( j == ti.vars_.end() ) {
@@ -413,8 +436,6 @@ void HeeschSolver<grid>::getClauses(
 		solv.add_clause( cl );
 	}
 
-//	std::cerr << "Interior copies of S must have covered haloes."
-//		<< std::endl;
 	// If a copy of S is used in an interior corona (a k-corona for k < n),
 	// then that copy’s halo cells must be used.
 	cl.resize( 2 );
@@ -431,7 +452,6 @@ void HeeschSolver<grid>::getClauses(
 			}
 		}
 	}
-//	std::cerr << "Done." << std::endl;
 
 	// Used copies of S cannot overlap.
 	cl.resize( 2 );
@@ -532,129 +552,6 @@ void HeeschSolver<grid>::getSolution(
 	}
 }
 
-template<typename grid> bool HeeschSolver<grid>::isIsohedral(
-	bool get_solution, Solution<coord_t>& ret ) 
-{
-	if( !cloud_.surroundable_ ) {
-		return false;
-	}
-
-	return true;
-
-#if 0
-	// Everything in here was just some preliminary playing around and
-	// doesn't work at all.
-
-	// Implicitly var_id 1
-	xform_t I = xform_t {};
-
-	if( level_ == 0 ) {
-		increaseLevel();
-	}
-
-	// Find all tile placements whose inverses are also valid
-	// placements
-	xform_map<coord_t,var_id> eligible;
-	for( const auto& T : cloud_.adjacent_ ) {
-		xform Ti = T.invert();
-		if( cloud_.isAdjacent( Ti ) ) {
-			eligible[T] = 0;
-		}
-	}
-
-	CMSat::SATSolver solv;
-	solv.new_vars( eligible.size() + 1 );
-
-	// Assign variables.
-	var_id id = 1;
-	for( auto& i : eligible ) {
-		i.second = id;
-		++id;
-	}
-
-	std::vector<CMSat::Lit> cl;
-
-	// Every halo cell is used
-	for( const auto& p : cloud_.halo_ ) {
-		cl.clear();
-		const auto& ci = cells_[ cell_map_[p] ];
-		for( const auto tindex : ci.tiles_ ) {
-			auto i = eligible.find( tiles_[tindex].T_ );
-			if( i != eligible.end() ) {
-				cl.push_back( pos( i->second ) );
-			}
-		}
-		solv.add_clause( cl );
-	}
-
-	cl.resize( 2 );
-
-	// No two tiles overlap
-	size_t idx = 0;
-	for( auto i : eligible ) {
-		size_t jdx = 0;
-		for( auto j : eligible ) {
-			++jdx;
-			if( jdx == idx ) {
-				break;
-			}
-			if( cloud_.isOverlap( i.first * j.first.invert() ) ) {
-				cl[0] = neg( i.second );
-				cl[1] = neg( j.second );
-				solv.add_clause( cl );
-			}
-		}
-		++idx;
-	}
-
-
-	/*
-	// For every halo cell around the central tile, exactly one
-	// eligible tile covers it.
-	for( const auto& p : cloud_.halo_ ) {
-		const auto& ci = cells_[ cell_map_[p] ];
-		for( const auto tindex : ci.tiles_ ) {
-			auto i = eligible.find( tiles_[tindex].T_ );
-			if( i != eligible.end() ) {
-				ids.push_back( i->second );
-			}
-		}
-		solv.add_xor_clause( ids, true );
-	}
-	*/
-	
-
-	// Every eligible transform implies its inverse -- they must be
-	// used in pairs.
-	for( auto i : eligible ) {
-		auto j = eligible.find( i.first.invert() );
-		cl[0] = neg( i.second );
-		cl[1] = pos( j->second );
-		solv.add_clause( cl );
-	}
-
-	cl.resize( 1 );
-	cl[0] = pos( 0 );
-	solv.add_clause( cl );
-
-	if( solv.solve() == CMSat::l_True ) {
-		if( get_solution ) {
-			ret.clear();
-			const std::vector<CMSat::lbool>& model = solv.get_model();
-			ret.emplace_back( 0, I );
-			for( auto i : eligible ) {
-				if( model[i.second] == CMSat::l_True ) {
-					ret.emplace_back( 1, i.first );
-				}
-			}
-		}
-		return true;
-	} else {
-		return false;
-	}
-#endif
-}
-
 template<typename grid>
 bool HeeschSolver<grid>::hasCorona( 
 	bool get_solution, bool& has_holes, Solution<coord_t>& soln ) 
@@ -708,6 +605,18 @@ bool HeeschSolver<grid>::hasCorona(
 				if( get_solution ) {
 					getSolution( solver, soln );
 				}
+
+				// If the client has asked for checking isohedral tiling,
+				// this is the place to do it -- after constructing the
+				// clauses for level-1 surroundability, finding a surround
+				// with no holes.
+				if( (level_ == 1) && check_isohedral_ ) {
+					if( checkIsohedralTiling( solver ) ) {
+						tiles_isohedrally_ = true;
+						return false;
+					}
+				}
+
 				return true;
 			}
 
@@ -756,6 +665,164 @@ bool HeeschSolver<grid>::hasCorona(
 	}
 }
 
+extern size_t tilings;
+
+template<typename grid>
+bool HeeschSolver<grid>::isSurroundIsohedral( 
+	const Solution<coord_t>& soln, const std::vector<xform_t>& syms ) const
+{
+/*
+	// Check for translations and halfturns only.
+	bool has_halfturns = false;
+
+	for( const auto& p : soln ) {
+		const xform_t& T = p.second;
+		if( T.isHalfturn() ) {
+			has_halfturns = true;
+		} else if( !T.isTranslation() ) {
+			return false;
+		}
+	}
+
+	if( has_halfturns ) {
+		++halfturn_tilings;
+	} else {
+		++translation_tilings;
+	}
+*/
+	// Check if every tile in the surround is itself surroundable
+	// in the same way.  First, build a shape representing the entire
+	// surround.
+	for( const auto& p : soln ) {
+		const xform_t& A = p.second;
+		for( const auto& q : soln ) {
+			const xform_t& B = q.second;
+			xform_t C = A * B;
+			// If you discover that C is equal to one of the transforms
+			// in the patch (up to symmetry), then C is fine.  If C 
+			// partially overlaps any transform in the patch, then the
+			// surround is illegal.
+
+			for( const auto& r : soln ) {
+				if( C == r.second ) {
+					break;
+				}
+				if( cloud_.isOverlap( C.invert() * r.second ) ) {
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+template<typename grid>
+bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv ) 
+{
+	// The solver is assumed to contain the clauses for a hole-free
+	// 1-corona.  Augment it with new clauses that restrict solutions 
+	// to isohedral tilings.
+
+	std::vector<CMSat::Lit> ucl { 1 };
+	std::vector<CMSat::Lit> bcl { 2 };
+
+	for( const auto& T : cloud_.adjacent_ ) {
+		xform_t Ti = T.invert();
+
+		// This should not be used for involutory transforms
+		if( T != Ti ) {
+			var_id t_id;
+			getShapeVariable( T, 1, t_id );
+
+			if( cloud_.isAdjacent( Ti ) ) {
+				// T and Ti are adjacent.  Add a clause that couples them
+				// in surrounds.  (T -> Ti)
+				var_id ti_id;
+				getShapeVariable( Ti, 1, ti_id );
+
+				bcl[0] = neg( t_id );
+				bcl[1] = pos( ti_id );
+				solv.add_clause( bcl );
+			} else {
+				// T isn't involutory, but its inverse isn't an adjacent.
+				// Therefore, T can't be used!
+				ucl[0] = neg( t_id );
+				solv.add_clause( ucl );
+			}
+		}
+	}
+	
+	std::vector<xform_t> syms;
+	shape_.getSymmetries( syms );
+
+	allCoronas( solv, [this,syms] ( const Solution<coord_t>& soln ) {
+	/*
+		for( const auto& p : shape_ ) {
+			std::cerr << p.x_ << ' ' << p.y_ << ' ';
+		}
+		std::cerr << std::endl;
+		std::cerr << "Hc = 1 Hh = 1" << std::endl;
+		std::cerr << soln.size() << std::endl;
+		for( auto& pr : soln ) {
+			std::cerr << pr.first << " ; " << pr.second << std::endl;
+		}
+		*/
+
+		if( isSurroundIsohedral( soln, syms ) ) {
+			tiles_isohedrally_ = true;
+			++tilings;
+			return false;
+		} else {
+			// Need more data
+			return true;
+		}
+	} );
+
+	return tiles_isohedrally_;
+}
+
+// Note that this enuerates only hole-free coronas.
+template<typename grid>
+void HeeschSolver<grid>::allCoronas( 
+	CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const
+{
+	getClauses( solv, false );
+	while( solv.solve() == CMSat::l_True ) {
+		// Got a solution, but it may have large holes.  Need to find
+		// them and iterate until they're gone.
+
+		HoleFinder<grid> finder { shape_ };
+
+		std::vector<CMSat::Lit> cl;
+		const std::vector<CMSat::lbool>& model = solv.get_model();
+
+		// Get tile info for hole detection, while simultaneously
+		// building clause for forbidding this solution.
+		for( auto& ti : tiles_ ) {
+			for( auto& i : ti.vars_ ) {
+				if( model[i.second] == CMSat::l_True ) {
+					finder.addCopy( ti.index_, ti.T_ );
+					cl.push_back( neg( i.second ) );
+				}
+			}
+		}
+
+		std::vector<std::vector<tile_index>> holes;
+		if( !finder.getHoles( holes ) ) {
+			// No holes, so keep the solution
+			Solution<coord_t> soln;
+			getSolution( solv, soln );
+			if( !cb( soln ) ) {
+				return;
+			}
+		}
+
+		// Suppress this solution and keep going.
+		solv.add_clause( cl );
+	}
+}
+
 template<typename grid>
 void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns ) 
 {
@@ -770,6 +837,9 @@ void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns )
 	solver.new_vars( next_var_ );
 
 	getClauses( solver, false );
+	allCoronas( solver, [solns]( const Solution<grid>& soln )
+		{ solns.push_back( soln ); return true; } );
+	/*
 	while( solver.solve() == CMSat::l_True ) {
 		// Got a solution, but it may have large holes.  Need to find
 		// them and iterate until they're gone.
@@ -802,6 +872,7 @@ void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns )
 		// Suppress this solution and keep going.
 		solver.add_clause( cl );
 	}
+	*/
 }
 
 template<typename grid>

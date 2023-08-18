@@ -11,6 +11,10 @@ static bool show_solution = false;
 static int max_level = INT_MAX;
 static bool reject_max = false;
 static Orientations ori = ALL;
+static bool check_isohedral = false;
+
+size_t tilings = 0;
+size_t seen = 0;
 
 template<typename grid>
 static bool readShape( istream& is, Shape<grid>& shape, string& str )
@@ -73,6 +77,8 @@ static void mainLoop( istream& is )
 	string desc;
 
 	while( readShape( is, shape, desc ) ) {
+		++seen;
+
 		size_t hc = 0;
 		Solution<coord_t> sc;
 		size_t hh = 0;
@@ -80,6 +86,7 @@ static void mainLoop( istream& is )
 		bool has_holes;
 
 		HeeschSolver<grid> solver { shape, ori };
+		solver.setCheckIsohedral( check_isohedral );
 		solver.increaseLevel();
 
 		while( true ) {
@@ -107,6 +114,9 @@ static void mainLoop( istream& is )
 				break;
 			}
 
+			if( solver.tilesIsohedrally() ) {
+				continue;
+			}
 		}
 
 		if( (solver.getLevel() > max_level) && reject_max ) {
@@ -132,6 +142,8 @@ static void gridMain( int argc, char **argv )
 			ori = TRANSLATIONS_ONLY;
 		} else if( !strcmp( argv[idx], "-rotations" ) ) {
 			ori = TRANSLATIONS_ROTATIONS;
+		} else if( !strcmp( argv[idx], "-isohedral" ) ) {
+			check_isohedral = true;
 		} else {
 			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
 				<< endl;
@@ -140,6 +152,8 @@ static void gridMain( int argc, char **argv )
 	}
 
 	mainLoop<grid>( cin );
+
+	cerr << tilings << " tile of " << seen << endl;
 }
 
 int main( int argc, char **argv )
