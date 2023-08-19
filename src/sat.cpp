@@ -155,9 +155,12 @@ static void gridMain( int argc, char **argv )
 
 	cerr << tilings << " tile of " << seen << endl;
 }
+GRID_WRAP( gridMain );
 
 int main( int argc, char **argv )
 {
-	bootstrap_grid( argc, argv, gridMain ) 
+	// bootstrap_grid( argc, argv, gridMain ) 
+	GridType gt = getGridType( argc, argv );
+	GRID_DISPATCH( gridMain, gt, argc, argv );
 	return 0;
 }

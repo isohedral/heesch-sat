@@ -34,9 +34,11 @@ static void gridMain( int argc, char **argv )
 		{std::cin, std::cout, false, max_level, max_only, ori_col};
     p.run();
 }
+GRID_WRAP( gridMain );
 
 int main( int argc, char **argv )
 {
-	bootstrap_grid( argc, argv, gridMain ) 
+	GridType gt = getGridType( argc, argv );
+	GRID_DISPATCH( gridMain, gt, argc, argv );
 	return 0;
 }

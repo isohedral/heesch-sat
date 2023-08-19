@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "geom.h"
 
 #include "ominogrid.h"
@@ -66,7 +68,7 @@ inline GridType getGridType( int& argc, char **argv )
 }
 
 // Ugh!  Surely there's a more elegant, non-macro way to make this work?
-#define bootstrap_grid( argc, argv, func )  \
+#define bootstrap_grid_DEPRECATED( argc, argv, func )  \
 	{ \
 		GridType grid = getGridType( argc, argv ); \
 		if( grid == OMINO ) { \
@@ -89,6 +91,36 @@ inline GridType getGridType( int& argc, char **argv )
 			func<HalfCairoGrid<int16_t>>( argc, argv ); \
 		} \
 	} 
+
+template<template<typename grid> typename Func, typename... Args>
+auto dispatchToGridType( GridType gt, Args ...args )
+{
+	switch( gt ) {
+		case HEX: return Func<HexGrid<int16_t>>()( args... ); 
+		case IAMOND: return Func<IamondGrid<int16_t>>()( args... ); 
+		case KITE: return Func<KiteGrid<int16_t>>()( args... ); 
+		case DRAFTER: return Func<DrafterGrid<int16_t>>()( args... ); 
+		case ABOLO: return Func<AboloGrid<int16_t>>()( args... ); 
+		case OCTASQUARE: return Func<OctaSquareGrid<int16_t>>()( args... ); 
+		case TRIHEX: return Func<TriHexGrid<int16_t>>()( args... ); 
+		case HALFCAIRO: return Func<HalfCairoGrid<int16_t>>()( args... ); 
+		case OMINO: default: return Func<OminoGrid<int16_t>>()( args... ); 
+	} 
+}
+
+#define GRID_WRAP( f ) \
+template<typename grid> \
+struct f##Wrapper \
+{ \
+public: \
+	template<typename... Args> \
+	auto operator()( Args ...args ) \
+	{ \
+		return f<grid>( args... ); \
+	} \
+}
+
+#define GRID_DISPATCH( f, gt, ... ) dispatchToGridType<f##Wrapper>( gt, __VA_ARGS__ )
 
 template<typename grid>
 struct neighbour_maker

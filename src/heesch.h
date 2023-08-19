@@ -837,7 +837,7 @@ void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns )
 	solver.new_vars( next_var_ );
 
 	getClauses( solver, false );
-	allCoronas( solver, [solns]( const Solution<grid>& soln )
+	allCoronas( solver, [&solns]( const Solution<coord_t>& soln )
 		{ solns.push_back( soln ); return true; } );
 	/*
 	while( solver.solve() == CMSat::l_True ) {
