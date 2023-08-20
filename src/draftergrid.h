@@ -32,6 +32,8 @@ public:
     };
 
 public:
+	inline static GridType grid_type = DRAFTER;
+
     inline static size_t num_tile_types = 12; 
     inline static size_t num_tile_shapes = 1;
 

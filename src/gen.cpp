@@ -3,47 +3,39 @@
 
 #include "redelmeier.h"
 #include "grid.h"
+#include "tileio.h"
 
 using namespace std;
 
-template<typename grid>
-static void output( const typename grid::point_t&,
-	const std::vector<typename grid::point_t>& pts )
-{
-	bool at_start = true;
-
-	for( const auto& p : pts ) {
-		if( !at_start ) {
-			cout << ' ';
-		}
-		cout << p.x_ << ' ' << p.y_;
-		at_start = false;
-	}
-	cout << endl;
-}
+static bool onlyfree = false;
+static bool units = false;
+static bool holes = false;
+static size_t numcells = 1;
 
 template<typename grid>
 static bool readShape( istream& is, Shape<grid>& shape )
 {
 	using coord_t = typename grid::coord_t;
-	using point_t = typename grid::point_t;
+	using iter = IntReader<coord_t>;
 
 	char buf[1000];
 	is.getline( buf, 1000 );
-	string str = buf;
+	size_t gc = is.gcount();
+	if( gc == 0 ) {
+		return false;
+	}
+	iter iend { buf + gc - 1 };
 
-	shape.reset();
-	istringstream iss( buf );
-
-	coord_t x;
-	coord_t y;
-
-	while( iss >> x >> y ) {
-		shape.add( point_t { x, y } );
+	for( auto i = iter { buf }; i != iend; ) {
+		shape.add( *i++, *i++ );
 	}
 
-	shape.complete();
-	return shape.size() > 0;
+	if( shape.size() > 0 ) {
+		shape.complete();
+		return true;
+	} else {
+		return false;
+	}
 }
 
 template<typename grid>
@@ -53,29 +45,64 @@ static vector<Shape<grid>> readShapes( istream& is )
 
 	Shape<grid> cur;
 	while( readShape( is, cur ) ) {
-		ret.push_back( cur );
+		// cur.debug();
+		ret.push_back( std::move( cur ) );
 	}
 
 	return ret;
 }
 
 template<typename grid>
-static void gridMain( int argc, char **argv )
+void output( const Shape<grid>& shp )
+{
+	static TileInfo<grid> info;
+	info.setShape( shp );
+	info.setRecordType( TileInfo<grid>::UNKNOWN );
+
+	if( !shp.simplyConnected() ) {
+		// Shape has a hole.  Report if argument is set, otherwise skip
+		if( holes ) {
+			info.setRecordType( TileInfo<grid>::HOLE );
+			info.write( cout );
+		}
+	} else {
+		info.write( cout );
+	}
+}
+
+template<typename grid>
+static void gridMain( int )
 {
 	polyform_cb<grid> cb { output<grid> };
 
-	bool free = false;
-	bool units = false;
-	bool holes = false;
-	size_t size = 1;
+	if( units ) {
+		vector<Shape<grid>> shapes = readShapes<grid>( cin );
+		RedelmeierCompound<grid> r { shapes };
+		r.solve( numcells, cb );
+	} else {
+		RedelmeierSimple<grid> simp;
+		if( onlyfree ) {
+			FreeFilter<grid> filt {};
+			filt.solve( numcells, simp, cb );
+		} else {
+			simp.solve( numcells, cb );
+		}
+	}
+}
+GRID_WRAP( gridMain );
+
+int main( int argc, char **argv )
+{
+	GridType gt = getGridType( argc, argv );
+
 	size_t idx = 1;
 
 	while( idx < argc ) {
 		if( !strcmp( argv[idx], "-size" ) ) {
-			size = atoi( argv[idx+1] );
+			numcells = atoi( argv[idx+1] );
 			++idx;
 		} else if( !strcmp( argv[idx], "-free" ) ) {
-			free = true;
+			onlyfree = true;
 		} else if( !strcmp( argv[idx], "-units" ) ) {
 			units = true;
 		} else if( !strcmp( argv[idx], "-holes" ) ) {
@@ -88,32 +115,6 @@ static void gridMain( int argc, char **argv )
 		++idx;
 	}
 
-/*
-	cerr << "units: " << units << endl;
-	cerr << "free: " << free << endl;
-	cerr << "size: " << size << endl;
-*/
-
-	if( units ) {
-		vector<Shape<grid>> shapes = readShapes<grid>( cin );
-		RedelmeierCompound<grid> r { shapes, holes };
-		r.solve( size, cb );
-	} else {
-		RedelmeierSimple<grid> simp { holes };
-		if( free ) {
-			FreeFilter<grid> filt {};
-			filt.solve( size, simp, cb );
-		} else {
-			simp.solve( size, cb );
-		}
-	}
-}
-GRID_WRAP( gridMain );
-
-int main( int argc, char **argv )
-{
-	// bootstrap_grid( argc, argv, gridMain ) 
-	GridType gt = getGridType( argc, argv );
-	GRID_DISPATCH( gridMain, gt, argc, argv );
+	GRID_DISPATCH( gridMain, gt, 0 );
 	return 0;
 }

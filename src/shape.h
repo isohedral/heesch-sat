@@ -33,6 +33,10 @@ public:
 		return pts_.size();
 	}
 
+	void add( const coord_t& x, const coord_t& y )
+	{
+		pts_.emplace_back( x, y );
+	}
 	void add( const point_t& p )
 	{
 		pts_.push_back( p );
@@ -49,15 +53,38 @@ public:
 		pts_.sort();
 	}
 
+	Shape& operator =( const Shape& other ) 
+	{
+		if( pts_.size() == other.pts_.size() ) {
+			std::copy( other.pts_.begin(), other.pts_.end(), pts_.begin() );
+		} else {
+			pts_.clear();
+			std::copy( other.pts_.begin(), other.pts_.end(), 
+				std::back_inserter( pts_ ) );
+		}
+		return *this;
+	}
+
 	void reset()
 	{
 		pts_.clear();
 	}
 	void reset( const Shape& other, const xform_t& T )
 	{
-		pts_.clear();
-		for( auto p : other ) {
-			pts_.push_back( T * p );
+		if( pts_.size() == other.pts_.size() ) {
+			// If same size, overwrite without reallocating.
+			auto i = pts_.begin();
+			auto j = other.pts_.begin();
+			while( i != pts_.end() ) {
+				*i = T * (*j);
+				++i;
+				++j;
+			}
+		} else {
+			pts_.clear();
+			for( auto p : other ) {
+				pts_.push_back( T * p );
+			}
 		}
 		complete();
 	}

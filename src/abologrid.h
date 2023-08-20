@@ -22,6 +22,8 @@ public:
     };
 
 public:
+	inline static GridType grid_type = ABOLO;
+
     inline static size_t num_tile_types = 4; 
     inline static size_t num_tile_shapes = 1;
 

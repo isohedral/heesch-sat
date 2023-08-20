@@ -7,9 +7,7 @@
 #include "shape.h"
 
 template<typename grid>
-using polyform_cb = std::function<
-	void( const typename grid::point_t&, 
-		  const std::vector<typename grid::point_t>& )>;
+using polyform_cb = std::function<void(const Shape<grid>&)>;
 
 // Just enumerate fixed polyforms over this grid.  It's important to
 // enumerate exhaustively; otherwise, it's possible that FreeFilter will
@@ -19,7 +17,7 @@ class RedelmeierSimple
 {
     using coord_t = typename grid::coord_t;
     using point_t = typename grid::point_t;
-    using shape_t = std::vector<point_t>;
+    using shape_t = Shape<grid>;
 
     enum CellStatus {
         FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
@@ -27,27 +25,24 @@ class RedelmeierSimple
 
 	using cell_map = point_map<coord_t, CellStatus>;
 
-	bool holes;
-	cell_map shape;
+	cell_map cellmap;
 	point_t origin;
 	std::vector<point_t> untried;
 
 public:
-	explicit RedelmeierSimple( bool holes = false )
-		: holes { holes }
-		, shape {}
+	explicit RedelmeierSimple()
+		: cellmap {}
 		, origin {}
 		, untried {}
 	{}
 
 	size_t solve( size_t size, polyform_cb<grid> out )
 	{
-		cell_map shape;
 		size_t total = 0;
 
 		for( const auto& o : grid::origins ) {
 			origin = o;
-			shape.clear();
+			cellmap.clear();
 			untried.clear();
 			untried.push_back( o );
 			total += solve( size, 0, out );
@@ -59,7 +54,7 @@ public:
 private:
 	bool contains( const point_t& p )
 	{
-		return shape.find( p ) != shape.end();
+		return cellmap.find( p ) != cellmap.end();
 	}
 
 	size_t solve( size_t size, size_t from, const polyform_cb<grid>& out );
@@ -96,21 +91,19 @@ class RedelmeierCompound
 
 	using cell_map = std::unordered_map<adj_t, CellStatus, adj_hash<grid>>;
 
-	bool holes;
 	std::vector<shape_t> shapes;
 	// For each shape, a vector of its possible adjacencies
 	std::vector<std::vector<adj_t>> adjs;
 
-	cell_map shape;
+	cell_map cellmap;
 	std::vector<adj_t> untried;
 
 public:
 	explicit RedelmeierCompound( 
-			const std::vector<shape_t>& shapes, bool holes = false )
-		: holes { holes }
-		, shapes { shapes }
+			const std::vector<shape_t>& shapes )
+		: shapes { shapes }
 		, adjs { shapes.size() }
-		, shape {}
+		, cellmap {}
 		, untried {}
 	{
 		calculateAdjacencies();
@@ -144,11 +137,10 @@ public:
 
 	size_t solve( size_t size, polyform_cb<grid> out )
 	{
-		cell_map shape;
 		size_t total = 0;
 
 		for( size_t idx = 0; idx < shapes.size(); ++idx ) {
-			shape.clear();
+			cellmap.clear();
 			untried.clear();
 			untried.emplace_back( idx, xform_t {} );
 			total += solve( size, 0, out );
@@ -166,7 +158,7 @@ private:
 
 	bool contains( const adj_t& adj )
 	{
-		return shape.find( adj ) != shape.end();
+		return cellmap.find( adj ) != cellmap.end();
 	}
 
 	size_t solve( size_t size, size_t from, const polyform_cb<grid>& out );
@@ -174,15 +166,13 @@ private:
 };
 
 // Filter fixed polyforms to obtain free polyforms
-// FIXME Obviously this is dumb -- the constructor should accept some other
-// Polyform generator as input, and consume its solutions.
 template<typename grid>
 class FreeFilter
 {
     using coord_t = typename grid::coord_t;
     using point_t = typename grid::point_t;
     using xform_t = typename grid::xform_t;
-    using shape_t = std::vector<point_t>;
+    using shape_t = Shape<grid>;
 
 	std::vector<shape_t> syms;
 	bool debug;
@@ -196,12 +186,11 @@ public:
 	template<class Sub>
 	size_t solve( size_t size, Sub& sub, polyform_cb<grid> out )
 	{
-		return sub.solve( size, [this, out]( 
-			const point_t& origin, const std::vector<point_t>& shape ) {
-				if( checkShape( origin, shape ) ) {
-					out( origin, shape ); 
-				}
-			} );
+		return sub.solve( size, [this, out]( const shape_t& shape ) {
+			if( checkShape( shape ) ) {
+				out( shape ); 
+			}
+		} );
 	}
 
 	void setDebug( bool b )
@@ -210,10 +199,12 @@ public:
 	}
 
 private:
-	bool checkShape( const point_t& origin, const shape_t& shape );
+	bool checkShape( const shape_t& shape );
+	/*
 	static int compareShapes( const shape_t& A, const shape_t& B );
 	static shape_t transformShape( 
 		const shape_t& shape, const xform_t& T, const point_t& origin );
+	*/
 
 	static void dbg( const std::string& s, const shape_t& shape )
 	{
@@ -234,25 +225,22 @@ size_t RedelmeierSimple<grid>::solve(
 	if( size == 0 ) {
 		Shape<grid> shp;
 
-		for( auto& p : shape ) {
+		for( auto& p : cellmap ) {
 			if( p.second == OCCUPIED ) {
 				shp.add( p.first );
 			}
 		}
 
-		if( holes || shp.simplyConnected() ) {
-			out( origin, std::vector<point_t> { shp.begin(), shp.end() } );
-			return 1;
-		}
-
-		return 0;
+		shp.complete();
+		out( shp );
+		return 1;
 	} else {
 		size_t total = 0;
 		size_t usz = untried.size();
 
 		for( size_t idx = from; idx < usz; ++idx ) {
 			point_t p = untried[idx];
-			shape[p] = OCCUPIED;
+			cellmap[p] = OCCUPIED;
 
 			for( auto pn : edge_neighbours<grid> { p } ) {
 				if( !(pn < origin) && !contains( pn ) ) {
@@ -266,12 +254,12 @@ size_t RedelmeierSimple<grid>::solve(
 			}
 
 			total += solve( size - 1, idx + 1, out );
-			shape[p] = REACHABLE;
+			cellmap[p] = REACHABLE;
 			untried.resize( usz );
 		}
 
 		for( size_t idx = from; idx < usz; ++idx ) {
-			shape.erase( untried[idx] );
+			cellmap.erase( untried[idx] );
 		}
 
 		return total;
@@ -279,14 +267,16 @@ size_t RedelmeierSimple<grid>::solve(
 }
 
 template<typename grid>
-bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
+bool FreeFilter<grid>::checkShape( const shape_t& shape )
 {
 	bool is_symmetric = false;
 
-	shape_t cshape = transformShape( shape, xform_t {}, origin );
+	shape_t cshape { shape };
+	shape_t tshape { shape };
+	cshape.untranslate();
+
 	if( debug ) {
 		dbg( "Incoming ", shape );
-		std::cerr << "Origin: " << origin << std::endl;
 		dbg( "Checking ", cshape );
 	}
 
@@ -296,9 +286,11 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 
 	for( size_t idx = 1; idx < grid::num_orientations; ++idx ) {
 		const xform_t& T = grid::orientations[idx];
-		shape_t tshape = transformShape( cshape, T, origin );
+		tshape.reset( cshape, T );
+		tshape.untranslate();
 
-		int cmp = compareShapes( tshape, cshape );
+		int cmp = tshape.compare( cshape );
+
 		if( cmp < 0 ) {
 			// Sorry, you're not canonical
 			if( debug ) {
@@ -323,11 +315,13 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 	// Store symmetric shapes explicitly.  Must store the lex-min transformed
 	// copy.  Repeat the transform process above -- costs a bit, but it
 	// happens rarely.
-	shape_t min_shape = cshape;
+	shape_t min_shape { cshape };
 	for( size_t idx = 1; idx < grid::num_orientations; ++idx ) {
 		const xform_t& T = grid::orientations[idx];
-		shape_t tshape = transformShape( cshape, T, origin );
-		int cmp = compareShapes( tshape, min_shape );
+		tshape.reset( cshape, T );
+		tshape.untranslate();
+
+		int cmp = tshape.compare( min_shape );
 		if( cmp < 0 ) {
 			min_shape = tshape;
 		}
@@ -338,7 +332,7 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 	}
 
 	for( const auto& sshape : syms ) {
-		if( compareShapes( sshape, min_shape ) == 0 ) {
+		if( sshape.compare( min_shape ) == 0 ) {
 			// We've already seen this one
 			if( debug ) {
 				std::cerr << "  ... Already seen this shape" << std::endl;
@@ -354,6 +348,7 @@ bool FreeFilter<grid>::checkShape( const point_t& origin, const shape_t& shape )
 	return true;
 }
 
+/*
 template<typename grid>
 int FreeFilter<grid>::compareShapes( const shape_t& A, const shape_t& B )
 {
@@ -393,13 +388,14 @@ typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape(
 
 	return nshape;
 }
+*/
 
 template<typename grid>
 Shape<grid> RedelmeierCompound<grid>::canonicalize( const shape_t& shp )
 {
 	shape_t canon;
-	bool at_start = true;
 	shape_t tshape;
+	bool at_start = true;
 
 	for( const auto& T : grid::orientations ) {
 		tshape.reset( shp, T );
@@ -482,7 +478,8 @@ void RedelmeierCompound<grid>::calculateAdjacencies()
 		shape_t halo;
 
 		sh.getEdgeHalo( halo );
-		all_shapes.emplace_back( idx, grid::orientations[0], sh, halo );
+		all_shapes.emplace_back( 
+			idx, grid::orientations[0], sh, std::move( halo ) );
 	}
 
 	// Generate the remaining infos by applying all non-identity 
@@ -570,7 +567,7 @@ size_t RedelmeierCompound<grid>::solve(
 		shape_t res;
 		point_set<coord_t> pset;
 
-		for( auto& a : shape ) {
+		for( auto& a : cellmap ) {
 			if( a.second == OCCUPIED ) {
 				const adj_t& adj = a.first;
 				for( const auto& p : shapes[adj.first] ) {
@@ -597,13 +594,8 @@ size_t RedelmeierCompound<grid>::solve(
 		}
 	*/
 
-		if( holes || canon.simplyConnected() ) {
-			std::vector<point_t> ret { canon.begin(), canon.end() };
-			out( ret[0], std::move( ret ) );
-			return 1;
-		}
-
-		return 0;
+		out( canon );
+		return 1;
 	} else {
 		size_t total = 0;
 		size_t usz = untried.size();
@@ -612,7 +604,7 @@ size_t RedelmeierCompound<grid>::solve(
 			const adj_t utadj = untried[idx];
 			size_t sidx = untried[idx].first;
 
-			shape[utadj] = OCCUPIED;
+			cellmap[utadj] = OCCUPIED;
 
 			for( const auto& oa : adjs[sidx] ) {
 				xform_t Tnew = utadj.second * oa.second;
@@ -627,12 +619,12 @@ size_t RedelmeierCompound<grid>::solve(
 			}
 
 			total += solve( size - 1, idx + 1, out );
-			shape[utadj] = REACHABLE;
+			cellmap[utadj] = REACHABLE;
 			untried.resize( usz );
 		}
 
 		for( size_t idx = from; idx < usz; ++idx ) {
-			shape.erase( untried[idx] );
+			cellmap.erase( untried[idx] );
 		}
 
 		return total;

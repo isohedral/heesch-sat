@@ -27,6 +27,8 @@ public:
 	};
 
 public:
+	inline static GridType grid_type = KITE;
+
     inline static size_t num_tile_types = 6; 
     inline static size_t num_tile_shapes = 1;
 

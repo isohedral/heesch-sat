@@ -20,6 +20,8 @@ public:
     };
 
 public:
+	inline static GridType grid_type = OMINO;
+
 	// Number of transivity classes of tiles under translation
     inline static size_t num_tile_types = 1; 
 	// Number of distinct shapes 

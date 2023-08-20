@@ -28,6 +28,8 @@ public:
 	};
 
 public:
+	inline static GridType grid_type = HALFCAIRO;
+
     inline static size_t numTileTypes = 8;
     inline static size_t numTileShapes = 2;
 	inline static TileType getTileType( const point_t& p )

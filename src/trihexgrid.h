@@ -22,6 +22,8 @@ public:
     };
 
 public:
+	inline static GridType grid_type = TRIHEX;
+
     inline static size_t num_tile_types = 3; 
     inline static size_t num_tile_shapes = 2;
 

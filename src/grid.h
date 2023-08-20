@@ -14,18 +14,8 @@
 #include "kitegrid.h"
 #include "halfcairogrid.h"
 
-enum GridType {
-	OMINO,
-	HEX,
-	IAMOND,
-	OCTASQUARE,
-	TRIHEX,
-	ABOLO,
-	DRAFTER, 
-	KITE, 
-	HALFCAIRO
-};
-
+// Pull a grid type out of command line arguments, and splice that
+// argument out.
 inline GridType getGridType( int& argc, char **argv )
 {
 	static const std::pair<const char *, GridType> types[] = {
@@ -67,44 +57,21 @@ inline GridType getGridType( int& argc, char **argv )
 	return grid;
 }
 
-// Ugh!  Surely there's a more elegant, non-macro way to make this work?
-#define bootstrap_grid_DEPRECATED( argc, argv, func )  \
-	{ \
-		GridType grid = getGridType( argc, argv ); \
-		if( grid == OMINO ) { \
-			func<OminoGrid<int16_t>>( argc, argv ); \
-		} else if( grid == HEX ) { \
-			func<HexGrid<int16_t>>( argc, argv ); \
-		} else if( grid == IAMOND ) { \
-			func<IamondGrid<int16_t>>( argc, argv ); \
-		} else if( grid == KITE ) { \
-			func<KiteGrid<int16_t>>( argc, argv ); \
-		} else if( grid == DRAFTER ) { \
-			func<DrafterGrid<int16_t>>( argc, argv ); \
-		} else if( grid == ABOLO ) { \
-			func<AboloGrid<int16_t>>( argc, argv ); \
-		} else if( grid == OCTASQUARE ) { \
-			func<OctaSquareGrid<int16_t>>( argc, argv ); \
-		} else if( grid == TRIHEX ) { \
-			func<TriHexGrid<int16_t>>( argc, argv ); \
-		} else if( grid == HALFCAIRO ) { \
-			func<HalfCairoGrid<int16_t>>( argc, argv ); \
-		} \
-	} 
-
-template<template<typename grid> typename Func, typename... Args>
+template<template<typename grid> class Func, typename... Args>
 auto dispatchToGridType( GridType gt, Args ...args )
 {
+	using coord = int16_t;
+
 	switch( gt ) {
-		case HEX: return Func<HexGrid<int16_t>>()( args... ); 
-		case IAMOND: return Func<IamondGrid<int16_t>>()( args... ); 
-		case KITE: return Func<KiteGrid<int16_t>>()( args... ); 
-		case DRAFTER: return Func<DrafterGrid<int16_t>>()( args... ); 
-		case ABOLO: return Func<AboloGrid<int16_t>>()( args... ); 
-		case OCTASQUARE: return Func<OctaSquareGrid<int16_t>>()( args... ); 
-		case TRIHEX: return Func<TriHexGrid<int16_t>>()( args... ); 
-		case HALFCAIRO: return Func<HalfCairoGrid<int16_t>>()( args... ); 
-		case OMINO: default: return Func<OminoGrid<int16_t>>()( args... ); 
+		case HEX: return Func<HexGrid<coord>>()( args... ); 
+		case IAMOND: return Func<IamondGrid<coord>>()( args... ); 
+		case KITE: return Func<KiteGrid<coord>>()( args... ); 
+		case DRAFTER: return Func<DrafterGrid<coord>>()( args... ); 
+		case ABOLO: return Func<AboloGrid<coord>>()( args... ); 
+		case OCTASQUARE: return Func<OctaSquareGrid<coord>>()( args... ); 
+		case TRIHEX: return Func<TriHexGrid<coord>>()( args... ); 
+		case HALFCAIRO: return Func<HalfCairoGrid<coord>>()( args... ); 
+		case OMINO: default: return Func<OminoGrid<coord>>()( args... ); 
 	} 
 }
 
@@ -120,7 +87,8 @@ public: \
 	} \
 }
 
-#define GRID_DISPATCH( f, gt, ... ) dispatchToGridType<f##Wrapper>( gt, __VA_ARGS__ )
+#define GRID_DISPATCH( f, gt, ... ) \
+	dispatchToGridType<f##Wrapper>( gt, __VA_ARGS__ )
 
 template<typename grid>
 struct neighbour_maker

@@ -112,8 +112,7 @@ private:
 
 	void allCoronas( CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const;
 	bool checkIsohedralTiling( CMSat::SATSolver& solv );
-	bool isSurroundIsohedral( 
-		const Solution<coord_t>& soln, const std::vector<xform_t>& syms ) const;
+	bool isSurroundIsohedral( const Solution<coord_t>& soln ) const;
 
 	Shape<grid> shape_;
 	Cloud<grid> cloud_;
@@ -575,6 +574,7 @@ bool HeeschSolver<grid>::hasCorona(
 	solver.new_vars( next_var_ );
 
 	getClauses( solver, false );
+
 	if( solver.solve() == CMSat::l_True ) {
 		// Got a solution, but it may have large holes.  Need to find
 		// them and iterate until they're gone.
@@ -669,7 +669,7 @@ extern size_t tilings;
 
 template<typename grid>
 bool HeeschSolver<grid>::isSurroundIsohedral( 
-	const Solution<coord_t>& soln, const std::vector<xform_t>& syms ) const
+	const Solution<coord_t>& soln ) const
 {
 /*
 	// Check for translations and halfturns only.
@@ -753,10 +753,12 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 		}
 	}
 	
+	/*
 	std::vector<xform_t> syms;
 	shape_.getSymmetries( syms );
+	*/
 
-	allCoronas( solv, [this,syms] ( const Solution<coord_t>& soln ) {
+	allCoronas( solv, [this] ( const Solution<coord_t>& soln ) {
 	/*
 		for( const auto& p : shape_ ) {
 			std::cerr << p.x_ << ' ' << p.y_ << ' ';
@@ -769,7 +771,7 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 		}
 		*/
 
-		if( isSurroundIsohedral( soln, syms ) ) {
+		if( isSurroundIsohedral( soln ) ) {
 			tiles_isohedrally_ = true;
 			++tilings;
 			return false;
@@ -787,7 +789,8 @@ template<typename grid>
 void HeeschSolver<grid>::allCoronas( 
 	CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const
 {
-	getClauses( solv, false );
+	// getClauses( solv, false );
+
 	while( solv.solve() == CMSat::l_True ) {
 		// Got a solution, but it may have large holes.  Need to find
 		// them and iterate until they're gone.
@@ -835,11 +838,12 @@ void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns )
 
 	CMSat::SATSolver solver;
 	solver.new_vars( next_var_ );
-
 	getClauses( solver, false );
+
 	allCoronas( solver, [&solns]( const Solution<coord_t>& soln )
 		{ solns.push_back( soln ); return true; } );
-	/*
+
+		/*
 	while( solver.solve() == CMSat::l_True ) {
 		// Got a solution, but it may have large holes.  Need to find
 		// them and iterate until they're gone.
