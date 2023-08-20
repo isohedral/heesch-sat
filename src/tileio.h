@@ -6,6 +6,7 @@
 #include "geom.h"
 #include "grid.h"
 #include "shape.h"
+#include "heesch.h"
 
 // Just in case you want to, e.g., collect a bunch of heterogeneous records
 // together.
@@ -23,7 +24,7 @@ class TileInfo
 {
 	using coord_t = typename grid::coord_t;
 	using xform_t = typename grid::xform_t;
-	using patch_t = std::vector<std::pair<size_t, xform_t>>;
+	using patch_t = Solution<coord_t>; // std::vector<std::pair<size_t, xform_t>>;
 
 public:
 	enum RecordType
@@ -77,21 +78,21 @@ public:
 	}
 
 	void setNonTiler( 
-		size_t hc, const patch_t& hc_patch, size_t hh, const patch_t& hh_patch )
+		size_t hc, const patch_t* hc_patch, size_t hh, const patch_t* hh_patch )
 	{
 		record_type_ = NONTILER;
 
 		// Patches can be implicit if Heesch number is zero.
 
 		hc_ = hc;
-		if( hc > 0 ) {
-			hc_patch_ = hc_patch;
+		if( (hc > 0) && hc_patch ) {
+			hc_patch_ = *hc_patch;
 		} else {
 			hc_patch_.clear();
 		}
 		hh_ = hh;
-		if( hh_ > hc_ ) {
-			hh_patch_ = hh_patch;
+		if( (hh_ > hc_) && hh_patch ) {
+			hh_patch_ = *hh_patch;
 		} else {
 			hh_patch_.clear();
 		}
@@ -101,6 +102,7 @@ public:
 	{
 		hc_patch_.clear();
 		hh_patch_.clear();
+		transitivity_ = transitivity;
 
 		record_type_ = (transitivity > 1) ? ANISOHEDRAL : ISOHEDRAL;
 	}
@@ -175,7 +177,7 @@ TileInfo<grid>::TileInfo( std::istream& is )
 	bool naked = (buf[0] == '?');
 
 	auto iend = IntReader<coord_t> { buf + is.gcount() - 1 };
-	for( auto i = IntReader<coord_t> { buf }; i != iend; ++i ) {
+	for( auto i = IntReader<coord_t> { buf }; i != iend; ) {
 		shape_.add( *i++, *i++ );
 	}
 	shape_.complete();
@@ -361,3 +363,6 @@ void processInputStream( std::istream& is, GridType default_gt = OMINO )
 		}
 	}
 }
+
+#define FOR_EACH_IN_STREAM( is, f ) \
+	processInputStream<f##Wrapper>( is );

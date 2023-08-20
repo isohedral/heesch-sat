@@ -4,41 +4,18 @@
 
 #include "heesch.h"
 #include "grid.h"
+#include "tileio.h"
 
 using namespace std;
 
 static bool show_solution = false;
-static int max_level = INT_MAX;
-static bool reject_max = false;
+// Ha ha, set to one more than the Heesch record, just in case.
+static int max_level = 7;
 static Orientations ori = ALL;
 static bool check_isohedral = false;
+static bool update_only = false;
 
 size_t tilings = 0;
-size_t seen = 0;
-
-template<typename grid>
-static bool readShape( istream& is, Shape<grid>& shape, string& str )
-{
-	using coord_t = typename grid::coord_t;
-	using point_t = typename grid::point_t;
-
-	char buf[1000];
-	is.getline( buf, 1000 );
-	str = buf;
-
-	shape.reset();
-	istringstream iss( buf );
-
-	coord_t x;
-	coord_t y;
-
-	while( iss >> x >> y ) {
-		shape.add( point_t { x, y } );
-	}
-
-	shape.complete();
-	return shape.size() > 0;
-}
 
 template<typename coord>
 static void reportConfig( ostream& os, const Solution<coord>& soln )
@@ -69,81 +46,98 @@ static void report( ostream& os, const string& desc,
 }
 
 template<typename grid>
-static void mainLoop( istream& is )
+static bool computeHeesch( const TileInfo<grid>& tile )
 {
 	using coord_t = typename grid::coord_t;
 
-	Shape<grid> shape;
-	string desc;
-
-	while( readShape( is, shape, desc ) ) {
-		++seen;
-
-		size_t hc = 0;
-		Solution<coord_t> sc;
-		size_t hh = 0;
-		Solution<coord_t> sh;
-		bool has_holes;
-
-		HeeschSolver<grid> solver { shape, ori };
-		solver.setCheckIsohedral( check_isohedral );
-		solver.increaseLevel();
-
-		while( true ) {
-			// std::cerr << "Now at level " << solver.getLevel() << std::endl;
-			// solver.debug( cout );
-			Solution<coord_t> cur;
-
-			if( solver.getLevel() > max_level ) {
-				break;
-			}
-
-			if( solver.hasCorona( show_solution, has_holes, cur ) ) {
-				if( has_holes ) {
-					sh = cur;
-					hh = solver.getLevel();
-					break;
-				} else {
-					hc = solver.getLevel();
-					hh = hc;
-					sh = cur;
-					sc = sh;
-					solver.increaseLevel();
-				}
-			} else {
-				break;
-			}
-
-			if( solver.tilesIsohedrally() ) {
-				continue;
-			}
+	if( update_only ) {
+		// If we're updating, we only want to deal with unknown or 
+		// inconclusive records.
+		if( !((tile.getRecordType() == TileInfo<grid>::UNKNOWN) 
+				|| (tile.getRecordType() == TileInfo<grid>::INCONCLUSIVE)) ) {
+			tile.write( cout );
+			return true;
 		}
-
-		if( (solver.getLevel() > max_level) && reject_max ) {
-			continue;
-		}
-	
-		report<coord_t,grid>( cout, desc, hc, sc, hh, sh );
 	}
-}
 
-template<typename grid>
-static void gridMain( int argc, char **argv )
+	if( tile.getRecordType() == TileInfo<grid>::HOLE ) {
+		// Don't compute heesch number of something with a hole
+		tile.write( cout );
+		return true;
+	}
+
+	TileInfo<grid> work { tile };
+
+	size_t hc = 0;
+	Solution<coord_t> sc;
+	size_t hh = 0;
+	Solution<coord_t> sh;
+	bool has_holes;
+
+	HeeschSolver<grid> solver { work.getShape(), ori };
+	solver.setCheckIsohedral( check_isohedral );
+	solver.increaseLevel();
+
+	while( true ) {
+		// std::cerr << "Now at level " << solver.getLevel() << std::endl;
+		// solver.debug( cout );
+		Solution<coord_t> cur;
+
+		if( solver.getLevel() > max_level ) {
+			break;
+		}
+
+		if( solver.hasCorona( show_solution, has_holes, cur ) ) {
+			if( has_holes ) {
+				sh = cur;
+				hh = solver.getLevel();
+				break;
+			} else {
+				hc = solver.getLevel();
+				hh = hc;
+				sh = cur;
+				sc = sh;
+				solver.increaseLevel();
+			}
+		} if( solver.tilesIsohedrally() ) {
+			work.setPeriodic( 1 );
+			work.write( cout );
+			return true;
+		}
+	}
+
+	if( solver.getLevel() > max_level ) {
+		// Exceeded maximum level, label it inconclusive
+		work.setRecordType( TileInfo<grid>::INCONCLUSIVE );
+	} else if( show_solution ) {
+		work.setNonTiler( hc, &sc, hh, &sh );
+	} else {
+		work.setNonTiler( hc, nullptr, hh, nullptr );
+	}
+	work.write( cout );
+	return true;
+}
+GRID_WRAP( computeHeesch );
+
+int main( int argc, char **argv )
 {
+	// bootstrap_grid( argc, argv, gridMain ) 
+	// GridType gt = getGridType( argc, argv );
+
 	for( size_t idx = 1; idx < argc; ++idx ) {
 		if( !strcmp( argv[idx], "-show" ) ) {
 			show_solution = true;
 		} else if( !strcmp( argv[idx], "-maxlevel" ) ) {
 		    max_level = atoi(argv[idx+1]);
 		    ++idx;
-		} else if( !strcmp( argv[idx], "-reject" ) ) {
-			reject_max = true;
 		} else if( !strcmp( argv[idx], "-translations" ) ) {
 			ori = TRANSLATIONS_ONLY;
 		} else if( !strcmp( argv[idx], "-rotations" ) ) {
 			ori = TRANSLATIONS_ROTATIONS;
 		} else if( !strcmp( argv[idx], "-isohedral" ) ) {
 			check_isohedral = true;
+		} else if( !strcmp( argv[idx], "-update" ) ) {
+			update_only = true;
 		} else {
 			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
 				<< endl;
@@ -151,16 +145,6 @@ static void gridMain( int argc, char **argv )
 		}
 	}
 
-	mainLoop<grid>( cin );
-
-	cerr << tilings << " tile of " << seen << endl;
-}
-GRID_WRAP( gridMain );
-
-int main( int argc, char **argv )
-{
-	// bootstrap_grid( argc, argv, gridMain ) 
-	GridType gt = getGridType( argc, argv );
-	GRID_DISPATCH( gridMain, gt, argc, argv );
+	FOR_EACH_IN_STREAM( cin, computeHeesch );
 	return 0;
 }

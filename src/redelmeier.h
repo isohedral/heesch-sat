@@ -348,48 +348,6 @@ bool FreeFilter<grid>::checkShape( const shape_t& shape )
 	return true;
 }
 
-/*
-template<typename grid>
-int FreeFilter<grid>::compareShapes( const shape_t& A, const shape_t& B )
-{
-	// Lex-compare the points in two shapes, which are presumed to contain
-	// the same numbers of points.
-
-	for( size_t idx = 0; idx < A.size(); ++idx ) {
-		if( A[idx] < B[idx] ) {
-			return -1;
-		} else if( B[idx] < A[idx] ) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-template<typename grid>
-typename FreeFilter<grid>::shape_t FreeFilter<grid>::transformShape( 
-	const shape_t& shape, const xform_t& T, const point_t& origin )
-{
-	// Apply the transform matrix
-	shape_t nshape;
-	for( auto& p : shape ) {
-		nshape.push_back( T * p );
-	}
-
-	// Translate so that the lex-first-est point lies at the origin.
-	std::sort( nshape.begin(), nshape.end() );
-
-	point_t mpt;
-	point_t d = grid::getOrigin( nshape[0] ) - nshape[0];;
-
-	for( auto& p : nshape ) {
-		p = p + d;
-	}
-
-	return nshape;
-}
-*/
-
 template<typename grid>
 Shape<grid> RedelmeierCompound<grid>::canonicalize( const shape_t& shp )
 {

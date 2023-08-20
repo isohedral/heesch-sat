@@ -612,7 +612,7 @@ bool HeeschSolver<grid>::hasCorona(
 				// with no holes.
 				if( (level_ == 1) && check_isohedral_ ) {
 					if( checkIsohedralTiling( solver ) ) {
-						tiles_isohedrally_ = true;
+						// tiles_isohedrally_ = true;
 						return false;
 					}
 				}
@@ -664,8 +664,6 @@ bool HeeschSolver<grid>::hasCorona(
 		}
 	}
 }
-
-extern size_t tilings;
 
 template<typename grid>
 bool HeeschSolver<grid>::isSurroundIsohedral( 
@@ -720,6 +718,8 @@ bool HeeschSolver<grid>::isSurroundIsohedral(
 template<typename grid>
 bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv ) 
 {
+	// std::cerr << "Checking isohedral..." << std::endl;
+
 	// The solver is assumed to contain the clauses for a hole-free
 	// 1-corona.  Augment it with new clauses that restrict solutions 
 	// to isohedral tilings.
@@ -759,7 +759,8 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 	*/
 
 	allCoronas( solv, [this] ( const Solution<coord_t>& soln ) {
-	/*
+		// std::cerr << "Got a corona" << std::endl;
+		/*
 		for( const auto& p : shape_ ) {
 			std::cerr << p.x_ << ' ' << p.y_ << ' ';
 		}
@@ -773,7 +774,6 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 
 		if( isSurroundIsohedral( soln ) ) {
 			tiles_isohedrally_ = true;
-			++tilings;
 			return false;
 		} else {
 			// Need more data
