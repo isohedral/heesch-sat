@@ -103,6 +103,9 @@ void Visualizer<grid>::drawPatch( bool just_hc ) const
 	size_t hc = tile_.getHeeschConnected();
 	size_t hh = tile_.getHeeschHoles();
 
+	cairo_move_to( cr_, 72, 60 );
+	cairo_show_text( cr_, "hello" );
+
 	if( (hc != hh) && !just_hc ) {
 		cairo_save( cr_ );
 		cairo_translate( cr_, 125.0, 0.0 );
