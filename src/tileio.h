@@ -249,13 +249,17 @@ TileInfo<grid>::TileInfo( std::istream& is )
 		}
 
 		if( patch ) {
-			is.getline( buf, 1000 );
-			size_t sz = atoi( buf );
-			for( size_t idx = 0; idx < sz; ++idx ) {
+			if( hc_ > 0 ) {
 				is.getline( buf, 1000 );
-				IntReader<coord_t> i { buf };
-				hc_patch_.emplace_back( *i++, 
-					xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
+				size_t sz = atoi( buf );
+				for( size_t idx = 0; idx < sz; ++idx ) {
+					is.getline( buf, 1000 );
+					IntReader<coord_t> i { buf };
+					hc_patch_.emplace_back( *i++, 
+						xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
+				}
+			} else {
+				hc_patch_.emplace_back( 0, xform_t {} );
 			}
 
 			if( hh_ != hc_ ) {
@@ -306,7 +310,7 @@ void TileInfo<grid>::write( std::ostream& os ) const
 			return;
 		case NONTILER:
 			os << "~ " << hc_ << ' ' << hh_;
-			if( hc_patch_.size() > 0 ) {
+			if( (hc_patch_.size() > 0) || (hh_patch_.size() > 0) ) {
 				os << " P";
 			}
 			os << std::endl;
@@ -322,13 +326,16 @@ void TileInfo<grid>::write( std::ostream& os ) const
 			break;
 	}
 
-	if( (record_type_ == NONTILER) && (hc_patch_.size() > 0) ) {
-		os << hc_patch_.size() << std::endl;
-		for( const auto& p : hc_patch_ ) {
-			os << p.first << ' ' << p.second << std::endl;
+	if( record_type_ == NONTILER ) {
+		if( hc_patch_.size() > 0 ) {
+			os << hc_patch_.size() << std::endl;
+			for( const auto& p : hc_patch_ ) {
+				os << p.first << ' ' << p.second << std::endl;
+			}
 		}
 
 		if( hh_patch_.size() > 0 ) { 
+			os << hh_patch_.size() << std::endl;
 			for( const auto& p : hh_patch_ ) {
 				os << p.first << ' ' << p.second << std::endl;
 			}

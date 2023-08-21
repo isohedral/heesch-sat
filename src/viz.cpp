@@ -85,9 +85,24 @@ static bool drawPatch( const TileInfo<grid>& tile )
 
 	cairo_restore( cr );
 
+	if( tile.getRecordType() == TileInfo<grid>::NONTILER ) {
+		cairo_save( cr );
+		cairo_translate( cr, 6.5*72, 72 );
+		cairo_scale( cr, 72.0 / 500.0, 72.0 / 500.0 );
+		viz.drawShape( true );
+		cairo_restore( cr );
+	}
+
 	viz.drawText( 72, 72 );
 
 	cairo_surface_show_page( pdf );
+
+	cairo_status_t status = cairo_status( cr );
+	if( status ) {
+		cerr << "Error while processing ";
+		tile.getShape().debug();
+		cerr << cairo_status_to_string( status ) << endl;
+	}
 
 	return true;
 }
@@ -190,9 +205,16 @@ int main( int argc, char **argv )
 		FOR_EACH_IN_STREAM( cin, drawPatch );
 	}
 
+	cairo_status_t status = cairo_status( cr );
+	if( status ) {
+		cerr << cairo_status_to_string( status ) << endl;
+	}
 	cairo_destroy( cr );
-	cairo_surface_flush( pdf );
 	cairo_surface_finish( pdf );
+	status = cairo_surface_status( pdf );
+	if( status ) {
+		cerr << cairo_status_to_string( status ) << endl;
+	}
 	cairo_surface_destroy( pdf );
 
 	return 0;
