@@ -158,6 +158,12 @@ void Visualizer<grid>::drawPatch( bool just_hc ) const
 	size_t hc = tile_.getHeeschConnected();
 	size_t hh = tile_.getHeeschHoles();
 
+/*
+	std::cerr << "drawPatch: " 
+		<< hc << "[" << tile_.getHeeschConnectedPatch().size() << "] "
+		<< hh << "[" << tile_.getHeeschHolesPatch().size() << "]" << std::endl;
+	*/
+
 	if( (hc != hh) && !just_hc ) {
 		cairo_save( cr_ );
 		cairo_translate( cr_, 125.0, 0.0 );

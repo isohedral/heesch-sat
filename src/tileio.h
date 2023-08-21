@@ -252,27 +252,33 @@ TileInfo<grid>::TileInfo( std::istream& is )
 			if( hc_ > 0 ) {
 				is.getline( buf, 1000 );
 				size_t sz = atoi( buf );
+				// std::cerr << "Reading Hc patch of size " << sz << std::endl;
 				for( size_t idx = 0; idx < sz; ++idx ) {
 					is.getline( buf, 1000 );
 					IntReader<coord_t> i { buf };
 					hc_patch_.emplace_back( *i++, 
 						xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
 				}
-			} else {
-				hc_patch_.emplace_back( 0, xform_t {} );
 			}
 
 			if( hh_ != hc_ ) {
 				is.getline( buf, 1000 );
 				size_t sz = atoi( buf );
+				// std::cerr << "Reading Hh patch of size " << sz << std::endl;
 				for( size_t idx = 0; idx < sz; ++idx ) {
 					is.getline( buf, 1000 );
 					IntReader<coord_t> i { buf };
 					hh_patch_.emplace_back( *i++,
 						xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
 				}
-
 			}
+		}
+
+		if( hc_patch_.size() == 0 ) {
+			hc_patch_.emplace_back( 0, xform_t {} );
+		}
+		if( hh_patch_.size() == 0 ) {
+			hh_patch_.emplace_back( 0, xform_t {} );
 		}
 	} else if( record_type_ == ISOHEDRAL || record_type_ == ANISOHEDRAL ) {
 		auto i = IntReader<size_t> { buf + 1 };

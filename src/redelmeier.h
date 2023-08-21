@@ -151,7 +151,6 @@ public:
 
 	static void calculateInequivalentOrientations(
 		const shape_t& shp, std::vector<xform_t>& Ts );
-	static shape_t canonicalize( const shape_t& shp );
 
 private:
 	void calculateAdjacencies();
@@ -200,11 +199,6 @@ public:
 
 private:
 	bool checkShape( const shape_t& shape );
-	/*
-	static int compareShapes( const shape_t& A, const shape_t& B );
-	static shape_t transformShape( 
-		const shape_t& shape, const xform_t& T, const point_t& origin );
-	*/
 
 	static void dbg( const std::string& s, const shape_t& shape )
 	{
@@ -216,6 +210,53 @@ private:
 
 		std::cerr << std::endl;
 	}
+};
+
+// A heavyweight tool for filtering out duplicates.
+template<typename grid>
+class CanonSortUniq
+{
+    using coord_t = typename grid::coord_t;
+    using point_t = typename grid::point_t;
+    using xform_t = typename grid::xform_t;
+    using shape_t = Shape<grid>;
+
+	std::vector<shape_t> all;
+
+public:
+	explicit CanonSortUniq()
+	{}
+
+	template<class Sub>
+	size_t solve( size_t size, Sub& sub, polyform_cb<grid> out )
+	{
+		sub.solve( size, [this]( const shape_t& shape ) {
+			// FIXME
+			// We could do a "are you the canonical shape" check, if we
+			// were certain that the enumeration algorithm actually 
+			// generates all orientations of a polyform.
+			all.push_back( canonicalize( shape ) );
+		} );
+		
+		std::sort( all.begin(), all.end(), []( const auto& a, const auto& b ) {
+			return a.compare( b );
+		} );
+
+		size_t count = 1;
+		out( all[0] );
+	
+		for( size_t idx = 1; idx < all.size(); ++idx ) {
+			if( all[idx-1].compare( all[idx] ) != 0 ) {
+				++count;
+				out( all[idx] );
+			}
+		}
+
+		return count;
+	}
+
+private:
+	static shape_t canonicalize( const shape_t& shp );
 };
 
 template<typename grid>
@@ -349,7 +390,7 @@ bool FreeFilter<grid>::checkShape( const shape_t& shape )
 }
 
 template<typename grid>
-Shape<grid> RedelmeierCompound<grid>::canonicalize( const shape_t& shp )
+Shape<grid> CanonSortUniq<grid>::canonicalize( const shape_t& shp )
 {
 	shape_t canon;
 	shape_t tshape;
@@ -540,7 +581,7 @@ size_t RedelmeierCompound<grid>::solve(
 		}
 
 
-		shape_t canon = canonicalize( res );
+		// shape_t canon = canonicalize( res );
 
 /*
 		std::cerr << "Canonicalizing: ";
@@ -552,7 +593,8 @@ size_t RedelmeierCompound<grid>::solve(
 		}
 	*/
 
-		out( canon );
+		// out( canon );
+		out( res );
 		return 1;
 	} else {
 		size_t total = 0;

@@ -1,7 +1,6 @@
-Modify viz so that it can show individual shapes without needing to compute
-any Heesch info.  Ideally in a grid on each page of a PS.
-
 Better generation of fixed compound polyforms, to make free filtering easier.
 
 Incorporate standard compounds for polyabolos, polydrafters, polyhalfcairos,
 etc.
+
+Better handling of input and output files on the command line.

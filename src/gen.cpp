@@ -77,8 +77,14 @@ static void gridMain( int )
 
 	if( units ) {
 		vector<Shape<grid>> shapes = readShapes<grid>( cin );
-		RedelmeierCompound<grid> r { shapes };
-		r.solve( numcells, cb );
+		RedelmeierCompound<grid> comp { shapes };
+
+		if( onlyfree ) {
+			CanonSortUniq<grid> filt {};
+			filt.solve( numcells, comp, cb );
+		} else {
+			comp.solve( numcells, cb );
+		}
 	} else {
 		RedelmeierSimple<grid> simp;
 		if( onlyfree ) {
