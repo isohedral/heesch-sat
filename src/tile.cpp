@@ -1,3 +1,6 @@
+// This is a test program for periodic tiling ideas.  It's currently
+// superseded by HeeschSolver::checkIsohedralTiling
+
 #include <iostream>
 #include <cstdint>
 #include <sstream>
