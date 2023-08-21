@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -29,8 +30,14 @@ public:
 	Visualizer( cairo_t *cr, const TileInfo<grid>& tile )
 		: cr_ { cr }
 		, tile_ { tile }
+		, colour_by_orientation_ { false }
 	{
 		initGridOutline();
+	}
+
+	void setColourByOrientation( bool cbo )
+	{
+		colour_by_orientation_ = cbo;
 	}
 
 	void drawPatch( bool just_hc = false ) const;
@@ -48,6 +55,8 @@ private:
 	const TileInfo<grid>& tile_;
 
 	std::vector<point<double>> grid_outline_;
+
+	bool colour_by_orientation_;
 };
 
 template<typename grid>
@@ -124,6 +133,45 @@ void Visualizer<grid>::drawPatch( bool just_hc ) const
 	}
 }	
 
+using colour = std::array<double,3>;
+
+// https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
+inline colour hsv2rgb( colour rgb )
+{
+    double      hh, p, q, t, ff;
+    long        i;
+
+    if( rgb[1] <= 0.0 ) {       // < is bogus, just shuts up warnings
+		return colour { rgb[2], rgb[2], rgb[2] };
+	}
+    hh = rgb[0];
+    if( hh >= 360.0 ) {
+		hh = 0.0;
+	}
+    hh /= 60.0;
+    i = (long)hh;
+    ff = hh - i;
+    p = rgb[2] * (1.0 - rgb[1]);
+    q = rgb[2] * (1.0 - (rgb[1] * ff));
+    t = rgb[2] * (1.0 - (rgb[1] * (1.0 - ff)));
+
+    switch( i ) {
+		case 0: return colour { rgb[2], t, p };
+		case 1: return colour { q, rgb[2], p };
+		case 2: return colour { p, rgb[2], t };
+		case 3: return colour { p, q, rgb[2] };
+		case 4: return colour { t, p, rgb[2] };
+		default: return colour { rgb[2], p, q };
+	}
+}
+
+template<typename coord>
+void encodeTransform( const xform<coord>& T, size_t& code, bool& ref )
+{
+	code = 27*(T.a_+1) + 9*(T.b_+1) + 3*(T.d_+1) + (T.e_+1);
+	ref = ((T.a_*T.e_)-(T.b_*T.d_)) < 0;
+}
+
 template<typename grid>
 void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 {
@@ -168,11 +216,49 @@ void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 	cairo_user_to_device_distance( cr_, &lwx, &lwy );
 	cairo_set_line_width( cr_, 1.0 / sqrt( lwx*lwx + lwy*lwy ) );
 
-	// Get colours right.
+	size_t code;
+	bool ref;
+	std::unordered_map<int,colour> ori_cols;
 
+	if( colour_by_orientation_ ) {
+		size_t didx = 0;
+		size_t ridx = 0;
+
+		for( size_t idx = 0; idx < grid::num_orientations; ++idx ) {
+			encodeTransform( grid::orientations[idx], code, ref );
+			if( ref ) {
+				ori_cols.emplace( code, hsv2rgb( 
+					colour { ridx * 60.0, 0.75, 0.9 } ) );
+				++ridx;
+			} else {
+				ori_cols.emplace( code, hsv2rgb( 
+					colour { didx * 60.0, 0.75, 0.4 } ) );
+				++didx;
+			}
+		}
+	}
+	
 	for( size_t idx = 0; idx < outlines.size(); ++idx ) {
 		const std::vector<point<double>>& pts = outlines[idx];
-		drawPolygon( pts, 0.75, 0.75, 0.75 );
+
+		if( colour_by_orientation_ ) {
+			encodeTransform( patch[idx].second, code, ref );
+			const auto& col = ori_cols[code];
+
+			drawPolygon( pts, col[0], col[1], col[2] );
+		} else {
+			static const double kernel[] = { 1.0, 1.0, 0.4 };
+			static const double evens[] = { 0.5, 0.5, 0.5 };
+			static const double odds[] = { 0.8, 0.8, 0.8 };
+
+			if( patch[idx].first == 0 ) {
+				drawPolygon( pts, kernel[0], kernel[1], kernel[2] );
+			} else if( (patch[idx].first % 2) == 0 ) {
+				drawPolygon( pts, evens[0], evens[1], evens[2] );
+			} else {
+				drawPolygon( pts, odds[0], odds[1], odds[2] );
+			}
+		}
 	}
 
 	cairo_restore( cr_ );

@@ -23,6 +23,7 @@ template<typename grid>
 static bool drawPatch( const TileInfo<grid>& tile )
 {
     Visualizer<grid> viz { cr, tile };
+	viz.setColourByOrientation( ori_col );
 
 	double sc = std::min( (7.5*72.0) / 500.0, (9.0*72.0) / 500.0 );
 
