@@ -104,6 +104,12 @@ public:
 };
 
 template<typename coord>
+inline size_t hash_value( const point<coord>& p )
+{
+	return p.hash();
+}
+
+template<typename coord>
 inline std::ostream& operator <<( std::ostream& os, const point<coord>& p )
 {
 	return os << '<' << int(p.x_) << ',' << int(p.y_) << '>';
@@ -242,6 +248,12 @@ public:
 	coord e_;
 	coord f_;
 };
+
+template<typename coord>
+inline size_t hash_value( const xform<coord>& T )
+{
+	return T.hash();
+}
 
 template<typename coord>
 inline std::ostream& operator <<( std::ostream& os, const xform<coord>& T )

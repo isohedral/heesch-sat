@@ -1,13 +1,5 @@
-Consider a more robust file format, e.g., one in which every shape can tell
-you what grid it's on, whether it has Heesch info, and if so, its transforms.
-That would avoid a lot of duplication of command line parameters.  There's some
-tension here -- a text format is simpler, more readable, and more robust;
-but any addition to it can cause a huge blowup in file size.
-
 Modify viz so that it can show individual shapes without needing to compute
 any Heesch info.  Ideally in a grid on each page of a PS.
-
-Start testing the use of SAT to check for isohedral tiling.
 
 Better generation of fixed compound polyforms, to make free filtering easier.
 

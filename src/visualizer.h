@@ -1,18 +1,207 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
-#include <string>
-#include <sstream>
-#include <cctype>
-#include <numeric>
 #include <unordered_map>
+#include <unordered_set>
+
+#include <boost/functional/hash.hpp>
+
+#include <cairo.h>
 
 #include "geom.h"
 #include "polyform.h"
+#include "heesch.h"
+#include "tileio.h"
+
+template<typename point>
+using edge = std::pair<point,point>;
 
 template<typename grid>
-class Visualizer {
+class Visualizer
+{
+	using coord_t = typename grid::coord_t;
+	using point_t = typename grid::point_t;
+	using xform_t = typename grid::xform_t;
+	using patch_t = Solution<coord_t>;
+	using edge_t = edge<point_t>;
+
+public:
+	Visualizer( cairo_t *cr, const TileInfo<grid>& tile )
+		: cr_ { cr }
+		, tile_ { tile }
+	{
+		initGridOutline();
+	}
+
+	void drawPatch( bool just_hc = false ) const;
+	void drawShape() const;
+
+private:
+	void drawPatch( const patch_t& patch ) const;
+	void drawPolygon( const std::vector<point<double>>& pts,
+		double r, double g, double b ) const;
+
+	void getTileEdges( std::vector<edge_t>& edges ) const;
+	void initGridOutline();
+
+	cairo_t *cr_;
+	const TileInfo<grid>& tile_;
+
+	std::vector<point<double>> grid_outline_;
+};
+
+template<typename grid>
+void Visualizer<grid>::getTileEdges( std::vector<edge_t>& edges ) const
+{
+	for (const point_t& pt : tile_.getShape() ) {
+		std::vector<point_t> verts = grid::getCellVertices( pt );
+		point_t last = verts.back();
+		for( const point_t& cur : verts ) {
+			edges.emplace_back( last, cur );
+			last = cur;
+        }
+    }
+}
+
+template<typename grid>
+void Visualizer<grid>::initGridOutline() 
+{
+	// FIXME -- this won't work for shapes with holes, of course...
+
+	std::vector<edge_t> edges;
+	getTileEdges( edges );
+
+	std::unordered_set<edge_t, boost::hash<edge_t>> eset {};
+
+	for( const auto& e : edges ) {
+		edge_t opp { e.second, e.first };
+		if( eset.find( opp ) == eset.end() ) {
+			eset.insert( e );
+		} else {
+			eset.erase( opp );
+		}
+	}
+	
+	point_map<coord_t,point_t> mp {};
+
+	for( const auto& e : eset ) {
+		mp[e.first] = e.second;
+	}
+
+	point_t start = mp.begin()->first;
+	point_t v = start;
+
+	do {
+		grid_outline_.push_back( grid::vertexToGrid( v ) );
+		v = mp[v];
+	} while (v != start);
+}
+
+template<typename grid>
+void Visualizer<grid>::drawPatch( bool just_hc ) const
+{
+	size_t hc = tile_.getHeeschConnected();
+	size_t hh = tile_.getHeeschHoles();
+
+	if( (hc != hh) && !just_hc ) {
+		cairo_save( cr_ );
+		cairo_translate( cr_, 125.0, 0.0 );
+		cairo_scale( cr_, 0.5, 0.5 );
+		drawPatch( tile_.getHeeschConnectedPatch() );
+		cairo_restore( cr_ );
+
+		cairo_save( cr_ );
+		cairo_translate( cr_, 125.0, 250.0 );
+		cairo_scale( cr_, 0.5, 0.5 );
+		drawPatch( tile_.getHeeschHolesPatch() );
+		cairo_restore( cr_ );
+	} else {
+		// Just Hc
+		drawPatch( tile_.getHeeschConnectedPatch() );
+	}
+}	
+
+template<typename grid>
+void Visualizer<grid>::drawPatch( const patch_t& patch ) const
+{
+	std::vector<std::vector<point<double>>> outlines {};
+	bool start = true;
+	double xmin = 0.0;
+	double xmax = 0.0;
+	double ymin = 0.0;
+	double ymax = 0.0;
+
+	for( const auto& p : patch ) {
+		xform<double> Td { p.second };
+		std::vector<point<double>> pts;
+		for( const auto& pt : grid_outline_ ) {
+			point<double> tpt = grid::gridToPage( Td * pt );
+			pts.push_back( tpt );
+
+			if( start ) {
+				xmin = tpt.x_;
+				xmax = tpt.x_;
+				ymin = tpt.y_;
+				ymax = tpt.y_;
+				start = false;
+			} else {
+				xmin = std::min( xmin, tpt.x_ );
+				xmax = std::max( xmax, tpt.x_ ); 
+				ymin = std::min( ymin, tpt.y_ );
+				ymax = std::max( ymax, tpt.y_ );
+			}
+		}
+		outlines.push_back( std::move( pts ) );
+	}
+
+	double sc = std::min( 450.0 / (xmax-xmin), 450.0 / (ymax-ymin) );
+	cairo_save( cr_ );
+	cairo_translate( cr_, 250.0, 250.0 );
+	cairo_scale( cr_, sc, sc );
+	cairo_translate( cr_, -0.5*(xmin+xmax), -0.5*(ymin+ymax) );
+	
+	double lwx = 1.0;
+	double lwy = 0.0;
+	cairo_user_to_device_distance( cr_, &lwx, &lwy );
+	cairo_set_line_width( cr_, 1.0 / sqrt( lwx*lwx + lwy*lwy ) );
+
+	// Get colours right.
+
+	for( size_t idx = 0; idx < outlines.size(); ++idx ) {
+		const std::vector<point<double>>& pts = outlines[idx];
+		drawPolygon( pts, 0.75, 0.75, 0.75 );
+	}
+
+	cairo_restore( cr_ );
+}
+
+template<typename grid>
+void Visualizer<grid>::drawShape() const
+{
+	patch_t one {};
+	one.emplace_back( 0, xform_t {} );
+	drawPatch( one );
+}
+
+template<typename grid>
+void Visualizer<grid>::drawPolygon( const std::vector<point<double>>& pts,
+	double r, double g, double b ) const
+{
+	cairo_new_path( cr_ );
+	cairo_move_to( cr_, pts[0].x_, pts[0].y_ );
+	for( size_t vidx = 1; vidx < pts.size(); ++vidx ) {
+		cairo_line_to( cr_, pts[vidx].x_, pts[vidx].y_ );
+	}
+
+	cairo_close_path( cr_ );	
+	cairo_set_source_rgb( cr_, r, g, b );
+	cairo_fill_preserve( cr_ );
+	cairo_set_source_rgb( cr_, 0.0, 0.0, 0.0 );
+	cairo_stroke( cr_ );
+}
+
+template<typename grid>
+class VisualizerOld {
     using point_t = typename grid::point_t;
     using coord_t = typename grid::coord_t;
     using xform_t = typename grid::xform_t;
@@ -41,7 +230,7 @@ class Visualizer {
 	std::unordered_map<int,double> ori_cols;
 
 public:
-    Visualizer(std::istream &in, std::ostream &out, bool holesAllowed, int maxLevel, bool only_max, bool ori_col):
+    VisualizerOld(std::istream &in, std::ostream &out, bool holesAllowed, int maxLevel, bool only_max, bool ori_col):
         in{in}, out{out}, holesAllowed{holesAllowed},
         tilings{}, hcs{}, hhs{}, maxH{-1}, 
 		maxLevel{maxLevel}, maxOnly{only_max},
@@ -96,7 +285,7 @@ private:
         text += "]";
         printText(72, 700, text);
 
-        text = "Total # of polyforms: " + std::to_string(std::accumulate(hcs.begin(), hcs.end(), 0));
+        text = "Total # of polyforms: "; //  + std::to_string(std::accumulate(hcs.begin(), hcs.end(), 0));
         printText(72, 680, text);
 
         out << "showpage\n";

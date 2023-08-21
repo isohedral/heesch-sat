@@ -17,34 +17,6 @@ static bool update_only = false;
 
 size_t tilings = 0;
 
-template<typename coord>
-static void reportConfig( ostream& os, const Solution<coord>& soln )
-{
-	if( show_solution ) {
-		if( !soln.empty() ) {
-			os << soln.size() << endl;
-			for( auto& pr : soln ) {
-				os << pr.first << " ; " << pr.second << endl;
-			}
-		} else {
-			os << "1" << endl << "0 ; <1,0,0,0,1,0>" << endl;
-		}
-	}
-}
-
-template<typename coord, typename grid>
-static void report( ostream& os, const string& desc,
-	size_t hc, const Solution<coord>& sc, 
-	size_t hh, const Solution<coord>& sh )
-{
-	os << desc << endl;
-	os << "Hc = " << hc << " Hh = " << hh << endl;
-	reportConfig( os, sc );
-	if( hc != hh ) {
-		reportConfig( os, sh );
-	}
-}
-
 template<typename grid>
 static bool computeHeesch( const TileInfo<grid>& tile )
 {
@@ -99,10 +71,12 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 				sc = sh;
 				solver.increaseLevel();
 			}
-		} if( solver.tilesIsohedrally() ) {
+		} else if( solver.tilesIsohedrally() ) {
 			work.setPeriodic( 1 );
 			work.write( cout );
 			return true;
+		} else {
+			break;
 		}
 	}
 

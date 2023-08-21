@@ -24,7 +24,7 @@ class TileInfo
 {
 	using coord_t = typename grid::coord_t;
 	using xform_t = typename grid::xform_t;
-	using patch_t = Solution<coord_t>; // std::vector<std::pair<size_t, xform_t>>;
+	using patch_t = Solution<coord_t>;
 
 public:
 	enum RecordType
@@ -77,6 +77,26 @@ public:
 		record_type_ = record_type;
 	}
 
+	size_t getHeeschConnected() const 
+	{
+		return hc_;
+	}
+
+	const patch_t& getHeeschConnectedPatch() const 
+	{
+		return hc_patch_;
+	}
+
+	size_t getHeeschHoles() const
+	{
+		return hh_;
+	}
+
+	const patch_t& getHeeschHolesPatch() const 
+	{
+		return hh_patch_;
+	}
+
 	void setNonTiler( 
 		size_t hc, const patch_t* hc_patch, size_t hh, const patch_t* hh_patch )
 	{
@@ -117,8 +137,8 @@ private:
 	size_t hh_;
 
 	// For non-tiles, possible patches exhibiting the shape's Heesch number
-	std::vector<std::pair<size_t, xform_t>> hc_patch_;
-	std::vector<std::pair<size_t, xform_t>> hh_patch_;
+	patch_t hc_patch_;
+	patch_t hh_patch_;
 	
 	// For periodic, number of transitivity classes
 	size_t transitivity_;

@@ -1,4 +1,4 @@
-INCLUDES = -I/usr/local/include/cryptominisat5 -I/usr/local/include -I/opt/local/include
+INCLUDES = -I/usr/local/include/cryptominisat5 -I/usr/local/include -I/opt/local/include -I/opt/local/include/cairo
 
 CXX = clang++
 OPT = -g
@@ -16,7 +16,7 @@ sat: sat.o
 	$(CXX) $(LIBS) -o sat sat.o
 
 viz: viz.o
-	$(CXX) $(LIBS) -o viz viz.o
+	$(CXX) $(LIBS) -L/opt/local/lib -lcairo -o viz viz.o 
 
 gen: gen.o
 	$(CXX) $(LIBS) -o gen gen.o
@@ -24,8 +24,8 @@ gen: gen.o
 surrounds: surrounds.o 
 	$(CXX) $(LIBS) -o surrounds surrounds.o
 
-tile: tile.o 
-	$(CXX) $(LIBS) -o tile tile.o
+# tile: tile.o 
+#	$(CXX) $(LIBS) -o tile tile.o
 
 -include ${DEPENDS}
 
