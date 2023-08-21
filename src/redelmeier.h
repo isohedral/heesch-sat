@@ -239,7 +239,7 @@ public:
 		} );
 		
 		std::sort( all.begin(), all.end(), []( const auto& a, const auto& b ) {
-			return a.compare( b );
+			return a.compare( b ) < 0;
 		} );
 
 		size_t count = 1;
