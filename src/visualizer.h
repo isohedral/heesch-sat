@@ -4,18 +4,21 @@
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
+#include <sstream>
 
 #include <boost/functional/hash.hpp>
 
 #include <cairo.h>
 
 #include "geom.h"
-#include "polyform.h"
 #include "heesch.h"
 #include "tileio.h"
 
-template<typename point>
-using edge = std::pair<point,point>;
+template<typename coord>
+using edge = std::pair<point<coord>,point<coord>>;
+template<typename coord>
+using edgeset = std::unordered_set<edge<coord>, boost::hash<edge<coord>>>;
+using colour = std::array<double,3>;
 
 template<typename grid>
 class Visualizer
@@ -24,15 +27,19 @@ class Visualizer
 	using point_t = typename grid::point_t;
 	using xform_t = typename grid::xform_t;
 	using patch_t = Solution<coord_t>;
-	using edge_t = edge<point_t>;
+	using edge_t = edge<coord_t>;
+	using edgeset_t = edgeset<coord_t>;
+	using info_t = TileInfo<grid>;
 
 public:
-	Visualizer( cairo_t *cr, const TileInfo<grid>& tile )
+	Visualizer( cairo_t *cr, const info_t& tile )
 		: cr_ { cr }
 		, tile_ { tile }
 		, colour_by_orientation_ { false }
 	{
-		initGridOutline();
+		if( tile.getRecordType() != info_t::HOLE ) {
+			initGridOutline();
+		}
 	}
 
 	void setColourByOrientation( bool cbo )
@@ -41,18 +48,49 @@ public:
 	}
 
 	void drawPatch( bool just_hc = false ) const;
-	void drawShape() const;
+	void drawShape( bool dashes = false ) const;
+	void drawShapeCells( bool dashes = false ) const;
+
+	void drawText( double x, double y ) const;
 
 private:
+	double centreToBounds( 
+		double xmin, double xmax, double ymin, double ymax ) const
+	{
+		double sc = std::min( 450.0 / (xmax-xmin), 450.0 / (ymax-ymin) );
+		cairo_translate( cr_, 250.0, 250.0 );
+		cairo_scale( cr_, sc, sc );
+		cairo_translate( cr_, -0.5*(xmin+xmax), -0.5*(ymin+ymax) );
+		
+		double lwx = 1.0;
+		double lwy = 0.0;
+		cairo_user_to_device_distance( cr_, &lwx, &lwy );
+		double eff = 1.0 / sqrt( lwx * lwx + lwy * lwy );
+		// cairo_set_line_width( cr_, lw * eff );
+		return eff;
+	}
+
+	void drawTextLine( 
+		std::ostringstream& out, double x, double& y, double h ) const
+	{
+		std::string str = std::move( out ).str();
+		cairo_move_to( cr_, x, y );
+		cairo_show_text( cr_, str.c_str() );
+
+		out.str( "" );
+		out.clear();
+		y += h;
+	}
+
 	void drawPatch( const patch_t& patch ) const;
 	void drawPolygon( const std::vector<point<double>>& pts,
-		double r, double g, double b ) const;
+		double r, double g, double b, bool stroke = true ) const;
 
-	void getTileEdges( std::vector<edge_t>& edges ) const;
+	edgeset_t getUniqueTileEdges() const;
 	void initGridOutline();
 
 	cairo_t *cr_;
-	const TileInfo<grid>& tile_;
+	const info_t& tile_;
 
 	std::vector<point<double>> grid_outline_;
 
@@ -60,42 +98,50 @@ private:
 };
 
 template<typename grid>
-void Visualizer<grid>::getTileEdges( std::vector<edge_t>& edges ) const
+edgeset<typename grid::coord_t> Visualizer<grid>::getUniqueTileEdges() const
 {
+	edgeset_t ret {};
+
 	for (const point_t& pt : tile_.getShape() ) {
 		std::vector<point_t> verts = grid::getCellVertices( pt );
 		point_t last = verts.back();
 		for( const point_t& cur : verts ) {
-			edges.emplace_back( last, cur );
+			// edges.emplace_back( last, cur );
+			edge_t e { last, cur };
+			edge_t opp { cur, last };
+			if( ret.find( opp ) == ret.end() ) {
+				ret.insert( e );
+			} else {
+				ret.erase( opp );
+			}
 			last = cur;
         }
     }
+
+	// Automatic temp move semantics, right?
+	return ret;
 }
 
 template<typename grid>
 void Visualizer<grid>::initGridOutline() 
 {
-	// FIXME -- this won't work for shapes with holes, of course...
-
-	std::vector<edge_t> edges;
-	getTileEdges( edges );
-
-	std::unordered_set<edge_t, boost::hash<edge_t>> eset {};
-
-	for( const auto& e : edges ) {
-		edge_t opp { e.second, e.first };
-		if( eset.find( opp ) == eset.end() ) {
-			eset.insert( e );
-		} else {
-			eset.erase( opp );
-		}
+	if( tile_.getRecordType() == info_t::HOLE ) {
+		// Don't try this if the shape has a hole.
+		return;
 	}
-	
+
+	edgeset_t eset = getUniqueTileEdges();
 	point_map<coord_t,point_t> mp {};
 
 	for( const auto& e : eset ) {
 		mp[e.first] = e.second;
 	}
+
+/*
+	for( const auto& a : mp ) {
+		std::cerr << "   " << a.first << " -> " << a.second << std::endl;
+	}
+*/
 
 	point_t start = mp.begin()->first;
 	point_t v = start;
@@ -111,9 +157,6 @@ void Visualizer<grid>::drawPatch( bool just_hc ) const
 {
 	size_t hc = tile_.getHeeschConnected();
 	size_t hh = tile_.getHeeschHoles();
-
-	cairo_move_to( cr_, 72, 60 );
-	cairo_show_text( cr_, "hello" );
 
 	if( (hc != hh) && !just_hc ) {
 		cairo_save( cr_ );
@@ -132,8 +175,6 @@ void Visualizer<grid>::drawPatch( bool just_hc ) const
 		drawPatch( tile_.getHeeschConnectedPatch() );
 	}
 }	
-
-using colour = std::array<double,3>;
 
 // https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
 inline colour hsv2rgb( colour rgb )
@@ -172,15 +213,48 @@ void encodeTransform( const xform<coord>& T, size_t& code, bool& ref )
 	ref = ((T.a_*T.e_)-(T.b_*T.d_)) < 0;
 }
 
+template<typename Collection>
+void computeBounds( const Collection& coll, 
+	double& xmin, double& xmax, double& ymin, double& ymax )
+{
+	bool start = true;
+
+	for( const auto& el : coll ) {
+		double sxmin;
+		double sxmax;
+		double symin;
+		double symax;
+		computeBounds( el, sxmin, sxmax, symin, symax );
+
+		if( start ) {
+			xmin = sxmin;
+			xmax = sxmax;
+			ymin = symin;
+			ymax = symax;
+			start = false;
+		} else {
+			xmin = std::min( xmin, sxmin );
+			xmax = std::max( xmax, sxmax ); 
+			ymin = std::min( ymin, symin );
+			ymax = std::max( ymax, symax );
+		}
+	}
+}
+
+template<typename coord>
+void computeBounds( const point<coord>& pt,
+	double& xmin, double& xmax, double& ymin, double& ymax )
+{
+	xmin = pt.x_;
+	xmax = pt.x_;
+	ymin = pt.y_;
+	ymax = pt.y_;
+}
+
 template<typename grid>
 void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 {
 	std::vector<std::vector<point<double>>> outlines {};
-	bool start = true;
-	double xmin = 0.0;
-	double xmax = 0.0;
-	double ymin = 0.0;
-	double ymax = 0.0;
 
 	for( const auto& p : patch ) {
 		xform<double> Td { p.second };
@@ -188,33 +262,19 @@ void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 		for( const auto& pt : grid_outline_ ) {
 			point<double> tpt = grid::gridToPage( Td * pt );
 			pts.push_back( tpt );
-
-			if( start ) {
-				xmin = tpt.x_;
-				xmax = tpt.x_;
-				ymin = tpt.y_;
-				ymax = tpt.y_;
-				start = false;
-			} else {
-				xmin = std::min( xmin, tpt.x_ );
-				xmax = std::max( xmax, tpt.x_ ); 
-				ymin = std::min( ymin, tpt.y_ );
-				ymax = std::max( ymax, tpt.y_ );
-			}
 		}
 		outlines.push_back( std::move( pts ) );
 	}
 
-	double sc = std::min( 450.0 / (xmax-xmin), 450.0 / (ymax-ymin) );
+	double xmin = 0.0;
+	double xmax = 0.0;
+	double ymin = 0.0;
+	double ymax = 0.0;
+	computeBounds( outlines, xmin, xmax, ymin, ymax );
+
 	cairo_save( cr_ );
-	cairo_translate( cr_, 250.0, 250.0 );
-	cairo_scale( cr_, sc, sc );
-	cairo_translate( cr_, -0.5*(xmin+xmax), -0.5*(ymin+ymax) );
-	
-	double lwx = 1.0;
-	double lwy = 0.0;
-	cairo_user_to_device_distance( cr_, &lwx, &lwy );
-	cairo_set_line_width( cr_, 1.0 / sqrt( lwx*lwx + lwy*lwy ) );
+	double lw = centreToBounds( xmin, xmax, ymin, ymax );
+	cairo_set_line_width( cr_, lw );
 
 	size_t code;
 	bool ref;
@@ -265,16 +325,70 @@ void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 }
 
 template<typename grid>
-void Visualizer<grid>::drawShape() const
+void Visualizer<grid>::drawShapeCells( bool dashes ) const
 {
-	patch_t one {};
-	one.emplace_back( 0, xform_t {} );
-	drawPatch( one );
+	// A more lenient routine that can handle any old crappy shape, even
+	// one with holes.
+	edgeset_t boundary = getUniqueTileEdges();
+	std::vector<std::vector<point<double>>> outlines {};
+	std::vector<point<double>> ol {};
+
+	for( const auto& p: tile_.getShape() ) {
+		ol.clear();
+		std::vector<point_t> verts = grid::getCellVertices( p );
+		for( const point_t& v : verts ) {
+			ol.push_back( grid::gridToPage( grid::vertexToGrid( v ) ) );
+        }
+		outlines.push_back( std::move( ol ) );
+	}
+
+	double xmin = 0.0;
+	double xmax = 0.0;
+	double ymin = 0.0;
+	double ymax = 0.0;
+	computeBounds( outlines, xmin, xmax, ymin, ymax );
+
+	cairo_save( cr_ );
+	double lw = centreToBounds( xmin, xmax, ymin, ymax );
+	cairo_set_line_width( cr_, 0.5 * lw );
+	double dashpat[] = { 4.0 * lw, 4.0 * lw };
+	cairo_set_dash( cr_, dashpat, 2, 0.0 );
+
+	for( size_t idx = 0; idx < outlines.size(); ++idx ) {
+		drawPolygon( outlines[idx], 1.0, 1.0, 0.4, dashes );
+	}
+
+	cairo_set_line_width( cr_, lw );
+	cairo_set_line_cap( cr_, CAIRO_LINE_CAP_ROUND );
+	cairo_set_dash( cr_, nullptr, 0, 0.0 );
+	cairo_set_source_rgb( cr_, 0.0, 0.0, 0.0 );
+	for( const auto& e : boundary ) {
+		point<double> P = grid::gridToPage( grid::vertexToGrid( e.first ) );
+		point<double> Q = grid::gridToPage( grid::vertexToGrid( e.second ) );
+		cairo_new_path( cr_ );
+		cairo_move_to( cr_, P.x_, P.y_ );
+		cairo_line_to( cr_, Q.x_, Q.y_ );
+		cairo_stroke( cr_ );
+	}
+
+	cairo_restore( cr_ );
+}
+
+template<typename grid>
+void Visualizer<grid>::drawShape( bool dashes ) const
+{
+	if( dashes || (tile_.getRecordType() == info_t::HOLE) ) {
+		drawShapeCells( dashes );
+	} else {
+		patch_t one {};
+		one.emplace_back( 0, xform_t {} );
+		drawPatch( one );
+	}
 }
 
 template<typename grid>
 void Visualizer<grid>::drawPolygon( const std::vector<point<double>>& pts,
-	double r, double g, double b ) const
+	double r, double g, double b, bool stroke ) const
 {
 	cairo_new_path( cr_ );
 	cairo_move_to( cr_, pts[0].x_, pts[0].y_ );
@@ -284,297 +398,87 @@ void Visualizer<grid>::drawPolygon( const std::vector<point<double>>& pts,
 
 	cairo_close_path( cr_ );	
 	cairo_set_source_rgb( cr_, r, g, b );
-	cairo_fill_preserve( cr_ );
-	cairo_set_source_rgb( cr_, 0.0, 0.0, 0.0 );
-	cairo_stroke( cr_ );
+
+	if( stroke ) {
+		cairo_fill_preserve( cr_ );
+		cairo_set_source_rgb( cr_, 0.0, 0.0, 0.0 );
+		cairo_stroke( cr_ );
+	} else {
+		cairo_fill( cr_ );
+	}
 }
 
 template<typename grid>
-class VisualizerOld {
-    using point_t = typename grid::point_t;
-    using coord_t = typename grid::coord_t;
-    using xform_t = typename grid::xform_t;
-    using xformList_t = typename std::vector<std::pair<int, xform_t>>;
-    using outlineList_t = typename std::vector<std::vector<point<double>>>;
+void Visualizer<grid>::drawText( double x, double y ) const
+{
+	static const std::pair<GridType, const char *> grid_names[] = {
+		{ OMINO, "Polyomino" },
+		{ HEX, "Polyhex" },
+		{ IAMOND, "Polyiamond" },
+		{ OCTASQUARE, "Poly-[4.8.8]" },
+		{ TRIHEX, "Poly-[3.6.3.6]" },
+		{ ABOLO, "Polyabolo" },
+		{ DRAFTER, "Polydrafter" },
+		{ KITE, "Polykite" },
+		{ HALFCAIRO, "Polyhalfcairo" },
+		{ NOGRID, "Unknown polyform" }
+	};
 
-    struct Tiling {
-        Polyform<grid> poly;
-        int hc, hh;
-        xformList_t xforms;
-    };
+	std::ostringstream out {};
 
-    const std::string FONT = "Georgia";
+	cairo_set_font_size( cr_, 16 );
+	cairo_font_extents_t extents;
+	cairo_font_extents( cr_, &extents );
+	double h = extents.height;
 
-    std::istream &in;
-    std::ostream &out;
-    const bool holesAllowed;
-
-    std::vector<Tiling> tilings;
-    std::vector<int> hcs, hhs;
-    int maxH;
-    int maxLevel;
-	bool maxOnly;
-
-	bool colour_by_orientation;
-	std::unordered_map<int,double> ori_cols;
-
-public:
-    VisualizerOld(std::istream &in, std::ostream &out, bool holesAllowed, int maxLevel, bool only_max, bool ori_col):
-        in{in}, out{out}, holesAllowed{holesAllowed},
-        tilings{}, hcs{}, hhs{}, maxH{-1}, 
-		maxLevel{maxLevel}, maxOnly{only_max},
-		colour_by_orientation{ori_col}, ori_cols{}
-	{};
-
-    void run() {
-        init();
-        printPSHeader();
-        printHeeschInfo();
-        // Print only the tiling(s) with maximum Heesch number
-        for (auto &t : tilings) {
-			if( maxOnly ) {
-				// Only visualize max
-				if (holesAllowed ? t.hh == maxH : t.hc == maxH) printPS(t);
-			} else {
-				// Visualize everything
-				printPS( t );
-			}
-        }
-        printPSFooter();
-    }
-
-private:
-    void init() {
-        readTilings();
-        getTotalHcs(), getTotalHhs();
-        // Calculate max Heesch number to be displayed
-        for (int i = 0; i < std::min(maxLevel, (int) hhs.size()); ++i) {
-            if ((holesAllowed ? hhs[i] : hcs[i]) > 0) maxH = i;
-        }
-    }
-
-    void printPSHeader() {
-        out << "%!PS-Adobe-3.0\n\n";
-        out << "1 setlinewidth 0 setgray\n";
-        out << "/" << FONT << " findfont\n";
-        out << "12 scalefont\n";
-        out << "setfont\nnewpath\n";
-    }
-
-    void printPSFooter() { out << "\n\n%%EOF\n"; }
-
-    void printHeeschInfo() {
-        std::string text = "# of polyforms per Hc: [ ";
-        for (int n : hcs) text += std::to_string(n) + " ";
-        text += "]\n";
-        printText(72, 720, text);
-
-        text = "# of polyforms per Hh: [ ";
-        for (int n : hhs) text += std::to_string(n) + " ";
-        text += "]";
-        printText(72, 700, text);
-
-        text = "Total # of polyforms: "; //  + std::to_string(std::accumulate(hcs.begin(), hcs.end(), 0));
-        printText(72, 680, text);
-
-        out << "showpage\n";
-    }
-
-    void printText(int x, int y, const std::string &text) {
-        out << x << " " << y << " moveto\n";
-        out << "(" << text << ") show\n";
-    }
-
-    void readTilings() {
-		size_t holes = 0;
-
-        tilings.clear();
-        while (in.peek() != EOF) {
-			auto tiling = readTiling();
-			if( tiling.poly.simplyConnected() ) {
-				tilings.push_back(tiling);
-			} else {
-				tiling.poly.debug();
-				++holes;
-			}
-			// tilings.push_back(readTiling());
+	for( const auto& p : grid_names ) {
+		if( p.first == grid::grid_type ) {
+			out << p.second;
+			break;
 		}
+	}
 
-		if( holes > 0 ) {
-			std::cerr << "Skipped " << holes << " shapes with internal holes"
-				<< std::endl;
+	drawTextLine( out, x, y, h );
+
+	size_t seen = 0;
+	for( const auto& p : tile_.getShape() ) {
+		out << p.x_ << ' ' << p.y_ << ' ';
+		++seen;
+		if( seen == 15 ) {
+			seen = 0;
+			drawTextLine( out, x, y, h );
 		}
-    }
+	}
 
-    Tiling readTiling() {
-        auto pts = readPoints();
-        auto heeschNums = readHeeschNums();
-        auto hc = heeschNums.first, hh = heeschNums.second;
-        xformList_t xformsHc = readXforms();
-        xformList_t xformsHh{};
-        if (hh > 0 && hh != hc) xformsHh = readXforms();
-        if (holesAllowed) return {Polyform<grid>{pts}, hc, hh, xformsHh};
-        else return {Polyform<grid>{pts}, hc, hh, xformsHc};
-    }
+	if( seen != 0 ) {
+		drawTextLine( out, x, y, h );
+	}
 
-    std::vector<point_t> readPoints() {
-        std::vector<point_t> pts{};
-        coord_t x, y;
-        std::stringstream line = getLine();
-        while (line >> x, line >> y) pts.emplace_back(x, y);
-        return pts;
-    }
+	switch( tile_.getRecordType() ) {
+		case info_t::HOLE:
+			out << "Has hole";
+			break;
+		case info_t::INCONCLUSIVE:
+			out << "Analysis inconclusive";
+			break;
+		case info_t::NONTILER:
+			out << "Nontiler, Hc = " << tile_.getHeeschConnected() 
+				<< ", Hh = " << tile_.getHeeschHoles();
+			break;
+		case info_t::ISOHEDRAL:
+			out << "Isohedral";
+			break;
+		case info_t::ANISOHEDRAL:
+			out << "Anisohedral, " << tile_.getTransitivity()
+				<< " transitivity classes";
+			break;
+		case info_t::APERIODIC:
+			out << "Aperiodic";
+			break;
+		case info_t::UNKNOWN: default:
+			out << "Unprocessed shape";
+			break;
+	}
 
-    std::pair<int, int> readHeeschNums() {
-        auto line = getLine();
-        int hc, hh;
-        line >> hc >> hh;
-        return {hc, hh};
-    }
-
-    xformList_t readXforms() {
-        xformList_t xforms{};
-        size_t nTiles;
-        getLine() >> nTiles;
-        for (size_t i = 0; i < nTiles; ++i) {
-            auto line = getLine();
-            int level;
-            coord_t a, b, c, d, e, f;
-            line >> level >> a >> b >> c >> d >> e >> f;
-            xforms.push_back({level, xform_t{a, b, c, d, e, f}});
-        }
-        return xforms;
-    }
-
-    void getTotalHcs() {
-        hcs.clear();
-        for (auto &t : tilings) {
-            if ((int) hcs.size() <= t.hc) hcs.resize(t.hc + 1);
-            ++hcs[t.hc];
-        }
-    }
-
-    void getTotalHhs() {
-        hhs.clear();
-        for (auto &t : tilings) {
-            if ((int) hhs.size() <= t.hh) hhs.resize(t.hh + 1);
-            ++hhs[t.hh];
-        }
-    }
-
-    void printPS(const Tiling &tiling) {
-        printTilingInfo(tiling);
-        auto outline = getOutlineVertices(tiling);
-        scaleToFitPage(outline);
-        printTiles(tiling.xforms, outline);
-        out << "showpage\n";
-    }
-
-    void printTilingInfo(const Tiling &tiling) {
-        printText(72, 720,
-                  "Polyform coords: " + tiling.poly.toString() + "\n" +
-                  "Hc: " + std::to_string(tiling.hc) + "\n" +
-                  "Hh: " + std::to_string(tiling.hh));
-    }
-
-    outlineList_t getOutlineVertices(const Tiling &tiling) {
-        auto outlineVertices = tiling.poly.getGridOutlineVertices();
-        std::vector<std::vector<point<double>>> answer(tiling.xforms.size());
-        for (size_t i = 0; i < answer.size(); ++i) {
-            xform<double> x{tiling.xforms[i].second};
-            for (auto &pt : outlineVertices)
-                answer[i].push_back(grid::gridToPage(x * pt));
-        }
-        return answer;
-    }
-
-    void scaleToFitPage(outlineList_t &outline) {
-        auto bs = getBounds(outline);
-        double pcX = 4.25 * 72, pcY = 5.5 * 72;
-        double cX = 0.5 * (bs.xMin + bs.xMax), cY = 0.5 * (bs.yMin + bs.yMax);
-        double horizScale = (6.5 * 72) / (bs.xMax - bs.xMin + 2);
-        double vertScale = (9.0 * 72) / (bs.yMax - bs.yMin + 2);
-        double scale = std::min(horizScale, vertScale);
-
-        for (auto &tile : outline) {
-            for (auto &pt : tile) {
-                pt.x_ = pcX + scale * (pt.x_ - cX);
-                pt.y_ = pcY + scale * (pt.y_ - cY);
-            }
-        }
-    }
-
-    struct Bounds {
-        double xMin, yMin, xMax, yMax;
-    };
-
-    Bounds getBounds(const outlineList_t &outline) {
-        double xMin = 1e9, yMin = 1e9, xMax = -1e9, yMax = -1e9;
-        for (auto &tile : outline) {
-            for (auto &pt : tile) {
-                xMin = std::min(xMin, pt.x_);
-                yMin = std::min(yMin, pt.y_);
-                xMax = std::max(xMax, pt.x_);
-                yMax = std::max(yMax, pt.y_);
-            }
-        }
-        return {xMin, yMin, xMax, yMax};
-    }
-
-    void printTiles(const xformList_t &xforms, const outlineList_t &outline) {
-        for (size_t i = 0; i < xforms.size(); ++i) {
-            int level = xforms[i].first;
-			xform T = xforms[i].second;
-            bool start = true;
-            for (auto &pt : outline[i]) {
-                out << pt.x_ << ' ' << pt.y_ << ' ';
-                if (start) start = false, out << "moveto";
-                else out << "lineto";
-                out << '\n';
-            }
-			const auto& pt = outline[i][0];
-			out << pt.x_ << ' ' << pt.y_ << " lineto" << std::endl;
-
-            out << "closepath\n";
-			double colour = 0.2;
-			bool flipped = false;
-
-			if( colour_by_orientation ) {
-				int code = 27*(T.a_+1) + 9*(T.b_+1) + 3*(T.d_+1) + (T.e_+1);
-				int det = (T.a_*T.e_)-(T.b_*T.d_);
-
-				if( ori_cols.find( code ) == ori_cols.end() ) {
-					colour = 0.4 + 0.4 * double(ori_cols.size()) / 
-						double(grid::num_orientations);
-					ori_cols[code] = colour;
-				} else {
-					colour = ori_cols[code];
-				}
-
-				if( det < 0 ) {
-					flipped = true;
-				}
-			} else {
-				if( level > 0 ) {
-					colour = (level%2==0) ? 0.5 : 0.8;
-				}
-			}
-				
-			if( level == 0 ) {
-				out << "gsave 1 1 0 setrgbcolor fill grestore stroke newpath\n";
-			} if( flipped ) {
-				out << "gsave 0.9 0.3 " << colour << " setrgbcolor fill grestore stroke newpath\n";
-			} else {
-				out << "gsave " << colour << " setgray fill grestore stroke newpath\n";
-			}
-        }
-    }
-
-    std::stringstream getLine() {
-        std::string str;
-        getline(in, str);
-        // Replace all non-number characters with spaces
-        for (char &c : str) if (!isdigit(c) && c != '-') c = ' ';
-        return std::stringstream{str};
-    }
-};
+	drawTextLine( out, x, y, h );
+}

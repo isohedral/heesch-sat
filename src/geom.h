@@ -115,6 +115,12 @@ inline std::ostream& operator <<( std::ostream& os, const point<coord>& p )
 	return os << '<' << int(p.x_) << ',' << int(p.y_) << '>';
 }
 
+template<>
+inline std::ostream& operator <<( std::ostream& os, const point<double>& p )
+{
+	return os << '<' << p.x_ << ',' << p.y_ << '>';
+}
+
 template<typename coord>
 class xform
 {
@@ -265,6 +271,17 @@ inline std::ostream& operator <<( std::ostream& os, const xform<coord>& T )
 		<< int(T.d_) << ','
 		<< int(T.e_) << ',' 
 		<< int(T.f_) << '>';
+}
+template<>
+inline std::ostream& operator <<( std::ostream& os, const xform<double>& T )
+{
+	return os << '<' 
+		<< T.a_ << ',' 
+		<< T.b_ << ','
+		<< T.c_ << ',' 
+		<< T.d_ << ','
+		<< T.e_ << ',' 
+		<< T.f_ << '>';
 }
 
 template<typename coord>

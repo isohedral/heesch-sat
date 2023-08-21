@@ -25,20 +25,23 @@ static bool drawPatch( const TileInfo<grid>& tile )
     Visualizer<grid> viz { cr, tile };
 	viz.setColourByOrientation( ori_col );
 
-	double sc = std::min( (7.5*72.0) / 500.0, (9.0*72.0) / 500.0 );
+	double sc = std::min( (6.5*72.0) / 500.0, (9.0*72.0) / 500.0 );
 
 	cairo_save( cr );
-	cairo_translate( cr, 4.25*72, 5.5*72 );
+	cairo_translate( cr, 4.25*72, (11-4.25)*72 );
 	cairo_scale( cr, sc, sc );
 	cairo_translate( cr, -250.0, -250.0 );
 
 	if( tile.getRecordType() == TileInfo<grid>::NONTILER ) {
 		viz.drawPatch();
 	} else {
-		viz.drawShape();
+		viz.drawShape( true );
 	}
 
 	cairo_restore( cr );
+
+	viz.drawText( 72, 72 );
+
 	cairo_surface_show_page( pdf );
 
 	return true;
@@ -58,7 +61,7 @@ static bool drawShapes( const TileInfo<grid>& tile )
 	cairo_translate( cr, -6*250.0, -8*250.0 );
 	cairo_translate( cr, grid_x * 500.0, grid_y * 500.0 );
 
-	viz.drawShape();
+	viz.drawShape( true );
 
 	cairo_restore( cr );
 
@@ -110,6 +113,7 @@ int main( int argc, char **argv )
 	}
 
 	cairo_destroy( cr );
+	cairo_surface_flush( pdf );
 	cairo_surface_finish( pdf );
 	cairo_surface_destroy( pdf );
 

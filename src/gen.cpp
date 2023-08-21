@@ -9,7 +9,7 @@ using namespace std;
 
 static bool onlyfree = false;
 static bool units = false;
-static bool holes = false;
+static bool holes = true;
 static size_t numcells = 1;
 
 template<typename grid>

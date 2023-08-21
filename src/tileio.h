@@ -97,6 +97,11 @@ public:
 		return hh_patch_;
 	}
 
+	size_t getTransitivity() const
+	{
+		return transitivity_;
+	}
+
 	void setNonTiler( 
 		size_t hc, const patch_t* hc_patch, size_t hh, const patch_t* hh_patch )
 	{
