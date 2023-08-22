@@ -722,20 +722,22 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 
 	// The solver is assumed to contain the clauses for a hole-free
 	// 1-corona.  Augment it with new clauses that restrict solutions 
-	// to isohedral tilings.
+	// to patches that witness isohedral tilings.
 
 	std::vector<CMSat::Lit> ucl { 1 };
 	std::vector<CMSat::Lit> bcl { 2 };
+	std::vector<CMSat::Lit> tcl { 3 };
+
+	// size_t joint_clauses = 0;
 
 	for( const auto& T : cloud_.adjacent_ ) {
 		xform_t Ti = T.invert();
+		var_id t_id;
+		getShapeVariable( T, 1, t_id );
 
 		// This should not be used for involutory transforms
 		if( T != Ti ) {
-			var_id t_id;
-			getShapeVariable( T, 1, t_id );
-
-			if( cloud_.isAdjacent( Ti ) ) {
+			// if( cloud_.isAdjacent( Ti ) ) {
 				// T and Ti are adjacent.  Add a clause that couples them
 				// in surrounds.  (T -> Ti)
 				var_id ti_id;
@@ -744,14 +746,58 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 				bcl[0] = neg( t_id );
 				bcl[1] = pos( ti_id );
 				solv.add_clause( bcl );
+				/*
+				// This shouldn't be possible.  If T is adajcent to the
+				// kernel, then T^-1 must be too.
 			} else {
 				// T isn't involutory, but its inverse isn't an adjacent.
 				// Therefore, T can't be used!
 				ucl[0] = neg( t_id );
 				solv.add_clause( ucl );
+				continue;
+			}
+			*/
+		}
+
+		// New idea: add joint clauses that force the solution to be
+		// "algebraically closed", so that the only possible patches
+		// are witnesses for isohedrality, no further work needed.
+		for( const auto& S : cloud_.adjacent_ ) {
+			if( S == T ) {
+				break;
+			}
+
+			// Check if neighbours S and T are also adjacent to each other
+			if( !cloud_.isAdjacent( T * S.invert() ) ) {
+				continue;
+			}
+
+			var_id s_id;
+			getShapeVariable( S, 1, s_id );
+
+			// If ST is also in the 1-corona, then using S and T
+			// forces you to use ST
+			var_id p_id;
+			if( getShapeVariable( S * T, 1, p_id ) ) {
+				tcl[0] = neg( s_id );
+				tcl[1] = neg( t_id );
+				tcl[2] = pos( p_id );
+				solv.add_clause( tcl );
+				// ++joint_clauses;
+			}
+
+			// Same thing for TS
+			if( getShapeVariable( T * S, 1, p_id ) ) {
+				tcl[0] = neg( s_id );
+				tcl[1] = neg( t_id );
+				tcl[2] = pos( p_id );
+				solv.add_clause( tcl );
+				// ++joint_clauses;
 			}
 		}
 	}
+
+	// std::cerr << "Added " << joint_clauses << " joint clauses" << std::endl;
 	
 	/*
 	std::vector<xform_t> syms;
@@ -759,7 +805,6 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 	*/
 
 	allCoronas( solv, [this] ( const Solution<coord_t>& soln ) {
-		// std::cerr << "Got a corona" << std::endl;
 		/*
 		for( const auto& p : shape_ ) {
 			std::cerr << p.x_ << ' ' << p.y_ << ' ';
@@ -772,6 +817,7 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 		}
 		*/
 
+/*
 		if( isSurroundIsohedral( soln ) ) {
 			tiles_isohedrally_ = true;
 			return false;
@@ -779,6 +825,10 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 			// Need more data
 			return true;
 		}
+		*/
+
+		tiles_isohedrally_ = true;
+		return false;
 	} );
 
 	return tiles_isohedrally_;

@@ -10,7 +10,7 @@ LIBS = -L/usr/local/lib -lcryptominisat5
 OBJECTS = sat.o viz.o surrounds.o gen.o
 DEPENDS = ${OBJECTS:.o=.d}
 
-all: sat viz gen surrounds
+all: sat viz gen surrounds report
 
 sat: sat.o 
 	$(CXX) $(LIBS) -o sat sat.o
@@ -23,6 +23,9 @@ gen: gen.o
 
 surrounds: surrounds.o 
 	$(CXX) $(LIBS) -o surrounds surrounds.o
+
+report: report.o 
+	$(CXX) $(LIBS) -o report report.o
 
 # tile: tile.o 
 #	$(CXX) $(LIBS) -o tile tile.o
