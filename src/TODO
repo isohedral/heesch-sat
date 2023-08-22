@@ -2,5 +2,3 @@ Better generation of fixed compound polyforms, to make free filtering easier.
 
 Incorporate standard compounds for polyabolos, polydrafters, polyhalfcairos,
 etc.
-
-Better handling of input and output files on the command line.
