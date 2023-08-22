@@ -1,5 +1,5 @@
 #include <iostream>
-#include <sstream>
+#include <fstream>
 
 #include "redelmeier.h"
 #include "grid.h"
@@ -11,6 +11,8 @@ static bool onlyfree = false;
 static bool units = false;
 static bool holes = true;
 static size_t numcells = 1;
+
+const char *outname = nullptr;
 
 template<typename grid>
 static bool readShape( istream& is, Shape<grid>& shape )
@@ -52,6 +54,7 @@ static vector<Shape<grid>> readShapes( istream& is )
 	return ret;
 }
 
+/*
 template<typename grid>
 void output( const Shape<grid>& shp )
 {
@@ -69,11 +72,47 @@ void output( const Shape<grid>& shp )
 		info.write( cout );
 	}
 }
+*/
+
+template<typename grid>
+class Outputter
+{
+public:
+	Outputter( ostream& out )
+		: out_ { out }
+	{}
+
+	void operator()( const Shape<grid>& shp )
+	{
+		static TileInfo<grid> info;
+		info.setShape( shp );
+		info.setRecordType( TileInfo<grid>::UNKNOWN );
+
+		if( !shp.simplyConnected() ) {
+			// Shape has a hole.  Report if argument is set, otherwise skip
+			if( holes ) {
+				info.setRecordType( TileInfo<grid>::HOLE );
+				info.write( out_ );
+			}
+		} else {
+			info.write( out_ );
+		}
+	}
+	
+private:
+	ostream& out_;
+};
 
 template<typename grid>
 static void gridMain( int )
 {
-	polyform_cb<grid> cb { output<grid> };
+	ofstream ofs;
+
+	if( outname ) {
+		ofs.open( outname );
+	}
+
+	polyform_cb<grid> cb { Outputter<grid>( outname ? ofs : cout ) };
 
 	if( units ) {
 		vector<Shape<grid>> shapes = readShapes<grid>( cin );
@@ -94,6 +133,11 @@ static void gridMain( int )
 			simp.solve( numcells, cb );
 		}
 	}
+
+	if( outname ) {
+		ofs.flush();
+		ofs.close();
+	}
 }
 GRID_WRAP( gridMain );
 
@@ -107,6 +151,9 @@ int main( int argc, char **argv )
 		if( !strcmp( argv[idx], "-size" ) ) {
 			numcells = atoi( argv[idx+1] );
 			++idx;
+		} else if( !strcmp( argv[idx], "-o" ) ) {
+			++idx;
+			outname = argv[idx];
 		} else if( !strcmp( argv[idx], "-free" ) ) {
 			onlyfree = true;
 		} else if( !strcmp( argv[idx], "-units" ) ) {

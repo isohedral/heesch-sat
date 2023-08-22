@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include <cairo.h>
 #include <cairo-pdf.h>
@@ -142,6 +143,7 @@ GRID_WRAP( drawShapes );
 
 int main( int argc, char **argv )
 {
+	const char *inname = nullptr;
 	const char *outname = "out.pdf";
 
     for (int idx = 1; idx < argc; ++idx) {
@@ -181,9 +183,15 @@ int main( int argc, char **argv )
 				++i;
 			}
 		} else {
-			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
-				<< endl;
-			exit( 0 );
+			// Maybe an input filename?
+			if( filesystem::exists( argv[idx] ) ) {
+				inname = argv[idx];
+			} else {
+				cerr << "Argument \"" << argv[idx] 
+					<< "\" is neither a file name nor a valid parameter"
+					<< endl;
+				exit( 0 );
+			}
 		}
     }
 
@@ -196,13 +204,23 @@ int main( int argc, char **argv )
 	cr = cairo_create( pdf );
 
 	if( shapes_only ) {
-		FOR_EACH_IN_STREAM( cin, drawShapes );
+		if( inname ) {
+			ifstream ifs( inname );
+			FOR_EACH_IN_STREAM( ifs, drawShapes );
+		} else {
+			FOR_EACH_IN_STREAM( cin, drawShapes );
+		}
 
 		if( !((grid_x == 0) && (grid_y == 0)) ) {
 			cairo_surface_show_page( pdf );
 		}
 	} else {
-		FOR_EACH_IN_STREAM( cin, drawPatch );
+		if( inname ) {
+			ifstream ifs( inname );
+			FOR_EACH_IN_STREAM( ifs, drawPatch );
+		} else {
+			FOR_EACH_IN_STREAM( cin, drawPatch );
+		}
 	}
 
 	cairo_status_t status = cairo_status( cr );

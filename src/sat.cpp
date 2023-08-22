@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdint>
-#include <sstream>
+#include <fstream>
 
 #include "heesch.h"
 #include "grid.h"
@@ -15,7 +15,10 @@ static Orientations ori = ALL;
 static bool check_isohedral = false;
 static bool update_only = false;
 
-size_t tilings = 0;
+static const char *inname = nullptr;
+static const char *outname = nullptr;
+static ofstream ofs;
+static ostream *out;
 
 template<typename grid>
 static bool computeHeesch( const TileInfo<grid>& tile )
@@ -27,14 +30,14 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 		// inconclusive records.
 		if( !((tile.getRecordType() == TileInfo<grid>::UNKNOWN) 
 				|| (tile.getRecordType() == TileInfo<grid>::INCONCLUSIVE)) ) {
-			tile.write( cout );
+			tile.write( *out );
 			return true;
 		}
 	}
 
 	if( tile.getRecordType() == TileInfo<grid>::HOLE ) {
 		// Don't compute heesch number of something with a hole
-		tile.write( cout );
+		tile.write( *out );
 		return true;
 	}
 
@@ -52,7 +55,7 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 
 	while( true ) {
 		// std::cerr << "Now at level " << solver.getLevel() << std::endl;
-		// solver.debug( cout );
+		// solver.debug( *out );
 		Solution<coord_t> cur;
 
 		if( solver.getLevel() > max_level ) {
@@ -73,7 +76,7 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 			}
 		} else if( solver.tilesIsohedrally() ) {
 			work.setPeriodic( 1 );
-			work.write( cout );
+			work.write( *out );
 			return true;
 		} else {
 			break;
@@ -88,7 +91,7 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 	} else {
 		work.setNonTiler( hc, nullptr, hh, nullptr );
 	}
-	work.write( cout );
+	work.write( *out );
 	return true;
 }
 GRID_WRAP( computeHeesch );
@@ -101,9 +104,12 @@ int main( int argc, char **argv )
 	for( size_t idx = 1; idx < argc; ++idx ) {
 		if( !strcmp( argv[idx], "-show" ) ) {
 			show_solution = true;
+		} else if( !strcmp( argv[idx], "-o" ) ) {
+			++idx;
+			outname = argv[idx];
 		} else if( !strcmp( argv[idx], "-maxlevel" ) ) {
-		    max_level = atoi(argv[idx+1]);
 		    ++idx;
+		    max_level = atoi(argv[idx]);
 		} else if( !strcmp( argv[idx], "-translations" ) ) {
 			ori = TRANSLATIONS_ONLY;
 		} else if( !strcmp( argv[idx], "-rotations" ) ) {
@@ -113,12 +119,36 @@ int main( int argc, char **argv )
 		} else if( !strcmp( argv[idx], "-update" ) ) {
 			update_only = true;
 		} else {
-			cerr << "Unrecognized parameter \"" << argv[idx] << "\""
-				<< endl;
-			exit( 0 );
+			// Maybe an input filename?
+			if( filesystem::exists( argv[idx] ) ) {
+				inname = argv[idx];
+			} else {
+				cerr << "Argument \"" << argv[idx] 
+					<< "\" is neither a file name nor a valid parameter"
+					<< endl;
+				exit( 0 );
+			}
 		}
 	}
 
-	FOR_EACH_IN_STREAM( cin, computeHeesch );
+	if( outname ) {
+		ofs.open( outname );
+		out = &ofs;
+	} else {
+		out = &cout;
+	}
+
+	if( inname ) {
+		ifstream ifs( inname );
+		FOR_EACH_IN_STREAM( ifs, computeHeesch );
+	} else {
+		FOR_EACH_IN_STREAM( cin, computeHeesch );
+	}
+
+	if( ofs.is_open() ) {
+		ofs.flush();
+		ofs.close();
+	}
+
 	return 0;
 }
