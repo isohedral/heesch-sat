@@ -15,7 +15,8 @@ static size_t num_isohedral = 0;
 static size_t num_anisohedral = 0;
 static size_t num_aperiodic = 0;
 
-static map<size_t,size_t> heesch_nums;
+static map<size_t,size_t> hcs;
+static map<size_t,size_t> hhs;
 
 template<typename grid>
 static bool getShapeStats( const TileInfo<grid>& tile )
@@ -38,8 +39,12 @@ static bool getShapeStats( const TileInfo<grid>& tile )
 			++num_nontiler;
 			size_t hc = tile.getHeeschConnected();
 			size_t hh = tile.getHeeschHoles();
+			/*
 			size_t code = (hc*1000)+hh;
 			++heesch_nums[ code ];
+			*/
+			++hcs[hc];
+			++hhs[hh];
 			break;
 			}
 		case info_t::ISOHEDRAL:
@@ -63,11 +68,11 @@ static void printReport( ostream& os )
 	os << "  " << num_hole << " with holes" << endl;
 	os << "  " << num_inconclusive << " inconclusive" << endl;
 	os << "  " << num_nontiler << " non-tilers" << endl;
-	for( const auto& r : heesch_nums ) {
-		size_t hc = r.first / 1000;
-		size_t hh = r.first % 1000;
-		os << "    " << r.second << " with Hc = " << hc
-			<< ", Hh = " << hh << endl;
+	for( const auto& r : hcs ) {
+		os << "    " << r.second << " with Hc = " << r.first << endl;
+	}
+	for( const auto& r : hhs ) {
+		os << "    " << r.second << " with Hh = " << r.first << endl;
 	}
 	os << "  " << num_isohedral << " tile isohedrally" << endl;
 	os << "  " << num_anisohedral << " tile anisohedrally" << endl;

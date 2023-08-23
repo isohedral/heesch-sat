@@ -20,7 +20,7 @@ public:
     };
 
 public:
-	inline static GridType grid_type = HEX;
+	inline static GridType grid_type = IAMOND;
 
     inline static size_t num_tile_types = 2; 
     inline static size_t num_tile_shapes = 1;

@@ -1,8 +1,8 @@
 INCLUDES = -I/usr/local/include/cryptominisat5 -I/usr/local/include -I/opt/local/include -I/opt/local/include/cairo
 
 CXX = clang++
-OPT = -g
-# OPT = -O3  -DNDEBUG
+# OPT = -g
+OPT = -O3  -DNDEBUG
 CXXFLAGS = -std=c++17 -Wall -MMD $(INCLUDES) $(OPT) -stdlib=libc++ \
 	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk 
 LIBS = -L/usr/local/lib -lcryptominisat5
