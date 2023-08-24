@@ -190,6 +190,10 @@ public:
 			++j;
 		}
 	}
+	bool operator <( const Shape<grid>& other ) const
+	{
+		return compare( other ) < 0;
+	}
 
 	void getHaloAndBorder( Shape<grid>& halo, Shape<grid>& border ) const;
 	void getEdgeHalo( Shape<grid>& halo ) const;

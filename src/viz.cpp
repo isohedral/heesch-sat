@@ -30,6 +30,8 @@ static std::unordered_set<size_t> hhs;
 
 using namespace std;
 
+static ofstream extract;
+
 template<typename grid>
 static bool shouldDraw( const TileInfo<grid>& tile )
 {
@@ -68,6 +70,10 @@ static bool drawPatch( const TileInfo<grid>& tile )
 		return true;
 	}
 
+	if( extract.is_open() ) {
+		tile.write( extract );
+	}
+
     Visualizer<grid> viz { cr, tile };
 	viz.setColourByOrientation( ori_col );
 
@@ -79,7 +85,9 @@ static bool drawPatch( const TileInfo<grid>& tile )
 	cairo_translate( cr, -250.0, -250.0 );
 
 	if( tile.getRecordType() == TileInfo<grid>::NONTILER ) {
-		viz.drawPatch();
+		viz.drawNontiler();
+	} else if( tile.getRecordType() == TileInfo<grid>::INCONCLUSIVE ) {
+		viz.drawInconclusive();
 	} else {
 		viz.drawShape( true );
 	}
@@ -154,6 +162,10 @@ int main( int argc, char **argv )
 		} else if( !strcmp( argv[idx], "-o" ) ) {
 			++idx;
 			outname = argv[idx];
+		} else if( !strcmp( argv[idx], "-e" ) ) {
+			// Extract selected tile records to a separate file
+			++idx;
+			extract.open( argv[idx] );
 		} else if( !strcmp( argv[idx], "-unknown" ) ) {
 			draw_unknown = true;
 		} else if( !strcmp( argv[idx], "-holes" ) ) {
@@ -234,6 +246,11 @@ int main( int argc, char **argv )
 		cerr << cairo_status_to_string( status ) << endl;
 	}
 	cairo_surface_destroy( pdf );
+
+	if( extract.is_open() ) {
+		extract.flush();
+		extract.close();
+	}
 
 	return 0;
 }

@@ -47,7 +47,8 @@ public:
 		colour_by_orientation_ = cbo;
 	}
 
-	void drawPatch( bool just_hc = false ) const;
+	void drawNontiler( bool just_hc = false ) const;
+	void drawInconclusive() const;
 	void drawShape( bool dashes = false ) const;
 	void drawShapeCells( bool dashes = false ) const;
 
@@ -82,7 +83,7 @@ private:
 		y += h;
 	}
 
-	void drawPatch( const patch_t& patch ) const;
+	void drawPatch( const patch_t& patch, bool cbyo = false ) const;
 	void drawPolygon( const std::vector<point<double>>& pts,
 		double r, double g, double b, bool stroke = true ) const;
 
@@ -153,32 +154,40 @@ void Visualizer<grid>::initGridOutline()
 }
 
 template<typename grid>
-void Visualizer<grid>::drawPatch( bool just_hc ) const
+void Visualizer<grid>::drawInconclusive() const
+{
+	if( tile_.numPatches() > 0 ) {
+		drawPatch( tile_.getPatch( 0 ), true );
+	} else {
+		drawShape( false );
+	}
+}
+
+template<typename grid>
+void Visualizer<grid>::drawNontiler( bool just_hc ) const
 {
 	size_t hc = tile_.getHeeschConnected();
 	size_t hh = tile_.getHeeschHoles();
 
-/*
-	std::cerr << "drawPatch: " 
-		<< hc << "[" << tile_.getHeeschConnectedPatch().size() << "] "
-		<< hh << "[" << tile_.getHeeschHolesPatch().size() << "]" << std::endl;
-	*/
+	if( tile_.numPatches() == 0 ) {
+		drawShape( false );
+		return;
+	}
 
 	if( (hc != hh) && !just_hc ) {
 		cairo_save( cr_ );
 		cairo_translate( cr_, 125.0, 0.0 );
 		cairo_scale( cr_, 0.5, 0.5 );
-		drawPatch( tile_.getHeeschConnectedPatch() );
+		drawPatch( tile_.getPatch( 0 ), colour_by_orientation_ );
 		cairo_restore( cr_ );
 
 		cairo_save( cr_ );
 		cairo_translate( cr_, 125.0, 250.0 );
 		cairo_scale( cr_, 0.5, 0.5 );
-		drawPatch( tile_.getHeeschHolesPatch() );
+		drawPatch( tile_.getPatch( 1 ), colour_by_orientation_ );
 		cairo_restore( cr_ );
 	} else {
-		// Just Hc
-		drawPatch( tile_.getHeeschConnectedPatch() );
+		drawPatch( tile_.getPatch( 0 ), colour_by_orientation_ );
 	}
 }	
 
@@ -258,7 +267,7 @@ void computeBounds( const point<coord>& pt,
 }
 
 template<typename grid>
-void Visualizer<grid>::drawPatch( const patch_t& patch ) const
+void Visualizer<grid>::drawPatch( const patch_t& patch, bool cbyo ) const
 {
 	std::vector<std::vector<point<double>>> outlines {};
 
@@ -286,7 +295,7 @@ void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 	bool ref;
 	std::unordered_map<int,colour> ori_cols;
 
-	if( colour_by_orientation_ ) {
+	if( cbyo ) {
 		size_t didx = 0;
 		size_t ridx = 0;
 
@@ -307,7 +316,7 @@ void Visualizer<grid>::drawPatch( const patch_t& patch ) const
 	for( size_t idx = 0; idx < outlines.size(); ++idx ) {
 		const std::vector<point<double>>& pts = outlines[idx];
 
-		if( colour_by_orientation_ ) {
+		if( cbyo ) {
 			encodeTransform( patch[idx].second, code, ref );
 			const auto& col = ori_cols[code];
 

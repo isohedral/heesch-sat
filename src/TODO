@@ -2,3 +2,5 @@ Better generation of fixed compound polyforms, to make free filtering easier.
 
 Incorporate standard compounds for polyabolos, polydrafters, polyhalfcairos,
 etc.
+
+Inconclusive shapes should be allowed to have patches.

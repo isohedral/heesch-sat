@@ -53,10 +53,11 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 	solver.setCheckIsohedral( check_isohedral );
 	solver.increaseLevel();
 
+	Solution<coord_t> cur;
+
 	while( true ) {
 		// std::cerr << "Now at level " << solver.getLevel() << std::endl;
 		// solver.debug( *out );
-		Solution<coord_t> cur;
 
 		if( solver.getLevel() > max_level ) {
 			break;
@@ -85,7 +86,11 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 
 	if( solver.getLevel() > max_level ) {
 		// Exceeded maximum level, label it inconclusive
-		work.setRecordType( TileInfo<grid>::INCONCLUSIVE );
+		if( show_solution ) {
+			work.setInconclusive( &cur );
+		} else {
+			work.setInconclusive();
+		}
 	} else if( show_solution ) {
 		work.setNonTiler( hc, &sc, hh, &sh );
 	} else {

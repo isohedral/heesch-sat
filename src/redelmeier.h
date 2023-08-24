@@ -221,7 +221,8 @@ class CanonSortUniq
     using xform_t = typename grid::xform_t;
     using shape_t = Shape<grid>;
 
-	std::vector<shape_t> all;
+	// std::vector<shape_t> all;
+	std::set<shape_t> all;
 
 public:
 	explicit CanonSortUniq()
@@ -235,9 +236,10 @@ public:
 			// We could do a "are you the canonical shape" check, if we
 			// were certain that the enumeration algorithm actually 
 			// generates all orientations of a polyform.
-			all.push_back( canonicalize( shape ) );
+			all.insert( canonicalize( shape ) );
 		} );
 		
+		/*
 		std::sort( all.begin(), all.end(), []( const auto& a, const auto& b ) {
 			return a.compare( b ) < 0;
 		} );
@@ -253,6 +255,13 @@ public:
 		}
 
 		return count;
+		*/
+
+		for( const auto& s : all ) {
+			out( s );
+		}
+
+		return all.size();
 	}
 
 private:

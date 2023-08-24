@@ -18,137 +18,6 @@ class GenericTileInfo
 	}
 };
 
-template<typename grid>
-class TileInfo
-	: GenericTileInfo
-{
-	using coord_t = typename grid::coord_t;
-	using xform_t = typename grid::xform_t;
-	using patch_t = Solution<coord_t>;
-
-public:
-	enum RecordType
-	{
-		UNKNOWN,
-		HOLE,
-		INCONCLUSIVE,
-
-		NONTILER,
-		ISOHEDRAL,
-		ANISOHEDRAL, // Not supported
-		APERIODIC 	 // Not supported
-	};
-
-public:
-	TileInfo()
-		: record_type_ { UNKNOWN }
-		, shape_ {}
-		, hc_ { 0 }
-		, hh_ { 0 }
-		, hc_patch_ {}
-		, hh_patch_ {}
-		, transitivity_ { 0 }
-	{}
-
-	TileInfo( std::istream& is );
-
-	virtual GridType getGridType() const 
-	{ 
-		return grid::grid_type; 
-	}
-
-	const Shape<grid>& getShape() const
-	{
-		return shape_;
-	}
-
-	const size_t getRecordType() const
-	{
-		return record_type_;
-	}
-
-	void setShape( const Shape<grid>& shape )
-	{
-		shape_ = shape;
-	}
-
-	void setRecordType( RecordType record_type )
-	{
-		record_type_ = record_type;
-	}
-
-	size_t getHeeschConnected() const 
-	{
-		return hc_;
-	}
-
-	const patch_t& getHeeschConnectedPatch() const 
-	{
-		return hc_patch_;
-	}
-
-	size_t getHeeschHoles() const
-	{
-		return hh_;
-	}
-
-	const patch_t& getHeeschHolesPatch() const 
-	{
-		return hh_patch_;
-	}
-
-	size_t getTransitivity() const
-	{
-		return transitivity_;
-	}
-
-	void setNonTiler( 
-		size_t hc, const patch_t* hc_patch, size_t hh, const patch_t* hh_patch )
-	{
-		record_type_ = NONTILER;
-
-		// Patches can be implicit if Heesch number is zero.
-
-		hc_ = hc;
-		if( (hc > 0) && hc_patch ) {
-			hc_patch_ = *hc_patch;
-		} else {
-			hc_patch_.clear();
-		}
-		hh_ = hh;
-		if( (hh_ > hc_) && hh_patch ) {
-			hh_patch_ = *hh_patch;
-		} else {
-			hh_patch_.clear();
-		}
-	}	
-
-	void setPeriodic( size_t transitivity = 1 ) 
-	{
-		hc_patch_.clear();
-		hh_patch_.clear();
-		transitivity_ = transitivity;
-
-		record_type_ = (transitivity > 1) ? ANISOHEDRAL : ISOHEDRAL;
-	}
-
-	void write( std::ostream& os ) const;
-
-private:
-	RecordType record_type_;
-	Shape<grid> shape_;
-
-	size_t hc_;
-	size_t hh_;
-
-	// For non-tiles, possible patches exhibiting the shape's Heesch number
-	patch_t hc_patch_;
-	patch_t hh_patch_;
-	
-	// For periodic, number of transitivity classes
-	size_t transitivity_;
-};
-
 template<typename num = int>
 struct IntReader
 {
@@ -187,6 +56,156 @@ public:
 	}
 
 	char *buf_;
+};
+
+template<typename grid>
+class TileInfo
+	: GenericTileInfo
+{
+	using coord_t = typename grid::coord_t;
+	using xform_t = typename grid::xform_t;
+	using patch_t = Solution<coord_t>;
+
+public:
+	enum RecordType
+	{
+		UNKNOWN,
+		HOLE,
+		INCONCLUSIVE,
+
+		NONTILER,
+		ISOHEDRAL,
+		ANISOHEDRAL, // Not supported
+		APERIODIC 	 // Not supported
+	};
+
+public:
+	TileInfo()
+		: record_type_ { UNKNOWN }
+		, shape_ {}
+		, hc_ { 0 }
+		, hh_ { 0 }
+		, patches_ {}
+		, transitivity_ { 0 }
+	{}
+
+	TileInfo( std::istream& is );
+
+	virtual GridType getGridType() const 
+	{ 
+		return grid::grid_type; 
+	}
+
+	const Shape<grid>& getShape() const
+	{
+		return shape_;
+	}
+
+	const size_t getRecordType() const
+	{
+		return record_type_;
+	}
+
+	void setShape( const Shape<grid>& shape )
+	{
+		shape_ = shape;
+	}
+
+	void setRecordType( RecordType record_type )
+	{
+		record_type_ = record_type;
+	}
+
+	size_t numPatches() const
+	{
+		return patches_.size();
+	}
+
+	const patch_t& getPatch( size_t idx ) const
+	{
+		return patches_[idx];
+	}
+
+	size_t getHeeschConnected() const
+	{
+		return hc_;
+	}
+
+	size_t getHeeschHoles() const
+	{
+		return hh_;
+	}
+
+	size_t getTransitivity() const
+	{
+		return transitivity_;
+	}
+
+	void setInconclusive( const patch_t* patch = nullptr )
+	{
+		record_type_ = INCONCLUSIVE;
+		patches_.clear();
+
+		if( patch ) {
+			patches_.push_back( *patch );
+		}
+	}
+
+	void setNonTiler( 
+		size_t hc, const patch_t* hc_patch, size_t hh, const patch_t* hh_patch )
+	{
+		record_type_ = NONTILER;
+		patches_.clear();
+
+		// Patches can be implicit if Heesch number is zero.
+
+		hc_ = hc;
+		if( (hc > 0) && hc_patch ) {
+			patches_.push_back( *hc_patch );
+		}
+		hh_ = hh;
+		if( (hh_ > hc_) && hh_patch ) {
+			patches_.push_back( *hh_patch );
+		}
+	}	
+
+	void setPeriodic( size_t transitivity = 1 ) 
+	{
+		patches_.clear();
+		transitivity_ = transitivity;
+
+		record_type_ = (transitivity > 1) ? ANISOHEDRAL : ISOHEDRAL;
+	}
+
+	void write( std::ostream& os ) const;
+
+private:
+	patch_t readPatch( std::istream& is, char *buf )
+	{
+		patch_t patch;
+		is.getline( buf, 1000 );
+		size_t sz = atoi( buf );
+		for( size_t idx = 0; idx < sz; ++idx ) {
+			is.getline( buf, 1000 );
+			IntReader<coord_t> i { buf };
+			patch.emplace_back( *i++, 
+				xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
+		}
+
+		// Move semantics.
+		return patch;
+	}
+
+	RecordType record_type_;
+	Shape<grid> shape_;
+
+	size_t hc_;
+	size_t hh_;
+
+	std::vector<patch_t> patches_;
+	
+	// For periodic, number of transitivity classes
+	size_t transitivity_;
 };
 
 template<typename grid>
@@ -237,52 +256,20 @@ TileInfo<grid>::TileInfo( std::istream& is )
 			break;
 	}
 
-	if( record_type_ == NONTILER ) {
-		bool patch = false;
+	auto i = IntReader<size_t> { buf + 1 };
 
-		auto i = IntReader<size_t> { buf + 1 };
+	if( record_type_ == NONTILER ) {
 		hc_ = *i++;
 		hh_ = *i++;
-
-		if( strchr( buf, 'P' ) ) {
-			patch = true;
-		}
-
-		if( patch ) {
-			if( hc_ > 0 ) {
-				is.getline( buf, 1000 );
-				size_t sz = atoi( buf );
-				// std::cerr << "Reading Hc patch of size " << sz << std::endl;
-				for( size_t idx = 0; idx < sz; ++idx ) {
-					is.getline( buf, 1000 );
-					IntReader<coord_t> i { buf };
-					hc_patch_.emplace_back( *i++, 
-						xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
-				}
-			}
-
-			if( hh_ != hc_ ) {
-				is.getline( buf, 1000 );
-				size_t sz = atoi( buf );
-				// std::cerr << "Reading Hh patch of size " << sz << std::endl;
-				for( size_t idx = 0; idx < sz; ++idx ) {
-					is.getline( buf, 1000 );
-					IntReader<coord_t> i { buf };
-					hh_patch_.emplace_back( *i++,
-						xform_t { *i++, *i++, *i++, *i++, *i++, *i++ } );
-				}
-			}
-		}
-
-		if( hc_patch_.size() == 0 ) {
-			hc_patch_.emplace_back( 0, xform_t {} );
-		}
-		if( hh_patch_.size() == 0 ) {
-			hh_patch_.emplace_back( 0, xform_t {} );
-		}
 	} else if( record_type_ == ISOHEDRAL || record_type_ == ANISOHEDRAL ) {
 		auto i = IntReader<size_t> { buf + 1 };
-		transitivity_ = *i;
+		transitivity_ = *i++;
+	}
+
+	size_t num_patches = *i;
+
+	for( size_t idx = 0; idx < num_patches; ++idx ) {
+		patches_.push_back( std::move( readPatch( is, buf ) ) );
 	}
 }
 
@@ -306,45 +293,34 @@ void TileInfo<grid>::write( std::ostream& os ) const
 
 	switch( record_type_ ) {
 		case UNKNOWN: 
-			os << '?' << std::endl;
-			return;
+			os << '?';
+			break;
 		case HOLE:
-			os << 'O' << std::endl;
-			return;
+			os << 'O';
+			break;
 		case INCONCLUSIVE:
-			os << '!' << std::endl;
-			return;
+			os << '!';
+			break;
 		case NONTILER:
 			os << "~ " << hc_ << ' ' << hh_;
-			if( (hc_patch_.size() > 0) || (hh_patch_.size() > 0) ) {
-				os << " P";
-			}
-			os << std::endl;
 			break;
 		case ISOHEDRAL:
-			os << "I " << transitivity_ << std::endl;
+			os << "I " << transitivity_;
 			break;
 		case ANISOHEDRAL:
-			os << "# " << transitivity_ << std::endl;
+			os << "# " << transitivity_;
 			break;
 		case APERIODIC:
-			os << "$" << std::endl;
+			os << "$";
 			break;
 	}
 
-	if( record_type_ == NONTILER ) {
-		if( hc_patch_.size() > 0 ) {
-			os << hc_patch_.size() << std::endl;
-			for( const auto& p : hc_patch_ ) {
-				os << p.first << ' ' << p.second << std::endl;
-			}
-		}
+	os << ' ' << patches_.size() << std::endl;
 
-		if( hh_patch_.size() > 0 ) { 
-			os << hh_patch_.size() << std::endl;
-			for( const auto& p : hh_patch_ ) {
-				os << p.first << ' ' << p.second << std::endl;
-			}
+	for( const auto& patch : patches_ ) {
+		os << patch.size() << std::endl;
+		for( const auto& p : patch ) {
+			os << p.first << ' ' << p.second << std::endl;
 		}
 	}
 }
