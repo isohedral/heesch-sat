@@ -18,6 +18,8 @@ static cairo_t *cr;
 static size_t grid_y = 0;
 static size_t grid_x = 0;
 
+static bool nodraw = false;
+
 static bool draw_all = true;
 static bool draw_unknown = false;
 static bool draw_holes = false;
@@ -72,6 +74,10 @@ static bool drawPatch( const TileInfo<grid>& tile )
 
 	if( extract.is_open() ) {
 		tile.write( extract );
+	}
+
+	if( nodraw ) {
+		return true;
 	}
 
     Visualizer<grid> viz { cr, tile };
@@ -162,6 +168,8 @@ int main( int argc, char **argv )
 		} else if( !strcmp( argv[idx], "-o" ) ) {
 			++idx;
 			outname = argv[idx];
+		} else if( !strcmp( argv[idx], "-nodraw" ) ) {
+			nodraw = true;
 		} else if( !strcmp( argv[idx], "-e" ) ) {
 			// Extract selected tile records to a separate file
 			++idx;
@@ -212,8 +220,10 @@ int main( int argc, char **argv )
 		draw_all = false;
 	}
 
-	pdf = cairo_pdf_surface_create( outname, 8.5*72, 11*72 );
-	cr = cairo_create( pdf );
+	if( !nodraw ) {
+		pdf = cairo_pdf_surface_create( outname, 8.5*72, 11*72 );
+		cr = cairo_create( pdf );
+	}
 
 	if( shapes_only ) {
 		if( inname ) {
@@ -223,7 +233,7 @@ int main( int argc, char **argv )
 			FOR_EACH_IN_STREAM( cin, drawShapes );
 		}
 
-		if( !((grid_x == 0) && (grid_y == 0)) ) {
+		if( !((grid_x == 0) && (grid_y == 0)) && !nodraw ) {
 			cairo_surface_show_page( pdf );
 		}
 	} else {
@@ -235,17 +245,19 @@ int main( int argc, char **argv )
 		}
 	}
 
-	cairo_status_t status = cairo_status( cr );
-	if( status ) {
-		cerr << cairo_status_to_string( status ) << endl;
+	if( !nodraw ) {
+		cairo_status_t status = cairo_status( cr );
+		if( status ) {
+			cerr << cairo_status_to_string( status ) << endl;
+		}
+		cairo_destroy( cr );
+		cairo_surface_finish( pdf );
+		status = cairo_surface_status( pdf );
+		if( status ) {
+			cerr << cairo_status_to_string( status ) << endl;
+		}
+		cairo_surface_destroy( pdf );
 	}
-	cairo_destroy( cr );
-	cairo_surface_finish( pdf );
-	status = cairo_surface_status( pdf );
-	if( status ) {
-		cerr << cairo_status_to_string( status ) << endl;
-	}
-	cairo_surface_destroy( pdf );
 
 	if( extract.is_open() ) {
 		extract.flush();
