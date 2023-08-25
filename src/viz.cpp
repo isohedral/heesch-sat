@@ -68,6 +68,11 @@ static bool shouldDraw( const TileInfo<grid>& tile )
 template<typename grid>
 static bool drawPatch( const TileInfo<grid>& tile )
 {
+/*
+	std::cerr << "Working on ";
+	tile.getShape().debug();
+	*/
+
 	if( !shouldDraw( tile ) ) {
 		return true;
 	}

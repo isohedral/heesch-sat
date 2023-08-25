@@ -175,16 +175,21 @@ void Visualizer<grid>::drawNontiler( bool just_hc ) const
 	}
 
 	if( (hc != hh) && !just_hc ) {
+		size_t patch_idx = 0;
 		cairo_save( cr_ );
 		cairo_translate( cr_, 125.0, 0.0 );
 		cairo_scale( cr_, 0.5, 0.5 );
-		drawPatch( tile_.getPatch( 0 ), colour_by_orientation_ );
+		if( hc > 0 ) {
+			drawPatch( tile_.getPatch( patch_idx++ ), colour_by_orientation_ );
+		}  else {
+			drawShape( false );
+		}
 		cairo_restore( cr_ );
 
 		cairo_save( cr_ );
 		cairo_translate( cr_, 125.0, 250.0 );
 		cairo_scale( cr_, 0.5, 0.5 );
-		drawPatch( tile_.getPatch( 1 ), colour_by_orientation_ );
+		drawPatch( tile_.getPatch( patch_idx ), colour_by_orientation_ );
 		cairo_restore( cr_ );
 	} else {
 		drawPatch( tile_.getPatch( 0 ), colour_by_orientation_ );
