@@ -262,7 +262,6 @@ TileInfo<grid>::TileInfo( std::istream& is )
 		hc_ = *i++;
 		hh_ = *i++;
 	} else if( record_type_ == ISOHEDRAL || record_type_ == ANISOHEDRAL ) {
-		auto i = IntReader<size_t> { buf + 1 };
 		transitivity_ = *i++;
 	}
 

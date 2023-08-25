@@ -7,7 +7,7 @@ CXXFLAGS = -std=c++17 -Wall -MMD $(INCLUDES) $(OPT) -stdlib=libc++ \
 	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk 
 LIBS = -L/usr/local/lib -lcryptominisat5
 
-OBJECTS = sat.o viz.o surrounds.o gen.o
+OBJECTS = sat.o viz.o surrounds.o gen.o report.o
 DEPENDS = ${OBJECTS:.o=.d}
 
 all: sat viz gen surrounds report
