@@ -336,6 +336,7 @@ bool Shape<grid>::simplyConnected() const
 			visited.insert( p );
 
 			for( auto pn : edge_neighbours<grid> { p } ) {
+				// std::cerr << pn << " is an edge neighbour of " << p << std::endl;
 				if( halo_set.find( pn ) != halo_set.end() ) {
 					// Found an adjacent halo cell.  Plan to visit it.
 

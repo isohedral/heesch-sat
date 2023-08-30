@@ -78,7 +78,7 @@ public:
 	static std::vector<point_t> getCellVertices( const point_t& p )
     {
 		size_t ori = getTileOrientation( p );
-		point_t cen = p - orientation_offsets[ ori ];
+		point_t cen = p - getOrigin( p );
 		std::vector<point_t> ans( 4 );
 		for( size_t idx = 0; idx < 4; ++idx ) {
 			ans[idx] = cen + tile_vertices[ori][idx];
@@ -89,16 +89,14 @@ public:
 
     static point<double> vertexToGrid( const point_t& pt )
 	{
-        return {pt.x_ / 2.0, pt.y_ / 2.0};
+        // return {pt.x_ / 2.0, pt.y_ / 2.0};
+        return { (double)pt.x_, (double)pt.y_ };
     }
 
     static point<double> gridToPage( const point<double>& pt )
 	{
         const double sqrt3 = 1.73205080756887729353;
-        xform<double> T{
-                1.0, 1.0 / 2,0,
-                0, sqrt3 / 2, 0};
-        return T * pt;
+		return { pt.x_ + 0.5*pt.y_, 0.5 * sqrt3 * pt.y_ };
     }
 
 	static const point_t origins[6];
@@ -110,7 +108,6 @@ public:
 	static const point<int8_t> all_neighbours[6][9];
 
 	static const size_t tile_orientations[36];
-	static const point<int8_t> orientation_offsets[6];
 	static const point<int8_t> tile_vertices[6][4];
 };
 
@@ -152,13 +149,6 @@ const size_t KiteGrid<coord>::tile_orientations[36] = {
 	7, 2, 1, 7, 4, 5,
 	7, 7, 7, 3, 7, 0,
 	4, 5, 7, 2, 1, 7
-};
-
-// For each orientation (CCW starting from East), give an offset
-// vector from the center of the cluster to the tile with that orientation.
-template<typename coord>
-const point<int8_t> KiteGrid<coord>::orientation_offsets[6] = {
-	{1,0}, {0,1}, {-1,1}, {-1,0}, {0,-1}, {1,-1}
 };
 
 template<typename coord>

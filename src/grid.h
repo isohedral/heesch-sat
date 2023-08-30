@@ -13,6 +13,7 @@
 #include "draftergrid.h"
 #include "kitegrid.h"
 #include "halfcairogrid.h"
+#include "bevelhexgrid.h"
 
 // Pull a grid type out of command line arguments, and splice that
 // argument out.
@@ -28,6 +29,7 @@ inline GridType getGridType( int& argc, char **argv )
 		{ "-drafter", DRAFTER },
 		{ "-abolo", ABOLO },
 		{ "-halfcairo", HALFCAIRO },
+		{ "-bevelhex", BEVELHEX },
 	};
 
 	size_t idx = 1; 
@@ -71,6 +73,7 @@ auto dispatchToGridType( GridType gt, Args ...args )
 		case OCTASQUARE: return Func<OctaSquareGrid<coord>>()( args... ); 
 		case TRIHEX: return Func<TriHexGrid<coord>>()( args... ); 
 		case HALFCAIRO: return Func<HalfCairoGrid<coord>>()( args... ); 
+		case BEVELHEX: return Func<BevelHexGrid<coord>>()( args... ); 
 		case OMINO: default: return Func<OminoGrid<coord>>()( args... ); 
 	} 
 }

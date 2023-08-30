@@ -72,8 +72,6 @@ public:
 	static const std::vector<point<int8_t>> squareVertices;
     static const std::vector<point<int8_t>> octagonVertices;
 
-    static const std::vector<point<int8_t>> boundaryWordDirections;
-
     static std::vector<point_t> getCellVertices( const point_t& p )
     {
         const auto &vertexVecs = (getTileType(p) == SQUARE ? squareVertices : octagonVertices);
@@ -142,7 +140,3 @@ const std::vector<point<int8_t>> OctaSquareGrid<coord>::squareVertices = {
 template<typename coord>
 const std::vector<point<int8_t>> OctaSquareGrid<coord>::octagonVertices = {
         {0, -1}, {-1, 0}, {-1, 1}, {0, 2}, {1, 2}, {2, 1}, {2, 0}, {1, -1}};
-
-template<typename coord>
-const std::vector<point<int8_t>> OctaSquareGrid<coord>::boundaryWordDirections = {
-        {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};

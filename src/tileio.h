@@ -367,6 +367,7 @@ void processInputStream( std::istream& is, GridType default_gt = OMINO )
 			case DRAFTER: mo = processOne<DrafterGrid,Func>( is ); break;
 			case KITE: mo = processOne<KiteGrid,Func>( is ); break;
 			case HALFCAIRO: mo = processOne<HalfCairoGrid,Func>( is ); break;
+			case BEVELHEX: mo = processOne<BevelHexGrid,Func>( is ); break;
 			default:
 				break;
 		}

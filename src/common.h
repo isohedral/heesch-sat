@@ -26,7 +26,8 @@ enum GridType {
 	ABOLO = 5,
 	DRAFTER = 6, 
 	KITE = 7, 
-	HALFCAIRO = 8
+	HALFCAIRO = 8,
+	BEVELHEX = 9
 };
 
 // Get a grid type from a single-character abbreviation.  Don't use 
@@ -43,6 +44,7 @@ inline GridType getGridType( int ch )
 		case 'D': return DRAFTER;
 		case 'K': return KITE;
 		case 'h': return HALFCAIRO;
+		case 'B': return BEVELHEX;
 		default: return NOGRID;
 	};
 }
@@ -59,6 +61,7 @@ inline char gridTypeAbbreviation( GridType gt )
 		case DRAFTER: return 'D';
 		case KITE: return 'K';
 		case HALFCAIRO: return 'h';
+		case BEVELHEX: return 'B';
 		default: return '?';
 	}
 }
