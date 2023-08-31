@@ -21,6 +21,10 @@ public:
 		TRIANGLE_LR = 3,
     };
 
+	enum TileShape {
+		TRIANGLE_SHAPE = 0
+	};
+
 public:
 	inline static GridType grid_type = ABOLO;
 
@@ -42,6 +46,10 @@ public:
 				return TRIANGLE_LL;
 			}
 		}
+	}
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		return TRIANGLE_SHAPE;
 	}
 
     inline static point_t getOrigin( const point_t& p ) 

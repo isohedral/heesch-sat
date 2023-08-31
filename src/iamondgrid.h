@@ -19,6 +19,10 @@ public:
 		TRIANGLE_DOWN = 1,
     };
 
+    enum TileShape {
+		TRIANGLE_SHAPE = 0,
+    };
+
 public:
 	inline static GridType grid_type = IAMOND;
 
@@ -28,6 +32,10 @@ public:
 	inline static TileType getTileType( const point_t& p )
 	{
 		return ((p.x_ % 3) == 0) ? TRIANGLE_UP : TRIANGLE_DOWN;
+	}
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		return TRIANGLE_SHAPE;
 	}
 
 	inline static point_t getOrigin( const point_t& p )

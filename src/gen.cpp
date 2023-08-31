@@ -10,7 +10,8 @@ using namespace std;
 static bool onlyfree = false;
 static bool units = false;
 static bool holes = true;
-static size_t numcells = 1;
+static size_t numcells = 0;
+static vector<size_t> sizes;
 
 const char *outname = nullptr;
 
@@ -54,26 +55,6 @@ static vector<Shape<grid>> readShapes( istream& is )
 	return ret;
 }
 
-/*
-template<typename grid>
-void output( const Shape<grid>& shp )
-{
-	static TileInfo<grid> info;
-	info.setShape( shp );
-	info.setRecordType( TileInfo<grid>::UNKNOWN );
-
-	if( !shp.simplyConnected() ) {
-		// Shape has a hole.  Report if argument is set, otherwise skip
-		if( holes ) {
-			info.setRecordType( TileInfo<grid>::HOLE );
-			info.write( cout );
-		}
-	} else {
-		info.write( cout );
-	}
-}
-*/
-
 template<typename grid>
 class Outputter
 {
@@ -115,6 +96,11 @@ static void gridMain( int )
 	polyform_cb<grid> cb { Outputter<grid>( outname ? ofs : cout ) };
 
 	if( units ) {
+		if( numcells == 0 ) {
+			cerr << "Error: Must provide size for units generation" << endl;
+			exit( 0 );
+		}
+
 		vector<Shape<grid>> shapes = readShapes<grid>( cin );
 		RedelmeierCompound<grid> comp { shapes };
 
@@ -125,12 +111,27 @@ static void gridMain( int )
 			comp.solve( numcells, cb );
 		}
 	} else {
-		RedelmeierSimple<grid> simp;
-		if( onlyfree ) {
-			FreeFilter<grid> filt {};
-			filt.solve( numcells, simp, cb );
+		if( numcells == 0 ) {
+			if( sizes.size() != grid::num_tile_shapes ) {
+				cerr << "Error: Incorrect number of sizes" << endl;
+				exit( 0 );
+			}
+
+			RedelmeierSimple<grid> simp;
+			if( onlyfree ) {
+				FreeFilter<grid> filt {};
+				filt.solve( sizes, simp, cb );
+			} else {
+				simp.solve( sizes, cb );
+			}
 		} else {
-			simp.solve( numcells, cb );
+			RedelmeierSimple<grid> simp;
+			if( onlyfree ) {
+				FreeFilter<grid> filt {};
+				filt.solve( numcells, simp, cb );
+			} else {
+				simp.solve( numcells, cb );
+			}
 		}
 	}
 
@@ -151,6 +152,14 @@ int main( int argc, char **argv )
 		if( !strcmp( argv[idx], "-size" ) ) {
 			numcells = atoi( argv[idx+1] );
 			++idx;
+		} else if( !strcmp( argv[idx], "-sizes" ) ) {
+			++idx;
+			IntReader i { argv[idx] };
+			IntReader iend { argv[idx] + strlen( argv[idx] ) };
+			while( i != iend ) {
+				sizes.push_back( *i );
+				++i;
+			}
 		} else if( !strcmp( argv[idx], "-o" ) ) {
 			++idx;
 			outname = argv[idx];

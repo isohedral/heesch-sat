@@ -19,6 +19,10 @@ public:
 		SQUARE = 0
     };
 
+    enum TileShape {
+		SQUARE_SHAPE = 0
+	};
+
 public:
 	inline static GridType grid_type = OMINO;
 
@@ -30,6 +34,11 @@ public:
 	inline static TileType getTileType( const point_t& p )
 	{
 		return SQUARE;
+	}
+	// What shape tile is at this position?
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		return SQUARE_SHAPE;
 	}
 	// Get the origin point 
 	inline static point_t getOrigin( const point_t& p )

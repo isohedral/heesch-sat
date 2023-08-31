@@ -25,6 +25,13 @@ public:
 		DODECAGON = 5
     };
 
+    enum TileShape {
+		INVALID_SHAPE = -1,
+        SQUARE_SHAPE = 0,
+        HEXAGON_SHAPE = 1,
+		DODECAGON_SHAPE = 2
+    };
+
 public:
 	inline static GridType grid_type = BEVELHEX;
 
@@ -51,6 +58,22 @@ public:
 		}
 		return ret;
     }
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		switch( getTileType( p ) ) {
+			case SQUARE_E: 
+			case SQUARE_NE:
+			case SQUARE_NW:
+				return SQUARE_SHAPE;
+			case HEXAGON_A:
+			case HEXAGON_Y:
+				return HEXAGON_SHAPE;
+			case DODECAGON:
+				return DODECAGON_SHAPE;
+			default:
+				return INVALID_SHAPE;
+		}
+	}
 
     inline static point_t getOrigin( const point_t& p ) 
     {

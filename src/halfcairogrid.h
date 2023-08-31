@@ -27,11 +27,17 @@ public:
 		KITE_SE = 7
 	};
 
+	enum TileShape {
+		INVALID_SHAPE = -1,
+		KITE_SHAPE = 0,
+		TRIANGLE_SHAPE = 1
+	};
+
 public:
 	inline static GridType grid_type = HALFCAIRO;
 
-    inline static size_t numTileTypes = 8;
-    inline static size_t numTileShapes = 2;
+    inline static size_t num_tile_types = 8;
+    inline static size_t num_tile_shapes = 2;
 	inline static TileType getTileType( const point_t& p )
 	{
 		int xm = ((p.x_%3) + 3) % 3;
@@ -41,6 +47,23 @@ public:
 			KITE_NE, KITE_NW, TRIANGLE_S, KITE_SE, KITE_SW };
 
 		return types[ (ym*3) + xm ];
+	}
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		switch( getTileType( p ) ) {
+			case TRIANGLE_E:
+			case TRIANGLE_N:
+			case TRIANGLE_W:
+			case TRIANGLE_S:
+				return TRIANGLE_SHAPE;
+			case KITE_NE:
+			case KITE_NW:
+			case KITE_SW:
+			case KITE_SE:
+				return KITE_SHAPE;
+			default:
+				return INVALID_SHAPE;
+		}
 	}
 
     inline static point_t getOrigin( const point_t& p ) 

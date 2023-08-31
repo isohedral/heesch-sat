@@ -31,6 +31,10 @@ public:
 		TRIANGLE_11 = 11
     };
 
+	enum TileShape {
+		TRIANGLE_SHAPE = 0
+	};
+
 public:
 	inline static GridType grid_type = DRAFTER;
 
@@ -54,19 +58,11 @@ public:
 		};
 
 		return types[ my*7 + mx ];
-/*
-		// FIXME turn this into a table
-		point_t mp { mx, my };
-
-		for( size_t idx = 0; idx < num_tile_types; ++idx ) {
-			if( origins[idx] == mp ) {
-				return (TileType) idx;
-			}
-		}
-
-		return INVALID;
-	*/
     }
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		return TRIANGLE_SHAPE;
+	}
 
     inline static point_t getOrigin( const point_t& p ) 
     {

@@ -51,6 +51,21 @@ public:
 		return total;
 	}
 
+	size_t solve( std::vector<size_t>& sizes, polyform_cb<grid> out )
+	{
+		size_t total = 0;
+
+		for( const auto& o : grid::origins ) {
+			origin = o;
+			cellmap.clear();
+			untried.clear();
+			untried.push_back( o );
+			total += solve( sizes, 0, out );
+		}
+
+		return total;
+	}
+
 private:
 	bool contains( const point_t& p )
 	{
@@ -58,6 +73,8 @@ private:
 	}
 
 	size_t solve( size_t size, size_t from, const polyform_cb<grid>& out );
+	size_t solve( 
+		std::vector<size_t>& sizes, size_t from, const polyform_cb<grid>& out );
 };
 
 template<typename grid>
@@ -182,10 +199,10 @@ public:
 		, debug { false }
 	{}
 
-	template<class Sub>
-	size_t solve( size_t size, Sub& sub, polyform_cb<grid> out )
+	template<class SizeType, class Sub>
+	size_t solve( SizeType sizes, Sub& sub, polyform_cb<grid> out )
 	{
-		return sub.solve( size, [this, out]( const shape_t& shape ) {
+		return sub.solve( sizes, [this, out]( const shape_t& shape ) {
 			if( checkShape( shape ) ) {
 				out( shape ); 
 			}
@@ -304,6 +321,64 @@ size_t RedelmeierSimple<grid>::solve(
 			}
 
 			total += solve( size - 1, idx + 1, out );
+			cellmap[p] = REACHABLE;
+			untried.resize( usz );
+		}
+
+		for( size_t idx = from; idx < usz; ++idx ) {
+			cellmap.erase( untried[idx] );
+		}
+
+		return total;
+	}
+}
+
+template<typename grid>
+size_t RedelmeierSimple<grid>::solve( 
+	std::vector<size_t>& sizes, size_t from, const polyform_cb<grid>& out )
+{
+	if( std::find_if( sizes.begin(), sizes.end(), 
+			[]( size_t x ) { return x > 0; } ) == sizes.end() ) {
+		Shape<grid> shp;
+
+		for( auto& p : cellmap ) {
+			if( p.second == OCCUPIED ) {
+				shp.add( p.first );
+			}
+		}
+
+		shp.complete();
+		out( shp );
+		return 1;
+	} else {
+		size_t total = 0;
+		size_t usz = untried.size();
+
+		for( size_t idx = from; idx < usz; ++idx ) {
+			point_t p = untried[idx];
+			auto st = grid::getTileShape( p );
+
+			if( sizes[st] == 0 ) {
+				// Not allowed to use this point, we're out of that shape.
+				cellmap[p] = REACHABLE;
+				continue;
+			}
+
+			cellmap[p] = OCCUPIED;
+
+			for( auto pn : edge_neighbours<grid> { p } ) {
+				if( !(pn < origin) && !contains( pn ) ) {
+					if( std::find( untried.begin(), untried.end(), pn )
+							== untried.end() ) {
+						untried.push_back( pn );
+					}
+				}
+			}
+
+			--sizes[st];
+			total += solve( sizes, idx + 1, out );
+			++sizes[st];
+
 			cellmap[p] = REACHABLE;
 			untried.resize( usz );
 		}

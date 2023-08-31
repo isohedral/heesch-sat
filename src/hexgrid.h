@@ -18,6 +18,10 @@ public:
 		HEXAGON = 0
     };
 
+    enum TileShape {
+		HEXAGON_SHAPE = 0
+    };
+
 public:
 	inline static GridType grid_type = HEX;
 
@@ -27,6 +31,10 @@ public:
 	inline static TileType getTileType( const point_t& p )
 	{
 		return HEXAGON;
+	}
+	inline static TileShape getTileShape( const point_t& p )
+	{
+		return HEXAGON_SHAPE;
 	}
 
 	inline static point_t getOrigin( const point_t& p )

@@ -21,6 +21,12 @@ public:
 		TRIANGLE_LEFT = 2
     };
 
+    enum TileShape {
+		INVALID_SHAPE = -1,
+        HEXAGON_SHAPE = 0,
+		TRIANGLE_SHAPE = 1
+    };
+
 public:
 	inline static GridType grid_type = TRIHEX;
 
@@ -30,6 +36,18 @@ public:
     static TileType getTileType( const point_t& p )
     {
         return (TileType) (((p.x_ - p.y_) % 3 + 3) % 3);
+    }
+    static TileShape getTileShape( const point_t& p )
+    {
+		switch( getTileType( p ) ) {
+			case HEXAGON:
+				return HEXAGON_SHAPE;
+			case TRIANGLE_RIGHT:
+			case TRIANGLE_LEFT:
+				return TRIANGLE_SHAPE;
+			default:
+				return INVALID_SHAPE;
+		}
     }
 
     inline static point_t getOrigin( const point_t& p ) 

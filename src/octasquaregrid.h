@@ -20,6 +20,11 @@ public:
 		OCTAGON = 1
     };
 
+    enum TileShape {
+        SQUARE_SHAPE = 0,
+		OCTAGON_SHAPE = 1
+    };
+
 public:
 	inline static GridType grid_type = OCTASQUARE;
 
@@ -29,6 +34,10 @@ public:
     inline static TileType getTileType( const point_t& p )
     {
         return (p.x_ + p.y_) % 2 == 0 ? SQUARE : OCTAGON;
+    }
+    inline static TileShape getTileShape( const point_t& p )
+    {
+        return (p.x_ + p.y_) % 2 == 0 ? SQUARE_SHAPE : OCTAGON_SHAPE;
     }
 
     inline static point_t getOrigin( const point_t& p ) 

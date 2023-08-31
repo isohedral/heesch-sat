@@ -26,6 +26,10 @@ public:
 		KITE_SE = 5
 	};
 
+    enum TileShape {
+		KITE_SHAPE = 0
+	};
+
 public:
 	inline static GridType grid_type = KITE;
 
@@ -35,6 +39,10 @@ public:
     inline static TileType getTileType( const point_t& p )
     {
 		return (TileType)getTileOrientation( p );
+    }
+    inline static TileShape getTileShape( const point_t& p )
+    {
+		return KITE_SHAPE;
     }
 
     inline static point_t getOrigin( const point_t& p ) 
