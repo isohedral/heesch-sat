@@ -4,6 +4,8 @@
 
 #include "tileio.h"
 
+// Gather summary stats for the polyforms in an input stream.
+
 using namespace std;
 
 static size_t total = 0;

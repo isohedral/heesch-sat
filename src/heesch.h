@@ -9,6 +9,10 @@
 #include "cloud.h"
 #include "holes.h"
 
+// The core of the whole system: a class that understands how to compute
+// Heesch numbers of polyforms.  As of 2023, also includes the ability
+// to check whether a polyform tiles isohedrally.
+
 using var_id = uint32_t;
 
 template<typename coord_t>
@@ -800,8 +804,6 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 template<typename grid>
 bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv ) 
 {
-	// std::cerr << "Checking isohedral..." << std::endl;
-
 	// The solver is assumed to contain the clauses for a hole-free
 	// 1-corona.  Augment it with new clauses that restrict solutions 
 	// to patches that witness isohedral tilings.
@@ -829,7 +831,7 @@ bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv )
 			solv.add_clause( bcl );
 		}
 
-		// New idea: add joint clauses that force the solution to be
+		// Add joint clauses that force the solution to be
 		// "algebraically closed", so that the only possible patches
 		// are witnesses for isohedrality, no further work needed.
 		for( const auto& S : cloud_.adjacent_ ) {
@@ -866,7 +868,7 @@ bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv )
 	return tiles_isohedrally_;
 }
 
-// Note that this enuerates only hole-free coronas.
+// Note that this enumerates only hole-free coronas.
 template<typename grid>
 void HeeschSolver<grid>::allCoronas( 
 	CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const
@@ -912,7 +914,6 @@ template<typename grid>
 void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns ) 
 {
 	if( !cloud_.surroundable_ ) {
-		// std::cout << "Not surroundable at all" << std::endl;
 		return;
 	}
 
@@ -924,41 +925,6 @@ void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns )
 
 	allCoronas( solver, [&solns]( const Solution<coord_t>& soln )
 		{ solns.push_back( soln ); return true; } );
-
-		/*
-	while( solver.solve() == CMSat::l_True ) {
-		// Got a solution, but it may have large holes.  Need to find
-		// them and iterate until they're gone.
-		// std::cout << "found a solution" << std::endl;
-
-		HoleFinder<grid> finder { shape_ };
-
-		std::vector<CMSat::Lit> cl;
-		const std::vector<CMSat::lbool>& model = solver.get_model();
-
-		// Get tile info for hole detection, while simultaneously
-		// building clause for forbidding this solution.
-		for( auto& ti : tiles_ ) {
-			for( auto& i : ti.vars_ ) {
-				if( model[i.second] == CMSat::l_True ) {
-					finder.addCopy( ti.index_, ti.T_ );
-					cl.push_back( neg( i.second ) );
-				}
-			}
-		}
-
-		std::vector<std::vector<tile_index>> holes;
-		if( !finder.getHoles( holes ) ) {
-			// No holes, so keep the solution
-			Solution<coord_t> soln;
-			getSolution( solver, soln );
-			solns.push_back( soln );
-		}
-
-		// Suppress this solution and keep going.
-		solver.add_clause( cl );
-	}
-	*/
 }
 
 template<typename grid>

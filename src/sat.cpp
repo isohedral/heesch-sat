@@ -6,6 +6,8 @@
 #include "grid.h"
 #include "tileio.h"
 
+// Use a SAT solver to compute Heesch numbers of polyforms.
+
 using namespace std;
 
 static bool show_solution = false;

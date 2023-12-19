@@ -5,6 +5,9 @@
 
 #include "geom.h"
 
+// A fancy grid that supports generalized polyforms based on the Cairo
+// tiling.
+
 template<typename coord>
 class HalfCairoGrid
 {

@@ -14,6 +14,11 @@
 #include "heesch.h"
 #include "tileio.h"
 
+// Draw information about polyforms and their patches.  I would often
+// just write out Postscript directly and then convert to PDF, but that's
+// starting to get old.  Use Cairo instead, and generate clean PDF output
+// directly.
+
 template<typename coord>
 using edge = std::pair<point<coord>,point<coord>>;
 template<typename coord>
@@ -137,12 +142,6 @@ void Visualizer<grid>::initGridOutline()
 	for( const auto& e : eset ) {
 		mp[e.first] = e.second;
 	}
-
-/*
-	for( const auto& a : mp ) {
-		std::cerr << "   " << a.first << " -> " << a.second << std::endl;
-	}
-*/
 
 	point_t start = mp.begin()->first;
 	point_t v = start;

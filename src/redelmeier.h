@@ -6,6 +6,10 @@
 #include "grid.h"
 #include "shape.h"
 
+// (Partly experimental) code to enumerate polyforms.  The basic 
+// RedelmeierSimple class should work just fine; the others could
+// still use some polishing and optimization.
+
 template<typename grid>
 using polyform_cb = std::function<void(const Shape<grid>&)>;
 

@@ -5,6 +5,8 @@
 #include "grid.h"
 #include "tileio.h"
 
+// Generate polyforms using Redelmeier's algorithm.
+
 using namespace std;
 
 static bool onlyfree = false;

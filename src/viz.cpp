@@ -8,6 +8,8 @@
 #include "grid.h"
 #include "tileio.h"
 
+// Visualize a set of polyforms and their properties in a PDF file.
+
 static bool ori_col = false;
 bool shapes_only = false;
 

@@ -7,6 +7,15 @@
 #include "geom.h"
 #include "grid.h"
 
+// Represent a polyform as a sorted list of coordinate pairs of its cells.
+// This is a fairly inefficient representation!  But note that we don't 
+// actually use a lot of Shape objects throughout the run of the program.  
+// Generally speaking, once we set up the Cloud object for a polyform,
+// all remaining work happens in terms of transformation matrices
+// (representing tile placements), and those are nice compact data
+// structures.  Still, I suppose the Shape class could be accelerated
+// by using a custom allocator that maintains a free list of list elements.
+
 template<typename grid>
 class Shape
 {

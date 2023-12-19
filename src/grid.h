@@ -15,6 +15,11 @@
 #include "halfcairogrid.h"
 #include "bevelhexgrid.h"
 
+// There's no generic "Grid" base class -- because we're implementing
+// all grids as template parameters, we're basically relying on structural
+// polymorphism with no common behaviour.  Nevertheless, there are a 
+// few functions and types that apply across all grids.  Define them here.
+
 // Pull a grid type out of command line arguments, and splice that
 // argument out.
 inline GridType getGridType( int& argc, char **argv )
@@ -59,6 +64,12 @@ inline GridType getGridType( int& argc, char **argv )
 	return grid;
 }
 
+// Set up a few tools to support run-time dispatch based on grid type.
+// This turns out to be a particularly fussy bit of C++.  I couldn't
+// figure out how to make it work purely using template metaprogramming,
+// so I resorted to a couple of macros and a bit too much explicit code
+// in the bootstrapping code of the various programs in this system.
+
 template<template<typename grid> class Func, typename... Args>
 auto dispatchToGridType( GridType gt, Args ...args )
 {
@@ -92,6 +103,8 @@ public: \
 
 #define GRID_DISPATCH( f, gt, ... ) \
 	dispatchToGridType<f##Wrapper>( gt, __VA_ARGS__ )
+
+// Utility structures that eat grids and spit out iterators.
 
 template<typename grid>
 struct neighbour_maker

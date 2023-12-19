@@ -8,6 +8,13 @@
 #include "shape.h"
 #include "heesch.h"
 
+// Handle text-based input and output of information about polyforms.
+// It would be natural to use a standard format like JSON here, but 
+// because of the sheer volume of data we'll be processing, there's 
+// value in trying to be as compact as possible.  (A binary format
+// would potentially be even better, but there's some virtue to having
+// files be human-readable, particularly for debugging.)
+
 // Just in case you want to, e.g., collect a bunch of heterogeneous records
 // together.
 class GenericTileInfo
@@ -333,6 +340,14 @@ bool processOne( std::istream& is )
 
 	return Func()( TileInfo<grid>( is ) );
 }
+
+// This is surprisingly tricky to get working.  The problem is that you need
+// to dispatch to one of the templated grid classes almost immediately, but
+// you don't know which class you'll need until you actually start parsing
+// the input.  Of course, that's why the grid type is the first character 
+// in the description of a tile.  Life might have been a bit easier if we
+// had mandated that the grid type is homogeneous across all polyforms in 
+// the input, but that restriction seemed annoying.
 
 template<template<typename grid> class Func>
 void processInputStream( std::istream& is, GridType default_gt = OMINO )

@@ -132,16 +132,6 @@ public:
 
     static point<double> vertexToGrid( const point_t& pt ) 
 	{
-	/*
-		// (sqrt(2) − 1) / (2 + 2*sqrt(2))
-        const double shift = 0.0857864376269049512; 
-
-        // Shift vertices to make the octagons regular, instead of 
-		// having edges of length 1 and sqrt(2).
-        double x = pt.x_ % 2 == 0 ? pt.x_ - shift : pt.x_ + shift;
-        double y = pt.y_ % 2 == 0 ? pt.y_ - shift : pt.y_ + shift;
-        return {x / 2.0 - 0.25, y / 2.0 - 0.25};
-	*/
 		return { (double)pt.x_, (double)pt.y_ };
     }
 

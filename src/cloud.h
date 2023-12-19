@@ -11,10 +11,6 @@ enum Orientations
 	ALL
 };
 
-// The cloud is the set of all transforms that relate to the central copy of a
-// shape.  Each transform can either be overlapping, cleanly adjacent, or
-// adjacent but not simply connected.
-
 template<typename grid>
 struct Orientation
 {
@@ -35,6 +31,10 @@ struct Orientation
 	Shape<grid> halo_;
 	Shape<grid> border_;
 };
+
+// The cloud is the set of all transforms that relate to the central copy of a
+// shape.  Each transform can either be overlapping, cleanly adjacent, or
+// adjacent but not simply connected.
 
 template<typename grid>
 class Cloud

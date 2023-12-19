@@ -6,6 +6,8 @@
 #include "grid.h"
 #include "tileio.h"
 
+// Enumerate all surrounds of a given polyform.
+
 using namespace std;
 
 static bool no_reflections = false;
