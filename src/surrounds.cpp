@@ -15,76 +15,51 @@ static bool extremes = false;
 static size_t heesch_level = 1;
 
 template<typename grid>
-static bool readShape( istream& is, Shape<grid>& shape, string& str )
-{
-	using coord_t = typename grid::coord_t;
-	using point_t = typename grid::point_t;
-
-	char buf[1000];
-	is.getline( buf, 1000 );
-	str = buf;
-
-	shape.reset();
-	istringstream iss( buf );
-
-	coord_t x;
-	coord_t y;
-
-	while( iss >> x >> y ) {
-		shape.add( point_t { x, y } );
-	}
-
-	shape.complete();
-	return shape.size() > 0;
-}
-
-template<typename grid>
-static void mainLoop( istream& is )
+static bool computeSurrounds( const TileInfo<grid>& tile )
 {
 	using coord_t = typename grid::coord_t;
 
-	Shape<grid> shape;
-	string desc;
+	tile.getShape().debug();
 
-	while( readShape( is, shape, desc ) ) {
-		TileInfo<grid> info;
-		info.setShape( shape );
+	TileInfo<grid> info { tile };
 
-		HeeschSolver<grid> solver { shape, no_reflections ? TRANSLATIONS_ROTATIONS : ALL };
-		for( size_t idx = 0; idx < heesch_level; ++idx ) {
-			solver.increaseLevel();
+	HeeschSolver<grid> solver { 
+		info.getShape(), no_reflections ? TRANSLATIONS_ROTATIONS : ALL };
+		
+	for( size_t idx = 0; idx < heesch_level; ++idx ) {
+		solver.increaseLevel();
+	}
+
+	std::vector<Solution<coord_t>> cur;
+	solver.allCoronas( cur );
+
+	if( extremes ) {
+		Solution<coord_t> smallest = cur[0];
+		Solution<coord_t> largest = cur[0];
+
+		for( const auto& soln : cur ) {
+			if( soln.size() < smallest.size() ) {
+				smallest = soln;
+			} else if( soln.size() > largest.size() ) {
+				largest = soln;
+			}
 		}
 
-		std::vector<Solution<coord_t>> cur;
-		solver.allCoronas( cur );
-
-		if( extremes ) {
-			Solution<coord_t> smallest = cur[0];
-			Solution<coord_t> largest = cur[0];
-
-			for( const auto& soln : cur ) {
-				if( soln.size() < smallest.size() ) {
-					smallest = soln;
-				} else if( soln.size() > largest.size() ) {
-					largest = soln;
-				}
-			}
-
-			info.setNonTiler( 1, &smallest, 1, nullptr );
+		info.setNonTiler( 1, &smallest, 1, nullptr );
+		info.write( cout );
+		info.setNonTiler( 1, &largest, 1, nullptr );
+		info.write( cout );
+	} else {
+		for( const auto& soln : cur ) {
+			info.setNonTiler( 1, &soln, 1, nullptr );
 			info.write( cout );
-			info.setNonTiler( 1, &largest, 1, nullptr );
-			info.write( cout );
-		} else {
-			for( const auto& soln : cur ) {
-				info.setNonTiler( 1, &soln, 1, nullptr );
-				info.write( cout );
-			}
 		}
 	}
+	return true;
 }
+GRID_WRAP( computeSurrounds );
 
-template<typename grid>
-static void gridMain( int argc, char **argv )
+int main( int argc, char **argv )
 {
 	for( size_t idx = 1; idx < argc; ++idx ) {
 		if( !strcmp( argv[idx], "-level" ) ) {
@@ -101,13 +76,6 @@ static void gridMain( int argc, char **argv )
 		}
 	}
 
-	mainLoop<grid>( cin );
-}
-GRID_WRAP( gridMain );
-
-int main( int argc, char **argv )
-{
-	GridType gt = getGridType( argc, argv );
-	GRID_DISPATCH( gridMain, gt, argc, argv );
+	FOR_EACH_IN_STREAM( cin, computeSurrounds );
 	return 0;
 }

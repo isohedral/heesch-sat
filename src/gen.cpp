@@ -11,7 +11,7 @@ using namespace std;
 
 static bool onlyfree = false;
 static bool units = false;
-static bool holes = true;
+static bool holes = false;
 static size_t numcells = 0;
 static vector<size_t> sizes;
 

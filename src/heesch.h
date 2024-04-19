@@ -847,6 +847,8 @@ bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv )
 			var_id s_id;
 			getShapeVariable( S, 1, s_id );
 
+			// This will create redundant clauses when T and S swap places,
+			// no?
 			xform_t add[4] = { S*T, T*S, T*S.invert(), S*T.invert() };
 			for( const auto& A : add ) {
 				var_id a_id;
