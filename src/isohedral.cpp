@@ -12,6 +12,9 @@
 #include "abologrid.h"
 #include "draftergrid.h"
 
+// A quick standalone program to check shapes for their ability to tile
+// isohedrally.
+
 using namespace std;
 
 enum GRID {
