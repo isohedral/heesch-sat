@@ -14,6 +14,8 @@ static bool show_solution = false;
 // Ha ha, set to one more than the Heesch record, just in case.
 static int max_level = 7;
 static Orientations ori = ALL;
+static bool check_hh = false;
+static bool reduce = true;
 static bool check_isohedral = false;
 static bool update_only = false;
 
@@ -21,6 +23,8 @@ static const char *inname = nullptr;
 static const char *outname = nullptr;
 static ofstream ofs;
 static ostream *out;
+
+int num_wins = 0;
 
 template<typename grid>
 static bool computeHeesch( const TileInfo<grid>& tile )
@@ -51,8 +55,9 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 	Solution<coord_t> sh;
 	bool has_holes;
 
-	HeeschSolver<grid> solver { work.getShape(), ori };
+	HeeschSolver<grid> solver { work.getShape(), ori, reduce };
 	solver.setCheckIsohedral( check_isohedral );
+	solver.setCheckHoleCoronas( check_hh );
 	solver.increaseLevel();
 
 	Solution<coord_t> cur;
@@ -125,6 +130,10 @@ int main( int argc, char **argv )
 			check_isohedral = true;
 		} else if( !strcmp( argv[idx], "-update" ) ) {
 			update_only = true;
+		} else if( !strcmp( argv[idx], "-hh" ) ) {
+			check_hh = true;
+		} else if( !strcmp( argv[idx], "-noreduce" ) ) {
+			reduce = false;
 		} else {
 			// Maybe an input filename?
 			if( filesystem::exists( argv[idx] ) ) {
@@ -157,5 +166,6 @@ int main( int argc, char **argv )
 		ofs.close();
 	}
 
+	cerr << num_wins << " wins." << endl;
 	return 0;
 }

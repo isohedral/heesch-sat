@@ -74,7 +74,7 @@ public:
 	using point_t = typename grid::point_t;
 	using xform_t = typename grid::xform_t;
 
-	HeeschSolver( const Shape<grid>& shape, Orientations ori = ALL );
+	HeeschSolver( const Shape<grid>& shape, Orientations ori = ALL, bool reduce = true );
 
 	void increaseLevel();
 	size_t getLevel() const
@@ -83,6 +83,11 @@ public:
 	void setCheckIsohedral( bool b ) 
 	{ 
 		check_isohedral_ = b;
+	}
+
+	void setCheckHoleCoronas( bool b )
+	{ 
+		check_hh_ = b;
 	}
 
 	bool tilesIsohedrally() const
@@ -115,9 +120,9 @@ private:
 	void extendLevelWithTransforms( size_t lev, const xform_set<coord_t>& Ts );
 
 	void allCoronas( CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const;
+	// bool checkIsohedralTiling_deprecated( CMSat::SATSolver& solv );
 	bool checkIsohedralTiling( CMSat::SATSolver& solv );
-	bool checkIsohedralTilingV2( CMSat::SATSolver& solv );
-	bool isSurroundIsohedral( const Solution<coord_t>& soln ) const;
+	// bool isSurroundIsohedral( const Solution<coord_t>& soln ) const;
 
 	Shape<grid> shape_;
 	Cloud<grid> cloud_;
@@ -131,6 +136,7 @@ private:
 	size_t level_;
 	var_id next_var_;
 	bool check_isohedral_;
+	bool check_hh_;
 	bool tiles_isohedrally_;;
 };
 
@@ -179,9 +185,9 @@ void debugSolution(
 }
 
 template<typename grid>
-HeeschSolver<grid>::HeeschSolver( const Shape<grid>& shape, Orientations ori )
+HeeschSolver<grid>::HeeschSolver( const Shape<grid>& shape, Orientations ori, bool reduce )
 	: shape_ { shape }
-	, cloud_ { shape, ori }
+	, cloud_ { shape, ori, reduce }
 	, tiles_ {}
 	, cells_ {}
 	, tile_map_ {}
@@ -189,6 +195,7 @@ HeeschSolver<grid>::HeeschSolver( const Shape<grid>& shape, Orientations ori )
 	, level_ { 0 }
 	, next_var_ { 0 }
 	, check_isohedral_ { false }
+	, check_hh_ { false }
 	, tiles_isohedrally_ { false }
 {
 	// Create the 0th corona.
@@ -494,7 +501,7 @@ void HeeschSolver<grid>::getClauses(
 			}
 			cl.clear();
 			cl.push_back( neg( i.second ) );
-			for( auto& M : cloud_.adjacent_ ) {
+			for( auto& M : cloud_.adjacent_unreduced_ ) {
 				xform_t Tn = ti.T_ * M;
 				tile_index index = getTile( Tn );
 				if( index == -1 ) {
@@ -616,8 +623,7 @@ bool HeeschSolver<grid>::hasCorona(
 				// clauses for level-1 surroundability, finding a surround
 				// with no holes.
 				if( (level_ == 1) && check_isohedral_ ) {
-					if( checkIsohedralTilingV2( solver ) ) {
-						// tiles_isohedrally_ = true;
+					if( checkIsohedralTiling( solver ) ) {
 						return false;
 					}
 				}
@@ -647,9 +653,9 @@ bool HeeschSolver<grid>::hasCorona(
 				return true;
 			}
 		}
-	} else {
-		// No solution found yet.  Try a larger solution by allowing
-		// adjacency holes in the top corona.
+	} else if( check_hh_ ) {
+		// No solution found yet.  If requested, try a larger solution by 
+		// allowing holes in the outer corona.
 		// std::cout << "Adding holes to level" << std::endl;
 		addHolesToLevel();
 
@@ -667,9 +673,12 @@ bool HeeschSolver<grid>::hasCorona(
 			// std::cout << "No solution with holes" << std::endl;
 			return false;
 		}
+	} else {
+		return false;
 	}
 }
 
+#if 0
 template<typename grid>
 bool HeeschSolver<grid>::isSurroundIsohedral( 
 	const Solution<coord_t>& soln ) const
@@ -722,9 +731,9 @@ bool HeeschSolver<grid>::isSurroundIsohedral(
 
 // This is an older isohedral checker that seems to work reliably and
 // includes extra checks.  Keep it around for a while to cross-check 
-// new algorithms should any arise.
+// new implementations.
 template<typename grid>
-bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv ) 
+bool HeeschSolver<grid>::checkIsohedralTiling_deprecated( CMSat::SATSolver& solv ) 
 {
 	// std::cerr << "Checking isohedral..." << std::endl;
 
@@ -800,9 +809,10 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 	}
 	return tiles_isohedrally_;
 }
+#endif
 
 template<typename grid>
-bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv ) 
+bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv ) 
 {
 	// The solver is assumed to contain the clauses for a hole-free
 	// 1-corona.  Augment it with new clauses that restrict solutions 
@@ -817,6 +827,7 @@ bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv )
 	for( const auto& T : cloud_.adjacent_ ) {
 		xform_t Ti = T.invert();
 		var_id t_id;
+
 		getShapeVariable( T, 1, t_id );
 
 		// This should not be used for involutory transforms
@@ -824,11 +835,21 @@ bool HeeschSolver<grid>::checkIsohedralTilingV2( CMSat::SATSolver& solv )
 			// T and Ti are adjacent.  Add a clause that couples them
 			// in surrounds.  (T -> Ti)
 			var_id ti_id;
-			getShapeVariable( Ti, 1, ti_id );
 
-			bcl[0] = neg( t_id );
-			bcl[1] = pos( ti_id );
-			solv.add_clause( bcl );
+			if( !getShapeVariable( Ti, 1, ti_id ) ) {
+				// If we've reduced the list of adjacents, it's possible
+				// for T to remain adjacent while Ti is discarded.
+				// So we can't count on.  So this could fail, in which
+				// case we should just ensure that T isn't used in 
+				// an isohedral surround.
+				bcl[0] = neg( t_id );
+				bcl[1] = neg( t_id );
+				solv.add_clause( bcl );
+			} else {
+				bcl[0] = neg( t_id );
+				bcl[1] = pos( ti_id );
+				solv.add_clause( bcl );
+			}
 		}
 
 		// Add joint clauses that force the solution to be

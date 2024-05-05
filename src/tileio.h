@@ -291,7 +291,8 @@ void TileInfo<grid>::write( std::ostream& os ) const
 	for( const auto& p : shape_ ) {
 		os << ' ' << p.x_ << ' ' << p.y_;
 	}	
-	os << std::endl;
+	// os << std::endl;
+	os << '\n';
 
 	if( record_type_ == UNKNOWN ) {
 		return;
@@ -321,12 +322,12 @@ void TileInfo<grid>::write( std::ostream& os ) const
 			break;
 	}
 
-	os << ' ' << patches_.size() << std::endl;
+	os << ' ' << patches_.size() << '\n'; // std::endl;
 
 	for( const auto& patch : patches_ ) {
-		os << patch.size() << std::endl;
+		os << patch.size() << '\n'; // std::endl;
 		for( const auto& p : patch ) {
-			os << p.first << ' ' << p.second << std::endl;
+			os << p.first << ' ' << p.second << '\n'; // std::endl;
 		}
 	}
 }

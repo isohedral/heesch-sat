@@ -146,6 +146,9 @@ GRID_WRAP( gridMain );
 
 int main( int argc, char **argv )
 {
+	ios_base::sync_with_stdio( false );
+	cin.tie( nullptr );
+
 	GridType gt = getGridType( argc, argv );
 
 	size_t idx = 1;

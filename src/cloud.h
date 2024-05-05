@@ -1,8 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <list>
 
 #include "shape.h"
+
+extern int num_wins;
 
 enum Orientations
 {
@@ -44,7 +47,7 @@ public:
 	using xform_t = typename grid::xform_t;
 	using point_t = typename grid::point_t;
 
-	Cloud( const Shape<grid>& shape, Orientations ori = ALL );
+	Cloud( const Shape<grid>& shape, Orientations ori = ALL, bool reduce = true );
 
 	bool isOverlap( const xform_t& T ) const
 	{
@@ -68,6 +71,7 @@ public:
 	}
 
 	void calcOrientations( Orientations ori );
+	void reduceAdjacents();
 
 	void debug( std::ostream& os ) const;
 	void debugTransform( std::ostream& os, const xform_t& T ) const;
@@ -79,17 +83,21 @@ public:
 	std::vector<Orientation<grid>> orientations_;
 
 	xform_set<coord_t> adjacent_;
+	xform_set<coord_t> adjacent_unreduced_;
 	xform_set<coord_t> adjacent_hole_;
 	xform_set<coord_t> overlapping_;
 	bool surroundable_;
 };
 
 template<typename grid>
-Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori )
+Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 	: shape_ { shape }
+	, adjacent_ {}
+	, adjacent_unreduced_ {}
+	, adjacent_hole_ {}
+	, overlapping_ {}
+	, surroundable_ { true }
 {
-	surroundable_ = true;
-
 	shape.getHaloAndBorder( halo_, border_ );
 	calcOrientations( ori );
 
@@ -173,7 +181,121 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori )
 		}
 	}
 
+	adjacent_unreduced_ = adjacent_;
+
+	if( reduce ) {
+		reduceAdjacents();
+	}
+
 	// debug( std::cout );
+}
+
+template<typename grid>
+void Cloud<grid>::reduceAdjacents()
+{
+	// Figure out a cheap test for (un)surroundability of vertices along the
+	// boundary of the shape.  Something like Step 3 ("Generate and reduce a list 
+	// of the possible neighbours of a tile") in Joseph's algorithm.
+
+	// For every adjacent T, find the (small?) set of cells that are in the
+	// intersection of the main shape's halo and T's halo.  For each cell c in
+	// that list, there must exist an adjacent S that's also adjacent to T and
+	// occupies c.  If not, eliminate T.
+
+	xform_set<coord_t> cur_adj = adjacent_;
+
+	point_set<coord_t> halo_set;
+	point_map<coord_t, xform_set<coord_t>> halo_users;
+
+	// Create a lookup set for the halo.
+	for( const auto& P : halo_ ) {
+		halo_set.insert( P );
+	}
+
+	// Populate the halo_users map so that every cell in the main shape's
+	// halo records all the adjacents that have body cells that use it.
+	for( const auto& T : cur_adj ) {
+		for( const auto& P : shape_ ) {
+			point_t Pt = T * P;
+			if( halo_set.find( Pt ) != halo_set.end() ) {
+				halo_users[Pt].insert( T );
+			}
+		}
+	}
+
+	while( true ) {
+		size_t num_removed = 0;
+		xform_set<coord_t> next_adj;
+
+		for( const auto& T : cur_adj ) {
+			bool all_ok = true;
+			xform_t Ti = T.invert();
+
+			for( const auto& P : halo_ ) {
+				point_t Pt = T * P;
+				if( halo_set.find( Pt ) == halo_set.end() ) {
+					continue;
+				}
+
+				// OK, we have an adjacent T, which is next to a halo cell P of the 
+				// shape.  We need a user of that cell to *also* be adjacent to T.  
+				// That will make T OK on that cell.
+				bool cell_ok = false;
+
+				for( const auto& S : halo_users[Pt] ) {
+					if( isAdjacent( Ti * S ) ) {
+						cell_ok = true;
+						break;
+					}
+				}
+
+				if( !cell_ok ) {
+					all_ok = false;
+					break;
+				}
+			}
+
+			if( !all_ok ) {
+				++num_removed;
+
+				// Aha, this adjacent can't be used.  Remove it from all halo map lists
+				// in which it appears.
+
+				for( const auto& P : shape_ ) {
+					point_t Pt = T * P;
+					if( halo_set.find( Pt ) != halo_set.end() ) {
+						if( halo_users[Pt].find( T ) == halo_users[Pt].end() ) {
+							std::cerr << "wtf" << std::endl;
+						}
+						auto& uset = halo_users[Pt];
+						uset.erase( T );
+
+						if( uset.size() == 0 ) {
+							// This removal emptied the users of a halo cell, 
+							// rendering the whole shape unsurroundable. Stop now.
+							// std::cerr << "Unsurroundability win." << std::endl;
+							++num_wins;
+							surroundable_ = false;
+							return;
+						}
+					}
+				}
+			} else {
+				next_adj.insert( T );
+			}
+		}
+
+		// std::cerr << "Removed " << num_removed << std::endl;
+
+		if( num_removed == 0 ) {
+			// No more changes, stop the reduction process.
+			break;
+		}
+
+		cur_adj = std::move( next_adj );
+	}
+
+	adjacent_ = std::move( cur_adj );
 }
 
 template<typename grid>
