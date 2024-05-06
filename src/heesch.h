@@ -822,8 +822,6 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 	std::vector<CMSat::Lit> bcl { 2 };
 	std::vector<CMSat::Lit> tcl { 3 };
 
-	// size_t joint_clauses = 0;
-
 	for( const auto& T : cloud_.adjacent_ ) {
 		xform_t Ti = T.invert();
 		var_id t_id;
@@ -885,6 +883,11 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 
 	allCoronas( solv, [this] ( const Solution<coord_t>& soln ) {
 		tiles_isohedrally_ = true;
+		/*
+		for( const auto& s : soln ) {
+			std::cerr << s.second << std::endl;
+		}
+		*/
 		return false;
 	} );
 

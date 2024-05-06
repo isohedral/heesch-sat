@@ -15,7 +15,7 @@ static bool show_solution = false;
 static int max_level = 7;
 static Orientations ori = ALL;
 static bool check_hh = false;
-static bool reduce = true;
+static bool reduce = false;
 static bool check_isohedral = false;
 static bool update_only = false;
 
@@ -128,10 +128,14 @@ int main( int argc, char **argv )
 			ori = TRANSLATIONS_ROTATIONS;
 		} else if( !strcmp( argv[idx], "-isohedral" ) ) {
 			check_isohedral = true;
+		} else if( !strcmp( argv[idx], "-noisohedral" ) ) {
+			check_isohedral = false;
 		} else if( !strcmp( argv[idx], "-update" ) ) {
 			update_only = true;
 		} else if( !strcmp( argv[idx], "-hh" ) ) {
 			check_hh = true;
+		} else if( !strcmp( argv[idx], "-reduce" ) ) {
+			reduce = true;
 		} else if( !strcmp( argv[idx], "-noreduce" ) ) {
 			reduce = false;
 		} else {
