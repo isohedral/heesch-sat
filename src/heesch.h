@@ -386,6 +386,13 @@ template<typename grid>
 void HeeschSolver<grid>::increaseLevel()
 {
 	++level_;
+
+	// Don't bother doing any adjacency-related computations if the shape
+	// can't be surrounded. We know for a fact that we won't find anything.
+	if( !cloud_.surroundable_ ) {
+		return;
+	}
+
 	if( level_ == 1 ) {
 		for( auto& T : cloud_.adjacent_ ) {
 			getShapeVariable( T, 1 );

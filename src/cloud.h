@@ -4,6 +4,7 @@
 #include <list>
 
 #include "shape.h"
+#include "bitmap.h"
 
 extern int num_wins;
 
@@ -71,6 +72,8 @@ public:
 	}
 
 	void calcOrientations( Orientations ori );
+	bool checkSimplyConnected( CellBitmap& bits, const xform_t& T );
+	bool checkSimplyConnectedOld( const xform_t& T );
 	void reduceAdjacents();
 
 	void debug( std::ostream& os ) const;
@@ -101,8 +104,6 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 	shape.getHaloAndBorder( halo_, border_ );
 	calcOrientations( ori );
 
-	Shape<grid> new_shape;
-
 	// Overlaps are easy to detect -- there must be a cell that's covered
 	// by a border cell of both transformed copies of the shape.  This
 	// incurs some significant redundancy, but makes subsequent adjacency
@@ -120,6 +121,8 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 			}
 		}
 	}
+
+	CellBitmap bits;
 
 	// Now try to construct all adjacencies by translating a border
 	// point of an oriented shape to a halo point of the main shape.
@@ -157,10 +160,8 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 				// We previously ruled out every possible overlap,
 				// so we know this new tile is adjacent.  But the adjacency
 				// might not be simply connected.
-				new_shape.reset( shape_, Tnew );
-				new_shape.add( shape_ );
 
-				if( new_shape.simplyConnected() ) {
+				if( checkSimplyConnected( bits, Tnew ) ) {
 					found = true;
 
 					adjacent_.insert( Tnew );
@@ -186,8 +187,89 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 	if( reduce ) {
 		reduceAdjacents();
 	}
+}
 
-	// debug( std::cout );
+template<typename grid>
+bool Cloud<grid>::checkSimplyConnectedOld( const xform_t& T )
+{
+	Shape<grid> new_shape;
+
+	new_shape.reset( shape_, T );
+	new_shape.add( shape_ );
+
+	return new_shape.simplyConnected();
+}
+
+template<typename grid>
+bool Cloud<grid>::checkSimplyConnected( CellBitmap& bits, const xform_t& T )
+{
+	bits.clear();
+
+	size_t halo_size = 0;
+
+	// Add both halos
+	for( const auto& p : halo_ ) {
+		// std::cerr << "Setting " << p << " as halo" << std::endl;
+		if( bits.getAndSet( p, 1 ) == 0 ) {
+			++halo_size;
+		}
+		// std::cerr << "Setting " << (T * p) << " as halo" << std::endl;
+		if( bits.getAndSet( T * p, 1 ) == 0 ) {
+			++halo_size;
+		}
+	}
+
+	// Subtract shapes
+	for( const auto& p : shape_ ) {
+		// std::cerr << "Setting " << p << " as empty" << std::endl;
+		if( bits.getAndSet( p, 0 ) != 0 ) {
+			--halo_size;
+		}
+		// std::cerr << "Setting " << (T * p) << " as empty" << std::endl;
+		if( bits.getAndSet( T * p, 0 ) != 0 ) {
+			--halo_size;
+		}
+	}
+
+	// bits.debug();
+
+	// Check if the union halo is connected using edge adjacencies of the cell
+	// tiling (see also shape.h).
+
+	// A stack for DFS.  We don't expect the stack to grow very tall in practice.
+	// Probably 64 is overkill.
+	point_t work[64];
+
+	// Initialize the stack with any halo cell
+	for( const auto& p : halo_ ) {
+		if( bits.get( p ) != 0 ) {
+			work[0] = p;
+			break;
+		}
+	}
+
+	size_t num_visited = 0;
+	size_t size = 1;
+
+	while( size > 0 ) {
+		auto p = work[size-1];
+		// std::cerr << "Visiting " << p << std::endl;
+		--size;
+
+		if( bits.get( p ) != 0 ) {
+			++num_visited;
+			bits.set( p, 0 );
+
+			for( auto pn : edge_neighbours<grid> { p } ) {
+				if( bits.get( pn ) != 0 ) {
+					work[size] = pn;
+					++size;
+				}
+			}
+		}
+	}
+
+	return num_visited == halo_size;
 }
 
 template<typename grid>

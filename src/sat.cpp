@@ -27,7 +27,7 @@ static ostream *out;
 int num_wins = 0;
 
 template<typename grid>
-static bool computeHeesch( const TileInfo<grid>& tile )
+static bool computeHeesch( TileInfo<grid>& tile )
 {
 	using coord_t = typename grid::coord_t;
 
@@ -47,17 +47,18 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 		return true;
 	}
 
-	TileInfo<grid> work { tile };
-
 	size_t hc = 0;
 	Solution<coord_t> sc;
 	size_t hh = 0;
 	Solution<coord_t> sh;
 	bool has_holes;
 
-	HeeschSolver<grid> solver { work.getShape(), ori, reduce };
+	HeeschSolver<grid> solver { tile.getShape(), ori, reduce };
 	solver.setCheckIsohedral( check_isohedral );
 	solver.setCheckHoleCoronas( check_hh );
+
+	// FIXME: Don't do this if the tile has already been found to be
+	// unsurroundable. Either check that here, or in increaseLevel().
 	solver.increaseLevel();
 
 	Solution<coord_t> cur;
@@ -83,8 +84,8 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 				solver.increaseLevel();
 			}
 		} else if( solver.tilesIsohedrally() ) {
-			work.setPeriodic( 1 );
-			work.write( *out );
+			tile.setPeriodic( 1 );
+			tile.write( *out );
 			return true;
 		} else {
 			break;
@@ -94,16 +95,16 @@ static bool computeHeesch( const TileInfo<grid>& tile )
 	if( solver.getLevel() > max_level ) {
 		// Exceeded maximum level, label it inconclusive
 		if( show_solution ) {
-			work.setInconclusive( &cur );
+			tile.setInconclusive( &cur );
 		} else {
-			work.setInconclusive();
+			tile.setInconclusive();
 		}
 	} else if( show_solution ) {
-		work.setNonTiler( hc, &sc, hh, &sh );
+		tile.setNonTiler( hc, &sc, hh, &sh );
 	} else {
-		work.setNonTiler( hc, nullptr, hh, nullptr );
+		tile.setNonTiler( hc, nullptr, hh, nullptr );
 	}
-	work.write( *out );
+	tile.write( *out );
 	return true;
 }
 GRID_WRAP( computeHeesch );
