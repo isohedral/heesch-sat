@@ -2,3 +2,22 @@ Better generation of fixed compound polyforms, to make free filtering easier.
 
 Incorporate standard compounds for polyabolos, polydrafters, polyhalfcairos,
 etc.
+
+When a shape has a large number of surrounds, using a SAT-based approach to enumerate
+them all is futile.  You end up solving SAT problems containing millions of clauses.
+A much better approach for enumerating solutions in a case like this is DLX (dancing
+links).  Grab a DLX library and rewrite surrounds.cpp to use it.  [It's interesting to
+ask whether a variant on DLX could handle the entire Heesch computation; that's doubtful.]
+
+Find heuristics to speed up the detection and rejection of unsurroundable shapes.  One
+obvious strategy is to check for any unfillable halo cells before checking any of the
+neighbours to see whether they're adjacent or hole_adjacent.  Also, when you discover
+a new adjacency, make sure you don't test other instances of that adjacency (generated
+via other pairings of halo and border cells).
+
+Continue working on constructing reduced lists of neighbours for the purposes of 
+calculating Heesch numbers, and the interaction of those reduced lists with the
+isohedral tiling checker.
+
+Write a variant on Redelmeier's algorithm that can consume a known list of free 
+n-forms and generate free (n+1)-forms from it.
