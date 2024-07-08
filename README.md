@@ -105,11 +105,15 @@ Every polyform is described using a sequence of (x,y) coordinate pairs, given on
 
 ### The polyomino grid
 
-The polyomino has the simplest and most natural structure, which probably doesn't need any explanation.  The diagram gives coordinates for a few sample cells near the origin.
+The polyomino has the simplest and most natural structure, which probably doesn't need any further explanation.  The diagram gives coordinates for a few sample cells near the origin.
 
-<p align="center"><img src="grids/omino.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/ominogrid.svg" style="width: 400px;"/></p>
 
 ### The polyhex grid
+
+The Y axis of the polyhex grid is at 60 degrees to the X axis, allowing all cells to use integer coordinates, as shown here.  Every pair of integers corresponds to a legal cell.
+
+<p align="center"><img src="grids/hexgrid.svg" style="width: 400px;"/></p>
 
 ### The polyiamond grid
 
