@@ -117,6 +117,10 @@ The Y axis of the polyhex grid is at 60 degrees to the X axis, allowing all cell
 
 ### The polyiamond grid
 
+The polyiamond grid uses a sparse subset of the cells of the polyhex grid, in which either x and y are both multiples of three, or both one more than multiples of three.  The grid is visualized here superimposed on a hexagonal grid, with cells corresponding to triangles marked with coordinates.
+
+<p align="center"><img src="grids/iamondgrid.svg" style="width: 400px;"/></p>
+
 ### The octasquare grid
 
 ### The trihex grid
