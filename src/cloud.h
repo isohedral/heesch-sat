@@ -6,8 +6,6 @@
 #include "shape.h"
 #include "bitmap.h"
 
-extern int num_wins;
-
 enum Orientations
 {
 	TRANSLATIONS_ONLY,
@@ -48,7 +46,7 @@ public:
 	using xform_t = typename grid::xform_t;
 	using point_t = typename grid::point_t;
 
-	Cloud( const Shape<grid>& shape, Orientations ori = ALL, bool reduce = true );
+	Cloud( const Shape<grid>& shape, Orientations ori = ALL, bool reduce = false );
 
 	bool isOverlap( const xform_t& T ) const
 	{
@@ -142,14 +140,6 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 					continue;
 				}
 
-/*
-				if( isAnyAdjacent( Tnew ) ) {
-					// Already seen, but offers a potential adjacency for
-					// this halo cell.  Record that fact.
-					found = true;
-					continue;
-				}
-			*/
 				if( isAdjacent( Tnew ) ) {
 					found = true;
 					continue;
@@ -356,7 +346,6 @@ void Cloud<grid>::reduceAdjacents()
 							// This removal emptied the users of a halo cell, 
 							// rendering the whole shape unsurroundable. Stop now.
 							// std::cerr << "Unsurroundability win." << std::endl;
-							++num_wins;
 							surroundable_ = false;
 							return;
 						}

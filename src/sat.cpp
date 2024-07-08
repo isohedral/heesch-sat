@@ -24,8 +24,6 @@ static const char *outname = nullptr;
 static ofstream ofs;
 static ostream *out;
 
-int num_wins = 0;
-
 template<typename grid>
 static bool computeHeesch( TileInfo<grid>& tile )
 {
@@ -171,6 +169,5 @@ int main( int argc, char **argv )
 		ofs.close();
 	}
 
-	cerr << num_wins << " wins." << endl;
 	return 0;
 }
