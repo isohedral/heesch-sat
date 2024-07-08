@@ -33,3 +33,22 @@ The `gen` tool uses variants of Redelmeier's algorithm to enumerate all fixed or
  * `-o <fname.txt>`: Write output to the specified text file.  If no file name is given, output is written to standard out.
 
 As a typical example, `./gen -hex -size 6 -free -o 6hex.txt` will generate the 81 holeless free 6-hexes, writing the result to `6hex.txt`.  The file format is somewhat arcane, but is deliberately left as a plain text file that can be understood by eye with a bit of practice.
+
+# Analyzing polyforms
+
+The `sat` tool reads in a sequence of polyforms and classifies them as non-tilers (in which case the Heesch number is reported) or isohedral tilers.  If a shape tiles the plane anisohedrally or aperiodically, the tool will classify it as "inconclusive".  The software can optionally output a "witness patch" for each shape that demonstrates its classification.  If the shape has a finite Heesch number, the patch will exhibit the largest possible number of coronas.  If it tiles isohedrally, no patch will be produced.  If it is inconclusive, the patch will contain a predetermined maximum number of coronas.
+
+The `sat` tool accepts the following command-line arguments.  Any other argument is assumed to be the name of a text file meant to be processed as input.  If no such argument is provided, text is processed from standard input.
+
+ * `-show`: Include witness patches in the output. By default, no patches are included
+ * `-maxlevel`: The maximum number of coronas to generate before giving up and labelling a shape as inconclusive.  (Default: 7)
+ * `-translations`: Attempt to build patches using only translated copies of a tile
+ * `-rotations`: Attempt to build patches using translated and rotated (but not reflected) copies of a tile
+ * `-isohedral`: Include a check for isohedral tiling (this feature is currently disabled by default)
+ * `-noisohedral`: Explicitly disable isohedral checking (currently redundant)
+ * `-update`: Perform the classification only on shapes in the input stream that are either unclassified or inconclusive; everything else is copied over unchanged
+ * `-hh`: Include the computation of Heesch numbers where the outermost corona is permitted to have holes.  Disabled by default
+ * `-o <fname.txt>`: Write output to the specified text file.  If no file name is given, output is written to standard out
+
+Continuing the example above, `./sat -isohedral -show 6hex.txt -o 6hex_out.txt` will process the free 6-hexes in `6hex.txt`, writing information about the classified shapes (including witness patches) into `6hex_out.txt`.
+
