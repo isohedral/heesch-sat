@@ -44,11 +44,37 @@ The `sat` tool accepts the following command-line arguments.  Any other argument
  * `-maxlevel`: The maximum number of coronas to generate before giving up and labelling a shape as inconclusive.  (Default: 7)
  * `-translations`: Attempt to build patches using only translated copies of a tile
  * `-rotations`: Attempt to build patches using translated and rotated (but not reflected) copies of a tile
- * `-isohedral`: Include a check for isohedral tiling (this feature is currently disabled by default)
+ * `-isohedral`: Include a check for isohedral tiling (this test is not run automatically by default)
  * `-noisohedral`: Explicitly disable isohedral checking (currently redundant)
  * `-update`: Perform the classification only on shapes in the input stream that are either unclassified or inconclusive; everything else is copied over unchanged
  * `-hh`: Include the computation of Heesch numbers where the outermost corona is permitted to have holes.  Disabled by default
  * `-o <fname.txt>`: Write output to the specified text file.  If no file name is given, output is written to standard out
 
 Continuing the example above, `./sat -isohedral -show 6hex.txt -o 6hex_out.txt` will process the free 6-hexes in `6hex.txt`, writing information about the classified shapes (including witness patches) into `6hex_out.txt`.
+
+# Generating a summary
+
+The `report` tool consumes a text file of classified polyforms and generate a summary text report in a simple, human-readable format.  It reads from standard input, or from an input file name if one is provided. It writes to standard output, or to an output file if the `-o` parameter is used as in the programs above.  Here's what the output looks like on the file `6hex_out.txt` generated above:
+
+```
+$ ./report 6hex_out.txt
+Total: 81 shapes
+  0 unprocessed
+  0 with holes
+  1 inconclusive
+  4 non-tilers
+    3 with Hc = 1
+    1 with Hc = 2
+    3 with Hh = 1
+    1 with Hh = 2
+  76 tile isohedrally
+  0 tile anisohedrally
+  0 tile aperiodically
+```
+
+Here, the inconclusive shape is the single 2-anisohedral 6-hex (the file format can store information about anisohedral and aperiodic polyforms, but the software doesn't know how to detect them, so the counts in the last two lines will always be zero).  The `Hc` and `Hh` counts correspond to Heesch numbers without and with holes in the outer corona, respectively.  Because the `-hh` switch was not enabled when `sat` was run, the counts will always be same.  In general, a given shape's `Hh` value might be equal to or one higher than its `Hc` value, meaning that `Hh` counts can be shifted somewhat towards higher Heesch numbers.
+
+# Visualizing results
+
+The `viz` tool will 
 
