@@ -21,10 +21,10 @@ The `gen` tool uses variants of Redelmeier's algorithm to enumerate all fixed or
  * `-iamond`: Generate polyiamonds
  * `-octasquare`: Generate poly-(4.8.8)-tiles (i.e., unions of octagons and squares)
  * `-trihex`: Generate poly-(3.6.3.6)-tiles (i.e., unions of hexagons and triangles)
- * `-kite`: Generate polykites
- * `-drafter`: Generate polydrafters
- * `-abolo`: Generate polyaboloes
- * `-halfcairo`: Generate poly-halfcairos (cells from the superposition of the Cairo tiling and its reflection)
+ * `-kite`: Generate polykites (i.e., poly-[3.4.6.4]-tiles)
+ * `-drafter`: Generate polydrafters (i.e., poly-[4.6.12]-tiles)
+ * `-abolo`: Generate polyaboloes (i.e., poly-[4.8.8]-tiles)
+ * `-halfcairo`: Generate poly-halfcairos (cells from subdivided tiles of the Cairo tiling (3.3.4.3.4))
  * `-bevelhex`: Generate poly-(4.6.12)-tiles (triangles, hexagons, and dodecagons)
     <br/><br/>
  * `-size <n>`: Choose the size (i.e., number of cells) of the shapes to be generated
@@ -97,4 +97,7 @@ If none of the filtering switches (`-unknown`, `-holes`, `-inconclusive`, `-nont
 
 To close out the running example, executing `./viz 6hex_out.txt` will produce an 81-page PDF `out.pdf` containing drawings of the hole-free 6-hexes.  Those that don't tile will have (possibly trivial) patches exhibiting their Heesch numbers.  The isohedral tilers will show just a single copy of the shape.  The inconclusive (anisohedral) tile will show a number of coronas.
 
+# The grids
+
+# References
 
