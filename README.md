@@ -133,7 +133,12 @@ The trihex grid is to the hex grid as the octasquare grid is to the square grid.
 
 <p align="center"><img src="grids/trihexgrid.svg" style="width: 400px;"/></p>
 
-### The kite grid
+### The polykite grid
+
+The polykite grid also uses a subset of the hex grid.  The kites can be scaled so that each one contains exactly one complete hex, with the vertices and edges of the kite slicing through other unused hex cells.
+
+<p align="center"><img src="grids/kitegrid.svg" style="width: 400px;"/></p>
+
 
 ### The polydrafter grid
 
