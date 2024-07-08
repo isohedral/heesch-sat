@@ -139,8 +139,11 @@ The polykite grid also uses a subset of the hex grid.  The kites can be scaled s
 
 <p align="center"><img src="grids/kitegrid.svg" style="width: 400px;"/></p>
 
-
 ### The polydrafter grid
+
+The polydrafter grid uses a similar principle to the polykite grid: the drafters are scaled to the point where each one contains a single complete cell of an underlying hex grid, resulting in a sparse set of coordinate pairs that correspond to legal drafter positions.
+
+<p align="center"><img src="grids/draftergrid.svg" style="width: 500px;"/></p>
 
 ### The polyabolo grid
 
