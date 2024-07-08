@@ -98,6 +98,7 @@ public:
 	bool hasCorona( 
 		bool get_solution, bool& has_holes, Solution<coord_t>& soln );
 	void allCoronas( std::vector<Solution<coord_t>>& solns );
+	void allCoronas( solution_cb<coord_t> cb ) const;
 
 	void debug( std::ostream& os ) const;
 
@@ -119,7 +120,7 @@ private:
 	void addHolesToLevel();
 	void extendLevelWithTransforms( size_t lev, const xform_set<coord_t>& Ts );
 
-	void allCoronas( CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const;
+	size_t allCoronas( CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const;
 	// bool checkIsohedralTiling_deprecated( CMSat::SATSolver& solv );
 	bool checkIsohedralTiling( CMSat::SATSolver& solv );
 	// bool isSurroundIsohedral( const Solution<coord_t>& soln ) const;
@@ -888,6 +889,8 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 		}
 	}
 
+	// FIXME -- is there a reason to use allCoronas here and not something
+	// simpler?
 	allCoronas( solv, [this] ( const Solution<coord_t>& soln ) {
 		tiles_isohedrally_ = true;
 		/*
@@ -903,10 +906,10 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 
 // Note that this enumerates only hole-free coronas.
 template<typename grid>
-void HeeschSolver<grid>::allCoronas( 
+size_t HeeschSolver<grid>::allCoronas( 
 	CMSat::SATSolver& solv, solution_cb<coord_t> cb ) const
 {
-	// getClauses( solv, false );
+	size_t solutions = 0;
 
 	while( solv.solve() == CMSat::l_True ) {
 		// Got a solution, but it may have large holes.  Need to find
@@ -931,32 +934,39 @@ void HeeschSolver<grid>::allCoronas(
 		std::vector<std::vector<tile_index>> holes;
 		if( !finder.getHoles( holes ) ) {
 			// No holes, so keep the solution
+			++solutions;
 			Solution<coord_t> soln;
 			getSolution( solv, soln );
 			if( !cb( soln ) ) {
-				return;
+				return solutions;
 			}
 		}
 
 		// Suppress this solution and keep going.
 		solv.add_clause( cl );
 	}
-}
 
+	return solutions;
+}
 template<typename grid>
-void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns ) 
+void HeeschSolver<grid>::allCoronas( solution_cb<coord_t> cb ) const
 {
 	if( !cloud_.surroundable_ ) {
 		return;
 	}
 
-	solns.clear();
-
 	CMSat::SATSolver solver;
 	solver.new_vars( next_var_ );
 	getClauses( solver, false );
 
-	allCoronas( solver, [&solns]( const Solution<coord_t>& soln )
+	allCoronas( solver, cb );
+}
+
+template<typename grid>
+void HeeschSolver<grid>::allCoronas( std::vector<Solution<coord_t>>& solns ) 
+{
+	solns.clear();
+	allCoronas( [&solns]( const Solution<coord_t>& soln )
 		{ solns.push_back( soln ); return true; } );
 }
 
