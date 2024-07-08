@@ -99,5 +99,34 @@ To close out the running example, executing `./viz 6hex_out.txt` will produce an
 
 # The grids
 
+At present, I am not providing complete documentation for the text file format used by the programs above.  If you want to understand the format, a good starting point would be to look at the function `TileInfo<grid>::write( std::ostream& os )` in `tileio.h`.  That being said, there is some value in describing the encoding of the cells of the different polyform grids.
+
+Every polyform is described using a sequence of (x,y) coordinate pairs, given on a line with no other punctuation. Each coordinate pair specifies one cell occupied by the polyform. For example, the coordinates `0 0 1 0 2 0 0 1 2 1` might describe the U-pentomino. Some coordinate grids are specified relative to non-standard coordinate axes, and some use a sparse set of coordinate pairs, meaning that not all pairs of integers necessarily correspond to legal cells.  The benefit is that all computations can be carried using only integer operations, with no risk of inaccuracies.
+
+### The polyomino grid
+
+The polyomino has the simplest and most natural structure, which probably doesn't need any explanation.  The diagram gives coordinates for a few sample cells near the origin.
+
+<p align="center"><img src="grids/omino.svg" style="width: 400px;"/></p>
+
+### The polyhex grid
+
+### The polyiamond grid
+
+### The octasquare grid
+
+### The trihex grid
+
+### The kite grid
+
+### The polydrafter grid
+
+### The polyabolo grid
+
+### The halfcairo grid
+
+### The bevelhex grid
+
+
 # References
 
