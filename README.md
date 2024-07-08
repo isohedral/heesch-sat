@@ -123,7 +123,15 @@ The polyiamond grid uses a sparse subset of the cells of the polyhex grid, in wh
 
 ### The octasquare grid
 
+The octasquare grid uses identical axes and cell coordinates as the polyomino grid, but cells are alternately interpreted as squares or octagons.  (The difference in behaviour is therefore encoded not in the coordinates themselves, but in which cells are considered adjacent to which others.)
+
+<p align="center"><img src="grids/octasquaregrid.svg" style="width: 400px;"/></p>
+
 ### The trihex grid
+
+The trihex grid is to the hex grid as the octasquare grid is to the square grid.  All coordinate pairs are legal cell, but vary between representing hexagons or triangles.
+
+<p align="center"><img src="grids/trihexgrid.svg" style="width: 400px;"/></p>
 
 ### The kite grid
 
