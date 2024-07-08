@@ -19,7 +19,7 @@
       .cls-5 {
         stroke: #27aae1;
         stroke-linejoin: round;
-        stroke-width: 2.95px;
+        stroke-width: 5px;
       }
 
       .cls-5, .cls-6 {
@@ -54,13 +54,17 @@
   <g>
     <polyline class="cls-6" points="239.35 58.16 241.38 279.06 486.01 279.06"/>
     <path class="cls-7" d="M239.42,65.34l14.49,8.63.32-.5-9.55-23.41c-1.88-8.17-3.75-16.34-5.63-24.51-1.73,8.2-3.45,16.41-5.18,24.61l-9.12,23.58.25.49,14.41-8.9h0Z"/>
-    <path class="cls-7" d="M478.83,279.06l-8.77-14.41.49-.33,23.5,9.33c8.19,1.8,16.37,3.6,24.56,5.4-8.19,1.8-16.37,3.6-24.56,5.4l-23.5,9.33-.49-.25,8.77-14.49v.02Z"/>
+    <path class="cls-7" d="M478.83,279.06l-8.77-14.41.49-.33,23.5,9.33c8.19,1.8,16.37,3.6,24.56,5.4-8.19,1.8-16.37,3.6-24.56,5.4l-23.5,9.33-.49-.25,8.77-14.49v.02h0Z"/>
   </g>
   <g class="cls-3">
-    <text class="cls-1" transform="translate(497.06 324.67)"><tspan x="0" y="0">X</tspan></text>
+    <g class="cls-3">
+      <text class="cls-1" transform="translate(497.06 324.67)"><tspan x="0" y="0">X</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-1" transform="translate(251.57 37.54)"><tspan x="0" y="0">Y</tspan></text>
+    <g class="cls-3">
+      <text class="cls-1" transform="translate(251.57 37.54)"><tspan x="0" y="0">Y</tspan></text>
+    </g>
   </g>
   <rect class="cls-2" x="20.32" y="58.01" width="63.16" height="63.16"/>
   <rect class="cls-2" x="83.48" y="58.01" width="63.16" height="63.16"/>
@@ -112,31 +116,49 @@
   <rect class="cls-2" x="336.11" y="436.96" width="63.16" height="63.16"/>
   <rect class="cls-2" x="399.27" y="436.96" width="63.16" height="63.16"/>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(284.14 285.05)"><tspan x="0" y="0">(1,0)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(284.14 285.05)"><tspan x="0" y="0">(1,0)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(154.54 285.05)"><tspan x="0" y="0">(-1,0)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(154.54 285.05)"><tspan x="0" y="0">(-1,0)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(154.54 221.9)"><tspan x="0" y="0">(-1,1)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(154.54 221.9)"><tspan x="0" y="0">(-1,1)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(220.98 221.9)"><tspan x="0" y="0">(0,1)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(220.98 221.9)"><tspan x="0" y="0">(0,1)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(284.14 221.9)"><tspan x="0" y="0">(1,1)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(284.14 221.9)"><tspan x="0" y="0">(1,1)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(151.25 348.21)"><tspan x="0" y="0">(-1,-1)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(151.25 348.21)"><tspan x="0" y="0">(-1,-1)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(220.98 285.05)"><tspan x="0" y="0">(0,0)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(220.98 285.05)"><tspan x="0" y="0">(0,0)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(217.7 348.21)"><tspan x="0" y="0">(0,-1)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(217.7 348.21)"><tspan x="0" y="0">(0,-1)</tspan></text>
+    </g>
   </g>
   <g class="cls-3">
-    <text class="cls-4" transform="translate(280.85 348.21)"><tspan x="0" y="0">(1,-1)</tspan></text>
+    <g class="cls-3">
+      <text class="cls-4" transform="translate(280.85 348.21)"><tspan x="0" y="0">(1,-1)</tspan></text>
+    </g>
   </g>
   <rect class="cls-5" x="413.38" y="451.06" width="37.22" height="37.22"/>
   <rect class="cls-5" x="286.31" y="451.06" width="37.22" height="37.22"/>
