@@ -33,13 +33,13 @@
         stroke-width: 5px;
       }
 
-      .cls-8 {
-        fill: #fff;
-        stroke: #231f20;
+      .cls-8, .cls-6, .cls-9 {
+        stroke-miterlimit: 10;
       }
 
-      .cls-8, .cls-6 {
-        stroke-miterlimit: 10;
+      .cls-8, .cls-9 {
+        fill: #fff;
+        stroke: #231f20;
       }
 
       .cls-6 {
@@ -48,6 +48,10 @@
       }
 
       .cls-9 {
+        opacity: .77;
+      }
+
+      .cls-10 {
         fill: #7f1f17;
         stroke-width: 0px;
       }
@@ -62,19 +66,23 @@
     </style>
   </defs>
   <polyline class="cls-6" points="534.25 21.25 536.28 262.15 770.91 262.15"/>
-  <path class="cls-9" d="M534.32,28.43l14.49,8.63.32-.5-9.55-23.41c-1.88-8.17-3.75-16.34-5.63-24.51-1.73,8.2-3.45,16.41-5.18,24.61l-9.12,23.58.25.49,14.41-8.9h0Z"/>
-  <path class="cls-9" d="M763.73,262.15l-8.77-14.41.49-.33,23.5,9.33c8.19,1.8,16.37,3.6,24.56,5.4-8.19,1.8-16.37,3.6-24.56,5.4l-23.5,9.33-.49-.25,8.77-14.49v.02h0Z"/>
+  <path class="cls-10" d="M534.32,28.43l14.49,8.63.32-.5-9.55-23.41c-1.88-8.17-3.75-16.34-5.63-24.51-1.73,8.2-3.45,16.41-5.18,24.61l-9.12,23.58.25.49,14.41-8.9h.01Z"/>
+  <path class="cls-10" d="M763.73,262.15l-8.77-14.41.49-.33,23.5,9.33c8.19,1.8,16.37,3.6,24.56,5.4-8.19,1.8-16.37,3.6-24.56,5.4l-23.5,9.33-.49-.25,8.77-14.49v.02h0Z"/>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-1" transform="translate(779.24 245.59)"><tspan x="0" y="0">X</tspan></text>
+        <g class="cls-3">
+          <text class="cls-1" transform="translate(779.24 245.59)"><tspan x="0" y="0">X</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-1" transform="translate(561.9 21.25)"><tspan x="0" y="0">Y</tspan></text>
+        <g class="cls-3">
+          <text class="cls-1" transform="translate(561.9 21.25)"><tspan x="0" y="0">Y</tspan></text>
+        </g>
       </g>
     </g>
   </g>
@@ -90,13 +98,13 @@
     <rect class="cls-8" x="466.47" y="192.34" width="27.92" height="27.92"/>
   </g>
   <rect class="cls-8" x="494.4" y="136.49" width="27.92" height="27.92"/>
-  <rect class="cls-8" x="522.32" y="136.49" width="27.92" height="27.92"/>
+  <rect class="cls-9" x="522.32" y="136.49" width="27.92" height="27.92"/>
   <rect class="cls-8" x="550.24" y="136.49" width="27.92" height="27.92"/>
   <rect class="cls-8" x="494.4" y="164.42" width="27.92" height="27.92"/>
-  <rect class="cls-8" x="522.32" y="164.42" width="27.92" height="27.92"/>
+  <rect class="cls-9" x="522.32" y="164.42" width="27.92" height="27.92"/>
   <rect class="cls-8" x="550.24" y="164.42" width="27.92" height="27.92"/>
   <rect class="cls-8" x="494.4" y="192.34" width="27.92" height="27.92"/>
-  <rect class="cls-8" x="522.32" y="192.34" width="27.92" height="27.92"/>
+  <rect class="cls-9" x="522.32" y="192.34" width="27.92" height="27.92"/>
   <rect class="cls-8" x="550.24" y="192.34" width="27.92" height="27.92"/>
   <g class="cls-4">
     <rect class="cls-8" x="661.94" y="136.49" width="27.92" height="27.92"/>
@@ -185,56 +193,72 @@
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(554.22 265.09)"><tspan x="0" y="0">(1,0)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(554.22 265.09)"><tspan x="0" y="0">(1,0)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(554.22 237.16)"><tspan x="0" y="0">(1,1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(554.22 237.16)"><tspan x="0" y="0">(1,1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(526.29 237.16)"><tspan x="0" y="0">(0,1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(526.29 237.16)"><tspan x="0" y="0">(0,1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(496.76 237.16)"><tspan x="0" y="0">(-1,1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(496.76 237.16)"><tspan x="0" y="0">(-1,1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(496.76 265.09)"><tspan x="0" y="0">(-1,0)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(496.76 265.09)"><tspan x="0" y="0">(-1,0)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(495.15 293.01)"><tspan x="0" y="0">(-1,-1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(495.15 293.01)"><tspan x="0" y="0">(-1,-1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(524.68 293.01)"><tspan x="0" y="0">(0,-1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(524.68 293.01)"><tspan x="0" y="0">(0,-1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(552.61 293.01)"><tspan x="0" y="0">(1,-1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(552.61 293.01)"><tspan x="0" y="0">(1,-1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
@@ -252,56 +276,72 @@
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(637.84 264.8)"><tspan x="0" y="0">(4,0)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(637.84 264.8)"><tspan x="0" y="0">(4,0)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(637.84 236.87)"><tspan x="0" y="0">(4,1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(637.84 236.87)"><tspan x="0" y="0">(4,1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(609.92 236.87)"><tspan x="0" y="0">(3,1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(609.92 236.87)"><tspan x="0" y="0">(3,1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(582 236.87)"><tspan x="0" y="0">(2,1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(582 236.87)"><tspan x="0" y="0">(2,1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(582 264.8)"><tspan x="0" y="0">(2,0)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(582 264.8)"><tspan x="0" y="0">(2,0)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(580.39 292.72)"><tspan x="0" y="0">(2,-1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(580.39 292.72)"><tspan x="0" y="0">(2,-1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(608.31 292.72)"><tspan x="0" y="0">(3,-1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(608.31 292.72)"><tspan x="0" y="0">(3,-1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(636.23 292.72)"><tspan x="0" y="0">(4,-1)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(636.23 292.72)"><tspan x="0" y="0">(4,-1)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
@@ -319,56 +359,72 @@
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(637.99 181.31)"><tspan x="0" y="0">(4,3)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(637.99 181.31)"><tspan x="0" y="0">(4,3)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(637.99 153.39)"><tspan x="0" y="0">(4,4)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(637.99 153.39)"><tspan x="0" y="0">(4,4)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(610.06 153.39)"><tspan x="0" y="0">(3,4)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(610.06 153.39)"><tspan x="0" y="0">(3,4)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(582.14 153.39)"><tspan x="0" y="0">(2,4)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(582.14 153.39)"><tspan x="0" y="0">(2,4)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(582.14 181.31)"><tspan x="0" y="0">(2,3)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(582.14 181.31)"><tspan x="0" y="0">(2,3)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(582.14 209.24)"><tspan x="0" y="0">(2,2)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(582.14 209.24)"><tspan x="0" y="0">(2,2)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(610.06 209.24)"><tspan x="0" y="0">(3,2)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(610.06 209.24)"><tspan x="0" y="0">(3,2)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
   <g class="cls-3">
     <g class="cls-3">
       <g class="cls-3">
-        <text class="cls-2" transform="translate(637.99 209.24)"><tspan x="0" y="0">(4,2)</tspan></text>
+        <g class="cls-3">
+          <text class="cls-2" transform="translate(637.99 209.24)"><tspan x="0" y="0">(4,2)</tspan></text>
+        </g>
       </g>
     </g>
   </g>
@@ -376,7 +432,7 @@
     <line class="cls-5" x1="368.08" y1="94.1" x2="343.85" y2="136.06"/>
     <polyline class="cls-5" points="410.04 118.33 410.04 136.06 343.85 136.06 368.08 94.1 410.04 118.32 410.04 136.06"/>
     <polyline class="cls-5" points="392.31 52.14 410.04 52.14 410.05 118.32 368.08 94.1 392.31 52.14 410.04 52.14"/>
-    <path class="cls-5" d="M368.08,94.11s24.22-41.96,24.22-41.96"/>
+    <path class="cls-5" d="M368.08,94.11l24.22-41.96"/>
     <polygon class="cls-5" points="410.04 118.32 452 94.1 427.78 52.14 410.04 52.14 410.04 118.32"/>
     <polyline class="cls-5" points="493.96 69.88 493.96 52.14 427.78 52.14 452 94.1 493.96 69.88 493.96 52.14"/>
     <polyline class="cls-5" points="476.23 136.06 493.96 136.06 493.97 69.88 452 94.1 476.23 136.06 493.96 136.06"/>
@@ -396,7 +452,7 @@
     <line class="cls-5" x1="368.08" y1="178.02" x2="343.85" y2="136.06"/>
     <polyline class="cls-5" points="410.04 153.8 410.04 136.06 343.85 136.06 368.08 178.02 410.04 153.8 410.04 136.06"/>
     <polyline class="cls-5" points="392.31 219.98 410.04 219.98 410.05 153.8 368.08 178.02 392.31 219.98 410.04 219.98"/>
-    <path class="cls-5" d="M368.08,178.02s24.22,41.96,24.22,41.96"/>
+    <path class="cls-5" d="M368.08,178.02l24.22,41.96"/>
     <polygon class="cls-5" points="410.04 153.8 452 178.02 427.77 219.98 410.04 219.98 410.04 153.8"/>
     <polyline class="cls-5" points="493.95 202.24 493.96 219.98 427.77 219.98 452 178.02 493.95 202.24 493.96 219.98"/>
     <polyline class="cls-5" points="476.23 136.06 493.96 136.06 493.96 202.24 452 178.02 476.23 136.06 493.96 136.06"/>
@@ -416,7 +472,7 @@
     <line class="cls-5" x1="368.08" y1="261.93" x2="343.85" y2="303.89"/>
     <polyline class="cls-5" points="410.04 286.16 410.04 303.89 343.85 303.89 368.08 261.93 410.04 286.16 410.04 303.89"/>
     <polyline class="cls-5" points="392.31 219.97 410.04 219.97 410.05 286.15 368.08 261.93 392.31 219.97 410.04 219.97"/>
-    <path class="cls-5" d="M368.08,261.94s24.22-41.96,24.22-41.96"/>
+    <path class="cls-5" d="M368.08,261.94l24.22-41.96"/>
     <polygon class="cls-5" points="410.04 286.15 452 261.93 427.78 219.97 410.04 219.97 410.04 286.15"/>
     <polyline class="cls-5" points="493.96 237.71 493.96 219.97 427.78 219.97 452 261.93 493.96 237.71 493.96 219.97"/>
     <polyline class="cls-5" points="476.23 303.89 493.96 303.89 493.97 237.71 452 261.93 476.23 303.89 493.96 303.89"/>
@@ -436,7 +492,7 @@
     <line class="cls-5" x1="368.08" y1="345.85" x2="343.85" y2="303.89"/>
     <polyline class="cls-5" points="410.04 321.63 410.04 303.89 343.85 303.89 368.08 345.86 410.04 321.63 410.04 303.89"/>
     <polyline class="cls-5" points="392.31 387.81 410.04 387.81 410.05 321.63 368.08 345.85 392.31 387.81 410.04 387.81"/>
-    <path class="cls-5" d="M368.08,345.85s24.22,41.96,24.22,41.96"/>
+    <path class="cls-5" d="M368.08,345.85l24.22,41.96"/>
     <polygon class="cls-5" points="410.04 321.63 452 345.85 427.77 387.81 410.04 387.81 410.04 321.63"/>
     <polyline class="cls-5" points="493.95 370.07 493.96 387.81 427.77 387.81 452 345.85 493.95 370.07 493.96 387.81"/>
     <polyline class="cls-5" points="476.23 303.89 493.96 303.89 493.96 370.07 452 345.85 476.23 303.89 493.96 303.89"/>
@@ -482,7 +538,7 @@
     <line class="cls-7" x1="368.08" y1="429.77" x2="343.85" y2="387.81"/>
     <polyline class="cls-7" points="410.03 405.54 410.03 387.81 343.85 387.81 368.07 429.77 410.03 405.54 410.03 387.81"/>
     <polyline class="cls-7" points="392.3 471.73 410.04 471.73 410.04 405.55 368.08 429.77 392.3 471.73 410.04 471.73"/>
-    <path class="cls-7" d="M368.07,429.76s24.22,41.96,24.22,41.96"/>
+    <path class="cls-7" d="M368.07,429.76l24.22,41.96"/>
     <polygon class="cls-7" points="410.03 405.55 452 429.77 427.77 471.73 410.04 471.73 410.03 405.55"/>
     <polyline class="cls-7" points="493.95 453.99 493.95 471.73 427.77 471.73 451.99 429.76 493.95 453.99 493.95 471.73"/>
     <polyline class="cls-7" points="476.23 387.81 493.96 387.81 493.96 453.99 452 429.77 476.23 387.81 493.96 387.81"/>
@@ -502,7 +558,7 @@
     <line class="cls-7" x1="368.08" y1="345.85" x2="343.85" y2="387.81"/>
     <polyline class="cls-7" points="410.03 370.07 410.03 387.8 343.85 387.81 368.07 345.84 410.03 370.07 410.03 387.8"/>
     <polyline class="cls-7" points="392.3 303.89 410.04 303.89 410.04 370.07 368.08 345.85 392.3 303.89 410.04 303.89"/>
-    <path class="cls-7" d="M368.07,345.85s24.22-41.96,24.22-41.96"/>
+    <path class="cls-7" d="M368.07,345.85l24.22-41.96"/>
     <polygon class="cls-7" points="410.03 370.07 451.99 345.85 427.77 303.89 410.03 303.89 410.03 370.07"/>
     <polyline class="cls-7" points="493.95 321.62 493.95 303.89 427.77 303.89 451.99 345.85 493.95 321.63 493.95 303.89"/>
     <polyline class="cls-7" points="476.22 387.81 493.96 387.81 493.96 321.63 451.99 345.85 476.22 387.81 493.96 387.81"/>
@@ -522,7 +578,7 @@
     <line class="cls-7" x1="368.08" y1="261.94" x2="343.85" y2="219.98"/>
     <polyline class="cls-7" points="410.03 237.71 410.03 219.98 343.85 219.98 368.07 261.94 410.03 237.71 410.03 219.98"/>
     <polyline class="cls-7" points="392.3 303.9 410.04 303.9 410.04 237.72 368.08 261.94 392.3 303.9 410.04 303.9"/>
-    <path class="cls-7" d="M368.07,261.93s24.22,41.96,24.22,41.96"/>
+    <path class="cls-7" d="M368.07,261.93l24.22,41.96"/>
     <polygon class="cls-7" points="410.03 237.71 452 261.94 427.77 303.9 410.04 303.9 410.03 237.71"/>
     <polyline class="cls-7" points="493.95 286.16 493.95 303.89 427.77 303.9 451.99 261.93 493.95 286.16 493.95 303.89"/>
     <polyline class="cls-7" points="476.23 219.98 493.96 219.98 493.96 286.16 452 261.94 476.23 219.98 493.96 219.98"/>
@@ -542,7 +598,7 @@
     <line class="cls-7" x1="368.08" y1="178.02" x2="343.85" y2="219.98"/>
     <polyline class="cls-7" points="410.03 202.24 410.03 219.97 343.85 219.98 368.07 178.01 410.03 202.24 410.03 219.97"/>
     <polyline class="cls-7" points="392.3 136.06 410.04 136.06 410.04 202.24 368.08 178.02 392.3 136.06 410.04 136.06"/>
-    <path class="cls-7" d="M368.07,178.02s24.22-41.96,24.22-41.96"/>
+    <path class="cls-7" d="M368.07,178.02l24.22-41.96"/>
     <polygon class="cls-7" points="410.03 202.24 451.99 178.02 427.77 136.06 410.03 136.06 410.03 202.24"/>
     <polyline class="cls-7" points="493.95 153.79 493.95 136.06 427.77 136.06 451.99 178.02 493.95 153.79 493.95 136.06"/>
     <polyline class="cls-7" points="476.22 219.98 493.96 219.98 493.96 153.8 451.99 178.02 476.22 219.98 493.96 219.98"/>
