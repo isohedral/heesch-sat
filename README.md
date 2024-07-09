@@ -174,6 +174,6 @@ Of course, if you are interested in this topic, you should also visit Joseph Mye
 
 # Acknowledgments
 
-Thanks to [Bram Cohen](https://bramcohen.com/) for the initial suggestion of using a SAT solver to compute Heesch numbers. Thanks to [Ava Pun](https://www.avapun.com/) for contributions to this code in the summer of 2021.  Thanks also to Joseph Myers for allowing me to use his codebase over the years, and for helpful discussions while I was developing this software.
+Thanks to [Bram Cohen](https://bramcohen.com/) for the initial suggestion of using a SAT solver to compute Heesch numbers. Thanks to [Ava Pun](https://www.avapun.com/) for contributions to this code in the summer of 2021.  Thanks also to [Joseph Myers](https://www.polyomino.org.uk/) for allowing me to use his codebase over the years, and for helpful discussions while I was developing this software.
 
 If you use this code in your own research, feel free to drop me a note to let me know.
