@@ -159,6 +159,9 @@ The halfcairo grid is sufficient for representing all polycairos, as well as oth
 
 ### The bevelhex grid
 
+The bevelhex grid can represent polyforms that are unions of tiles from the (4.6.12) Archimedean tiling, made up of dodecagons, regular hexagons, and squares.  As always, this tiling can be represented by superimposing a scaled copy on a hex grid, and using a very sparse subset of its cells to represent the (4.6.12) tiles.
+
+<p align="center"><img src="grids/bevelhexgrid.svg?raw=true" style="width: 600px;"/></p>
 
 # References
 
