@@ -153,6 +153,10 @@ The polyabolo grid is based on the square grid, with half of the square cells us
 
 ### The halfcairo grid
 
+The halfcairo grid is sufficient for representing all polycairos, as well as other shapes that use just half of a cairo pentagon split down its line of mirror reflection.  There are two distinct cell shapes, formed by superimposing a grid of halfcairos and its reflection.  Two of each cell shape are needed to make up a single cairo pentagon.  The cells can be associated with most of the cells in a square grid, as shown.  In the diagram, one possible cairo pentagon would be made up of the cells (1,0), (2,0), (1,-1), and (2,-1).
+
+<p align="center"><img src="grids/halfcairogrid.svg?raw=true" style="width: 600px;"/></p>
+
 ### The bevelhex grid
 
 
