@@ -147,6 +147,10 @@ The polydrafter grid uses a similar principle to the polykite grid: the drafters
 
 ### The polyabolo grid
 
+The polyabolo grid is based on the square grid, with half of the square cells used to denote abolo cells.
+
+<p align="center"><img src="grids/abologrid.svg" style="width: 500px;"/></p>
+
 ### The halfcairo grid
 
 ### The bevelhex grid
