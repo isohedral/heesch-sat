@@ -34,7 +34,7 @@ The `gen` tool uses variants of Redelmeier's algorithm to enumerate all fixed or
  * `-units`: Define "unit compounds" to be used as the base of polyform generation.  Accepts a sequence of unit compounds from standard input, one per line.  For example, the `-abolo` switch will generate polyabolos aligned to a single fixed [4.8.8] grid, which probably isn't what you want. It makes more sense to generate based on a single unit compound made from an aligned 2-abolo, resulting in shapes roughly equivalent to the standard definition of polyaboloes (which allows multiple overlapping choices for a single triangle.  *This feature should be considered experimental and potentially flaky*
  * `-o <fname.txt>`: Write output to the specified text file.  If no file name is given, output is written to standard out.
 
-As a typical example, `./gen -hex -size 6 -free -o 6hex.txt` will generate the 81 holeless free 6-hexes, writing the result to `6hex.txt`.  The file format is somewhat arcane, but is deliberately left as a plain text file that can be understood by eye with a bit of practice.
+As a typical example, `./gen -hex -size 6 -free -o 6hex.txt` will generate the 81 holeless free 6-hexes, writing the result to `6hex.txt`.  The file format is somewhat arcane, but is deliberately left as a plain text file that can be understood by eye with a bit of practice. The grid types that make up the first block of command-line options will be explained in greater detail below.
 
 ## Analyzing polyforms
 
