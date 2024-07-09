@@ -165,3 +165,9 @@ The bevelhex grid can represent polyforms that are unions of tiles from the (4.6
 
 # References
 
+There are a couple of key papers that explain the ideas that power this code.
+
+* Craig S. Kaplan. Heesch numbers of unmarked polyforms. *Contributions to Discrete Mathematics*, 17(2):150–171, 2022.  Available online at https://cdm.ucalgary.ca/article/view/72886. This article explains the computation of Heesch numbers that makes up the bulk of the `sat` program. The article is based purely on polyominoes, polyhexes, and polyiamonds; the other grid types were added later.
+* Craig S. Kaplan. Detecting isohedral polyforms with a SAT solver.  *GASCom 2024 Abstracts*, 118–122, 2024. Available online at https://cgi.cse.unsw.edu.au/~eptcs/paper.cgi?GASCom2024.25. This short paper explains the code added in 2023 to determine whether a polyform tiles the plane isohedrally.
+
+Of course, if you are interested in this topic, you should also visit Joseph Myers's web page about tiling properties of polyforms at https://www.polyomino.org.uk/mathematics/polyform-tiling/. His page contains a wealth of information about polyominoes, polyhexes, polyiamonds, and polykites, based on code he has been writing since 1996. His code does not compute Heesch numbers, meaning that to some extent this project can be seen as a means of teasing apart the final column ("non-tilers") in several of his tables.
