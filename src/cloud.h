@@ -45,6 +45,7 @@ public:
 	using coord_t = typename grid::coord_t;
 	using xform_t = typename grid::xform_t;
 	using point_t = typename grid::point_t;
+	using bitgrid_t = bitgrid<128>;
 
 	Cloud( const Shape<grid>& shape, Orientations ori = ALL, bool reduce = false );
 
@@ -70,7 +71,7 @@ public:
 	}
 
 	void calcOrientations( Orientations ori );
-	bool checkSimplyConnected( CellBitmap& bits, const xform_t& T );
+	bool checkSimplyConnected( bitgrid_t& bits, const xform_t& T );
 	bool checkSimplyConnectedOld( const xform_t& T );
 	void reduceAdjacents();
 
@@ -120,7 +121,7 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori, bool reduce )
 		}
 	}
 
-	CellBitmap bits;
+	bitgrid_t bits;
 
 	// Now try to construct all adjacencies by translating a border
 	// point of an oriented shape to a halo point of the main shape.
@@ -191,7 +192,7 @@ bool Cloud<grid>::checkSimplyConnectedOld( const xform_t& T )
 }
 
 template<typename grid>
-bool Cloud<grid>::checkSimplyConnected( CellBitmap& bits, const xform_t& T )
+bool Cloud<grid>::checkSimplyConnected( bitgrid_t& bits, const xform_t& T )
 {
 	bits.clear();
 

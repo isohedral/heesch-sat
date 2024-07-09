@@ -23,8 +23,13 @@ class RedelmeierSimple
     using point_t = typename grid::point_t;
     using shape_t = Shape<grid>;
 
+/*
     enum CellStatus {
         FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
+    };
+	*/
+    enum CellStatus {
+        FREE, OCCUPIED, REACHABLE
     };
 
 	using cell_map = point_map<coord_t, CellStatus>;
@@ -106,8 +111,13 @@ class RedelmeierCompound
 	using shape_t = Shape<grid>;
     using adj_t = adj_info<grid>;
 
+/*
     enum CellStatus {
         FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
+    };
+	*/
+    enum CellStatus {
+        FREE, OCCUPIED, REACHABLE
     };
 
 	using cell_map = std::unordered_map<adj_t, CellStatus, adj_hash<grid>>;
