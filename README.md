@@ -129,7 +129,7 @@ The octasquare grid uses identical axes and cell coordinates as the polyomino gr
 
 ### The trihex grid
 
-The trihex grid is to the hex grid as the octasquare grid is to the square grid.  All coordinate pairs are legal cell, but vary between representing hexagons or triangles.
+The trihex grid is to the hex grid as the octasquare grid is to the square grid.  All coordinate pairs are legal cells, but vary between representing hexagons or triangles.
 
 <p align="center"><img src="grids/trihexgrid.svg?raw=true" style="width: 400px;"/></p>
 
