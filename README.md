@@ -107,49 +107,49 @@ Every polyform is described using a sequence of (x,y) coordinate pairs, given on
 
 The polyomino has the simplest and most natural structure, which probably doesn't need any further explanation.  The diagram gives coordinates for a few sample cells near the origin.
 
-<p align="center"><img src="grids/ominogrid.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/ominogrid.svg?raw=true" style="width: 400px;"/></p>
 
 ### The polyhex grid
 
 The Y axis of the polyhex grid is at 60 degrees to the X axis, allowing all cells to use integer coordinates, as shown here.  Every pair of integers corresponds to a legal cell.
 
-<p align="center"><img src="grids/hexgrid.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/hexgrid.svg?raw=true" style="width: 400px;"/></p>
 
 ### The polyiamond grid
 
 The polyiamond grid uses a sparse subset of the cells of the polyhex grid, in which either x and y are both multiples of three, or both one more than multiples of three.  The grid is visualized here superimposed on a hexagonal grid, with cells corresponding to triangles marked with coordinates.
 
-<p align="center"><img src="grids/iamondgrid.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/iamondgrid.svg?raw=true" style="width: 400px;"/></p>
 
 ### The octasquare grid
 
 The octasquare grid uses identical axes and cell coordinates as the polyomino grid, but cells are alternately interpreted as squares or octagons.  (The difference in behaviour is therefore encoded not in the coordinates themselves, but in which cells are considered adjacent to which others.)
 
-<p align="center"><img src="grids/octasquaregrid.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/octasquaregrid.svg?raw=true" style="width: 400px;"/></p>
 
 ### The trihex grid
 
 The trihex grid is to the hex grid as the octasquare grid is to the square grid.  All coordinate pairs are legal cell, but vary between representing hexagons or triangles.
 
-<p align="center"><img src="grids/trihexgrid.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/trihexgrid.svg?raw=true" style="width: 400px;"/></p>
 
 ### The polykite grid
 
 The polykite grid also uses a subset of the hex grid.  The kites can be scaled so that each one contains exactly one complete hex, with the vertices and edges of the kite slicing through other unused hex cells.
 
-<p align="center"><img src="grids/kitegrid.svg" style="width: 400px;"/></p>
+<p align="center"><img src="grids/kitegrid.svg?raw=true" style="width: 400px;"/></p>
 
 ### The polydrafter grid
 
 The polydrafter grid uses a similar principle to the polykite grid: the drafters are scaled to the point where each one contains a single complete cell of an underlying hex grid, resulting in a sparse set of coordinate pairs that correspond to legal drafter positions.
 
-<p align="center"><img src="grids/draftergrid.svg" style="width: 500px;"/></p>
+<p align="center"><img src="grids/draftergrid.svg?raw=true" style="width: 500px;"/></p>
 
 ### The polyabolo grid
 
 The polyabolo grid is based on the square grid, with half of the square cells used to denote abolo cells.
 
-<p align="center"><img src="grids/abologrid.svg" style="width: 500px;"/></p>
+<p align="center"><img src="grids/abologrid.svg?raw=true" style="width: 500px;"/></p>
 
 ### The halfcairo grid
 
