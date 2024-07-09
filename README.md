@@ -171,3 +171,9 @@ There are a couple of key papers that explain the ideas that power this code.
 * Craig S. Kaplan. Detecting isohedral polyforms with a SAT solver.  *GASCom 2024 Abstracts*, 118–122, 2024. Available online at https://cgi.cse.unsw.edu.au/~eptcs/paper.cgi?GASCom2024.25. This short paper explains the code added in 2023 to determine whether a polyform tiles the plane isohedrally.
 
 Of course, if you are interested in this topic, you should also visit Joseph Myers's web page about tiling properties of polyforms at https://www.polyomino.org.uk/mathematics/polyform-tiling/. His page contains a wealth of information about polyominoes, polyhexes, polyiamonds, and polykites, based on code he has been writing since 1996. His code does not compute Heesch numbers, meaning that to some extent this project can be seen as a means of teasing apart the final column ("non-tilers") in several of his tables.
+
+# Acknowledgments
+
+Thanks to [Bram Cohen](https://bramcohen.com/) for the initial suggestion of using a SAT solver to compute Heesch numbers. Thanks to [Ava Pun](https://www.avapun.com/) for contributions to this code in the summer of 2021.  Thanks also to Joseph Myers for allowing me to use his codebase over the years, and for helpful discussions while I was developing this software.
+
+If you use this code in your own research, feel free to drop me a note to let me know.
