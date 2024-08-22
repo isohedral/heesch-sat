@@ -23,11 +23,6 @@ class RedelmeierSimple
     using point_t = typename grid::point_t;
     using shape_t = Shape<grid>;
 
-/*
-    enum CellStatus {
-        FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
-    };
-	*/
     enum CellStatus {
         FREE, OCCUPIED, REACHABLE
     };
@@ -111,11 +106,6 @@ class RedelmeierCompound
 	using shape_t = Shape<grid>;
     using adj_t = adj_info<grid>;
 
-/*
-    enum CellStatus {
-        FREE, OCCUPIED, UNTRIED, BLOCKED, REACHABLE
-    };
-	*/
     enum CellStatus {
         FREE, OCCUPIED, REACHABLE
     };
@@ -204,13 +194,16 @@ class FreeFilter
     using xform_t = typename grid::xform_t;
     using shape_t = Shape<grid>;
 
-	std::vector<shape_t> syms;
+	// std::vector<shape_t> syms;
 	bool debug;
+
+	// bool ignore_sym;
 
 public:
 	explicit FreeFilter()
-		: syms {}
-		, debug { false }
+//		: syms {}
+		: debug { false }
+//		, ignore_sym { false }
 	{}
 
 	template<class SizeType, class Sub>
@@ -227,6 +220,13 @@ public:
 	{
 		debug = b;
 	}
+
+/*
+	void setIgnoreSym( bool b )
+	{
+		ignore_sym = b;
+	}
+*/
 
 private:
 	bool checkShape( const shape_t& shape );
@@ -408,7 +408,7 @@ size_t RedelmeierSimple<grid>::solve(
 template<typename grid>
 bool FreeFilter<grid>::checkShape( const shape_t& shape )
 {
-	bool is_symmetric = false;
+	// bool is_symmetric = false;
 
 	shape_t cshape { shape };
 	shape_t tshape { shape };
@@ -436,17 +436,30 @@ bool FreeFilter<grid>::checkShape( const shape_t& shape )
 				dbg( "  ... Not canonical: ", tshape );
 			}
 			return false;
+			/*
 		} else if( cmp == 0 ) {
+			// August 2024: It turns out that my belief that you had to
+			// deal with symmetric polyforms specially was based on an 
+			// erroneous interpretation of the work of others.  I've 
+			// commented out this unneeded code, and will probably remove
+			// it altogether in a future version.
+
 			// Ooh, you're symmetric
 			if( debug ) {
 				std::cerr << "  ... Symmetric!" << std::endl;
 			}
 			is_symmetric = true;
-			break;
+			if( !ignore_sym ) {
+				break;
+			}
+			*/
 		}
 	}
 
-	if( !is_symmetric ) {
+	return true;
+
+/*
+	if( ignore_sym || !is_symmetric ) {
 		// No symmetries, so you must be canonical
 		return true;
 	}
@@ -485,6 +498,7 @@ bool FreeFilter<grid>::checkShape( const shape_t& shape )
 	}
 	syms.push_back( min_shape );
 	return true;
+*/
 }
 
 template<typename grid>

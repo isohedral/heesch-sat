@@ -401,6 +401,9 @@ void HeeschSolver<grid>::increaseLevel()
 	} else {
 		extendLevelWithTransforms( level_ - 1, cloud_.adjacent_ );
 	}
+
+	// std::cerr << "New level: " << level_ << "; dealing with " << 
+	//	tiles_.size() << " tiles." << std::endl;
 }
 
 template<typename grid>
