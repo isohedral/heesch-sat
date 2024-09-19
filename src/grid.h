@@ -37,7 +37,7 @@ inline GridType getGridType( int& argc, char **argv )
 		{ "-bevelhex", BEVELHEX },
 	};
 
-	size_t idx = 1; 
+	int idx = 1; 
 	GridType grid = OMINO; 
 	bool found = false;
 	while( idx < argc ) {  

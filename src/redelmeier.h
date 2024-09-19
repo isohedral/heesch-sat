@@ -2,6 +2,7 @@
 
 #include <set>
 #include <vector>
+#include <functional>
 
 #include "grid.h"
 #include "shape.h"

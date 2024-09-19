@@ -151,7 +151,7 @@ int main( int argc, char **argv )
 
 	GridType gt = getGridType( argc, argv );
 
-	size_t idx = 1;
+	int idx = 1;
 
 	while( idx < argc ) {
 		if( !strcmp( argv[idx], "-size" ) ) {

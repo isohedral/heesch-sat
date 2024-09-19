@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include <fstream>
+#include <filesystem>
 
 #include "heesch.h"
 #include "grid.h"
@@ -12,7 +13,7 @@ using namespace std;
 
 static bool show_solution = false;
 // Ha ha, set to one more than the Heesch record, just in case.
-static int max_level = 7;
+static size_t max_level = 7;
 static Orientations ori = ALL;
 static bool check_hh = false;
 static bool reduce = false;
@@ -112,7 +113,7 @@ int main( int argc, char **argv )
 	// bootstrap_grid( argc, argv, gridMain ) 
 	// GridType gt = getGridType( argc, argv );
 
-	for( size_t idx = 1; idx < argc; ++idx ) {
+	for( int idx = 1; idx < argc; ++idx ) {
 		if( !strcmp( argv[idx], "-show" ) ) {
 			show_solution = true;
 		} else if( !strcmp( argv[idx], "-o" ) ) {
