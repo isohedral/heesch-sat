@@ -148,7 +148,7 @@ int main( int argc, char **argv )
 	bool count = false;
 	bool neighs = false;
 
-	for( size_t idx = 1; idx < argc; ++idx ) {
+	for( int idx = 1; idx < argc; ++idx ) {
 		if( !strcmp( argv[idx], "-level" ) ) {
 		    heesch_level = atoi(argv[idx+1]);
 		    ++idx;
