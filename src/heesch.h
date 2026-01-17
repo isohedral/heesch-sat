@@ -1196,7 +1196,7 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 		tiles_isohedrally_ = true;
 	}
 
-	// The following is being uses to test the boundary-based isohedral 
+	// The following is being used to test the boundary-based isohedral 
 	// tiling checker in isohedral.cpp.  We cross-check its output against
 	// the output of the SAT-based isohedral tile checker above.  Once the
 	// code has stabilized, obviously we'll stop doing both checks every
