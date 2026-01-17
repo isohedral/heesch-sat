@@ -1,6 +1,53 @@
 #pragma once
 
 #include "sat.h"
+#include "dlx.h"
+#include "cloud.h"
+
+template<typename grid>
+bool checkPeriodicRectangle(const Cloud<grid>& cloud, size_t w, size_t h)
+{
+	using coord_t = typename grid::coord_t;
+	using point_t = typename grid::point_t;
+
+	if (grid::grid_type != OMINO) {
+		return false;
+	}
+
+	size_t num_orientations = cloud.orientations_.size();
+
+	// Number of rows: w * h * num_orientations
+	// Number of columns: w * h
+	// All columns required
+
+	size_t stride = w * h;
+	std::vector<bool> bgrid(stride * stride * num_orientations);
+
+	size_t ri = 0;
+
+	for (size_t dy = 0; dy < h; ++dy) {
+		for (size_t dx = 0; dx < w; ++dx) {
+			point_t dpos {(coord_t)dx, (coord_t)dy};
+
+			for (const auto& o: cloud.orientations_) {
+				for (const auto& pt: o.shape_) {
+					// Row ri uses the column given by point pt translated by dx, dy
+					size_t x = (pt.x_ + dx) % w;
+					size_t y = (pt.y_ + dy) % h;
+					bgrid[ri + y * w + x] = true;
+				}
+				ri += stride;
+			}
+		}
+	}
+
+	DLXMatrix m(w * h * num_orientations, w * h, w * h, 
+		[&bgrid, stride](size_t r, size_t c) {return bgrid[r * stride + c];});
+	bool solved = false;
+	m.countSolutions(nullptr, 
+		[&solved](const std::vector<size_t>& soln) {solved = true; return false;});
+	return solved;
+}
 
 namespace Periodic {
 

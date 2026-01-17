@@ -74,7 +74,8 @@ public:
 	// Functions that give useful (but geometrically inaccurate) coordinates
 	// for the vertices of cells.  These "points" need only be in one-to-one
 	// correspondence to the actual vertices, and are always represented in
-	// integer coordinates.
+	// integer coordinates.  These are used with the "vertices" view defined
+	// in grid.h.
 
 	// How many vertices does the cell at position p have?
 	static size_t numVertices(const point_t& p)
@@ -97,7 +98,17 @@ public:
 	{
 		return vertex_neighbours;
 	}
-	
+
+	// Need to be able to go backwards too: given a vertex location as defined
+	// above, get a list of grid cells around it, in CCW order.
+	static void getCellAroundVertexInfo(
+		const point_t& p, point_t& cen, const point<int8_t> *& pts, size_t& num)
+	{
+		num = 4;
+		cen = p;
+		pts = vertex_cell_neighbours;
+	}
+
 	// Functions to assist with rendering
 
 	// Convert a vertex as given by the previous function into a 2D
@@ -124,6 +135,7 @@ public:
 	static const point<int8_t> all_neighbours[8];
 	static const point<int8_t> edge_neighbours[4];
 	static const point<int8_t> vertex_neighbours[4];
+	static const point<int8_t> vertex_cell_neighbours[4];
 
 	static const point_t translationV1;
 	static const point_t translationV2;
@@ -158,6 +170,13 @@ const point<int8_t> OminoGrid<coord>::vertex_neighbours[4] = {
 		{1, 0},
 		{1, 1},
 		{0, 1}};
+
+template<typename coord>
+const point<int8_t> OminoGrid<coord>::vertex_cell_neighbours[4] = {
+		{0, 0},
+		{-1, 0},
+		{-1, -1},
+		{0, -1}};
 
 template<typename coord>
 const xform<int8_t> OminoGrid<coord>::orientations[8] = {

@@ -47,7 +47,7 @@ public:
 
     inline static point_t getOrigin( const point_t& p ) 
     {
-		return origins[ (size_t)getTileType( p ) ];
+		return origins[(size_t)getTileType(p)];
     }
 
 	static size_t numNeighbours( const point_t& p )
@@ -96,6 +96,16 @@ public:
 	static const point<int8_t> *getVertexVectors(const point_t& p)
 	{
 		return tile_vertices[getTileOrientation(p)];
+	}
+
+	static void getCellAroundVertexInfo(
+		const point_t& p, point_t& cen, const point<int8_t> *& pts, size_t& num)
+	{
+	/*
+		num = 6;
+		cen = p;
+		pts = vertex_around_cell_vectors;
+		*/
 	}
 
     static point<double> vertexToGrid( const point_t& pt )

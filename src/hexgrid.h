@@ -84,6 +84,20 @@ public:
 		return vertex_neighbours;
 	}
 
+	static void getCellAroundVertexInfo(
+		const point_t& p, point_t& cen, const point<int8_t> *& pts, size_t& num)
+	{
+		num = 3;
+		coord_t c = (((p.getX() + p.getY()) % 3) + 3) % 3;
+		if (c == 2) {
+			cen = point_t {(p.getX() - 1) / 3, (p.getY() - 1) / 3};
+			pts = vertex_cell_neighbours[0];
+		} else {
+			cen = point_t {(p.getX() - 2) / 3, (p.getY() + 1) / 3};
+			pts = vertex_cell_neighbours[1];
+		}
+	}
+
 	static point<double> vertexToGrid( const point_t& pt ) 
 	{
 		return point<double>( 
@@ -104,6 +118,7 @@ public:
 	
 	static const point<int8_t> all_neighbours[6];
 	static const point<int8_t> vertex_neighbours[6];
+	static const point<int8_t> vertex_cell_neighbours[2][3];
 
 	static const point_t translationV1;
 	static const point_t translationV2;
@@ -131,6 +146,11 @@ const point<int8_t> HexGrid<coord>::vertex_neighbours[6] = {
 		{-1, -1},
 		{1, -2},
 		{2, -1}};
+
+template<typename coord>
+const point<int8_t> HexGrid<coord>::vertex_cell_neighbours[2][3] = {
+	{{0, 0}, {1, 0}, {0, 1}},
+	{{0, 0}, {1, -1}, {1, 0}}};
 
 template<typename coord>
 const xform<int8_t> HexGrid<coord>::orientations[12] = {

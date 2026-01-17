@@ -96,6 +96,14 @@ public:
 		return isBlack(p) ? vertex_neighbours_black : vertex_neighbours_grey;
 	}
 
+	static void getCellAroundVertexInfo(
+		const point_t& p, point_t& cen, const point<int8_t> *& pts, size_t& num)
+	{
+		num = 6;
+		cen = p;
+		// pts = vertex_around_cell_vectors;
+	}
+
 	static point<double> vertexToGrid( const point_t& pt ) 
 	{
 		return point<double>( 
@@ -120,6 +128,7 @@ public:
 	static const point<int8_t> edge_neighbours_grey[3];
 	static const point<int8_t> vertex_neighbours_black[3];
 	static const point<int8_t> vertex_neighbours_grey[3];
+	static const point<int8_t> vertex_cell_neighbours[6];
 
 	static const point_t translationV1;
 	static const point_t translationV2;
@@ -146,6 +155,10 @@ const point<int8_t> IamondGrid<coord>::edge_neighbours_black[3] =
 template<typename coord>
 const point<int8_t> IamondGrid<coord>::edge_neighbours_grey[3] =
     { { -1, -1 }, { 2, -1 }, { -1, 2 } };
+
+template<typename coord>
+const point<int8_t> IamondGrid<coord>::vertex_cell_neighbours[6] =
+	{{1, 1}, {-1, 2}, {-2, 1}, {-1, -1}, {1, -2}, {2, -1}};
 
 template<typename coord>
 const point<int8_t> IamondGrid<coord>::vertex_neighbours_black[3] = 

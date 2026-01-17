@@ -4,6 +4,10 @@
 
 #include "shape.h"
 
+// Function to extract the boundary of a polyform.  Nicely linear time, but it would be nice
+// to find a way to do this without quite so much dynamic memory.  Could be worse, given that
+// you're likely to use this just once per shape.
+
 template<typename coord_t>
 using boundary_edge_map = 
 	point_map<coord_t, std::pair<point<coord_t>, point<coord_t>>>;
@@ -17,9 +21,14 @@ boundary_edge_map<typename grid::coord_t> getTileEdgeMap(
 	boundary_edge_map<typename grid::coord_t> edges;
 
 	point_t vs[MAX_CELL_SIZE];
+
 	for (const auto& p: shape) {
 		vertices<grid> v {p};
-		size_t num = std::copy(v.begin(), v.end(), vs) - vs;
+		size_t num = 0;
+		for (const auto& v: vertices<grid> {p}) {
+			vs[num++] = v;
+		}
+
 		point_t prev = vs[num - 1];
 		for (size_t idx = 0; idx < num; ++idx) {
 			point_t cur = vs[idx];

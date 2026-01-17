@@ -11,6 +11,9 @@
 #include "sat.h"
 #include "periodic.h"
 
+#include "boundary.h"
+#include "isohedral.h"
+
 // The core of the whole system: a class that understands how to compute
 // Heesch numbers of polyforms.  As of 2023, also includes the ability
 // to check whether a polyform tiles isohedrally.
@@ -675,6 +678,8 @@ void HeeschSolver<grid>::getSolution(
 	}
 }
 
+// This method should be deprecated in favour of solve().  It's still used by 
+// computeHeeschSafeMode() in sat.cpp
 template<typename grid>
 bool HeeschSolver<grid>::hasCorona( 
 	bool get_solution, bool& has_holes, patch_t& soln ) 
@@ -941,8 +946,6 @@ void HeeschSolver<grid>::solve(
 		cur_solver->new_vars(next_var_);
 		getClauses(*cur_solver, true);
 
-		// debug(std::cerr);
-
 		if (cur_solver->solve() != CMSat::l_True) {
 			// We've hit the limit, so hard stop here.
 
@@ -1191,6 +1194,41 @@ bool HeeschSolver<grid>::checkIsohedralTiling( CMSat::SATSolver& solv )
 
 	if (solv.solve() == CMSat::l_True) {
 		tiles_isohedrally_ = true;
+	}
+
+	// The following is being uses to test the boundary-based isohedral 
+	// tiling checker in isohedral.cpp.  We cross-check its output against
+	// the output of the SAT-based isohedral tile checker above.  Once the
+	// code has stabilized, obviously we'll stop doing both checks every
+	// time.
+
+	std::vector<point_t> boundary = getTileBoundary(shape_);
+	size_t sz = boundary.size();
+	std::vector<point<int8_t>> word;
+	word.reserve(sz);
+	for (size_t idx = 0; idx < sz; ++idx) {
+		word.push_back(boundary[(idx+1)%sz] - boundary[idx]);
+	}
+
+	IsohedralChecker ic;
+	bool other = ic.tilesIsohedrally(
+		word, grid::num_orientations == 12 ? 6 : 4);
+
+	if (other != tiles_isohedrally_) {
+		std::cerr << "Warning: found mismatch in isohedral computations." 
+			<< std::endl;
+		if (tiles_isohedrally_) {
+			std::cerr << "SAT says yes, boundary says no" << std::endl;
+		} else {
+			std::cerr << "SAT says no, boundary says yes" << std::endl;
+		}
+		std::cerr << "Word:";
+		for (const auto& p: word) {
+			std::cerr << " " << p;
+		}
+		std::cerr << std::endl;
+		std::cerr << "Shape: ";
+		shape_.debug();
 	}
 
 	return tiles_isohedrally_;
