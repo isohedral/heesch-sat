@@ -137,7 +137,6 @@ static bool drawPatch( const TileInfo<grid>& tile )
 
 	return true;
 }
-GRID_WRAP( drawPatch );
 
 template<typename grid>
 static bool drawShapes( const TileInfo<grid>& tile )
@@ -169,7 +168,6 @@ static bool drawShapes( const TileInfo<grid>& tile )
 
 	return true;
 }
-GRID_WRAP( drawShapes );
 
 int main( int argc, char **argv )
 {
@@ -246,9 +244,9 @@ int main( int argc, char **argv )
 	if( shapes_only ) {
 		if( inname ) {
 			ifstream ifs( inname );
-			FOR_EACH_IN_STREAM( ifs, drawShapes );
+			processInputStream(ifs, drawShapes);
 		} else {
-			FOR_EACH_IN_STREAM( cin, drawShapes );
+			processInputStream(cin, drawShapes);
 		}
 
 		if( !((grid_x == 0) && (grid_y == 0)) && !nodraw ) {
@@ -257,9 +255,9 @@ int main( int argc, char **argv )
 	} else {
 		if( inname ) {
 			ifstream ifs( inname );
-			FOR_EACH_IN_STREAM( ifs, drawPatch );
+			processInputStream(ifs, drawPatch);
 		} else {
-			FOR_EACH_IN_STREAM( cin, drawPatch );
+			processInputStream(cin, drawPatch);
 		}
 	}
 

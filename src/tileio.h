@@ -355,8 +355,8 @@ bool processOne( std::istream& is )
 // had mandated that the grid type is homogeneous across all polyforms in 
 // the input, but that restriction seemed annoying.
 
-template<template<typename grid> class Func>
-void processInputStream( std::istream& is, GridType default_gt = OMINO )
+template<auto F>
+void processInputStreamImpl( std::istream& is, GridType default_gt = OMINO )
 {
 	while( true ) {
 		bool mo = true;
@@ -373,23 +373,42 @@ void processInputStream( std::istream& is, GridType default_gt = OMINO )
 			gt = getGridType( ch );
 		}
 
-		// FIXME This duplicates the code from dispatchToGridType.  That's
-		// annoying -- it would be much nicer to have a single universal
-		// dispatch mechanism that could be used here too.  But it seems
-		// intractable because of the need to pass along Func as a kind of
-		// lambda.  Punt on this for now.
+		// FIXME This can in principle be abstracted into a nicer
+		// dispatch-like mechanism without repeating the code in 
+		// grid.h.  Investigate that.
+
+		using coord = int16_t;
+
 		switch( gt ) {
-			case OMINO: mo = processOne<OminoGrid,Func>( is ); break;
-			case HEX: mo = processOne<HexGrid,Func>( is ); break;
-			case IAMOND: mo = processOne<IamondGrid,Func>( is ); break;
-			case OCTASQUARE: mo = processOne<OctaSquareGrid,Func>( is ); break;
-			case TRIHEX: mo = processOne<TriHexGrid,Func>( is ); break;
-			case ABOLO: mo = processOne<AboloGrid,Func>( is ); break;
-			case DRAFTER: mo = processOne<DrafterGrid,Func>( is ); break;
-			case KITE: mo = processOne<KiteGrid,Func>( is ); break;
-			case HALFCAIRO: mo = processOne<HalfCairoGrid,Func>( is ); break;
-			case BEVELHEX: mo = processOne<BevelHexGrid,Func>( is ); break;
-			default:
+			case HEX: 
+				mo = F.template operator()<HexGrid<coord>>(is);
+				break;
+			case IAMOND: 
+				mo = F.template operator()<IamondGrid<coord>>(is);
+				break;
+			case KITE: 
+				mo = F.template operator()<KiteGrid<coord>>(is);
+				break;
+			case DRAFTER: 
+				mo = F.template operator()<DrafterGrid<coord>>(is);
+				break;
+			case ABOLO: 
+				mo = F.template operator()<AboloGrid<coord>>(is);
+				break;
+			case OCTASQUARE: 
+				mo = F.template operator()<OctaSquareGrid<coord>>(is);
+				break;
+			case TRIHEX: 
+				mo = F.template operator()<TriHexGrid<coord>>(is);
+				break;
+			case HALFCAIRO: 
+				mo = F.template operator()<HalfCairoGrid<coord>>(is);
+				break;
+			case BEVELHEX: 
+				mo = F.template operator()<BevelHexGrid<coord>>(is);
+				break;
+			case OMINO: default: 
+				mo = F.template operator()<OminoGrid<coord>>(is);
 				break;
 		}
 
@@ -399,5 +418,10 @@ void processInputStream( std::istream& is, GridType default_gt = OMINO )
 	}
 }
 
-#define FOR_EACH_IN_STREAM( is, f ) \
-	processInputStream<f##Wrapper>( is );
+// FIXME A bit awkward.  The function takes a TileInfo reference,
+// So we need to declare a local info variable in order to have an
+// lvalue to pass in.
+#define processInputStream(is, f) \
+    processInputStreamImpl<[]<typename Grid>(std::istream& my_is) { \
+		TileInfo<Grid> info {my_is}; \
+		return f<Grid>(info);}>(is);

@@ -64,45 +64,39 @@ inline GridType getGridType( int& argc, char **argv )
 	return grid;
 }
 
-// Set up a few tools to support run-time dispatch based on grid type.
-// This turns out to be a particularly fussy bit of C++.  I couldn't
-// figure out how to make it work purely using template metaprogramming,
-// so I resorted to a couple of macros and a bit too much explicit code
-// in the bootstrapping code of the various programs in this system.
-
-template<template<typename grid> class Func, typename... Args>
-auto dispatchToGridType( GridType gt, Args ...args )
+template<auto F, typename... Args>
+auto dispatchGridTypeImpl(GridType gt, Args&&... args)
 {
 	using coord = int16_t;
 
 	switch( gt ) {
-		case HEX: return Func<HexGrid<coord>>()( args... ); 
-		case IAMOND: return Func<IamondGrid<coord>>()( args... ); 
-		case KITE: return Func<KiteGrid<coord>>()( args... ); 
-		case DRAFTER: return Func<DrafterGrid<coord>>()( args... ); 
-		case ABOLO: return Func<AboloGrid<coord>>()( args... ); 
-		case OCTASQUARE: return Func<OctaSquareGrid<coord>>()( args... ); 
-		case TRIHEX: return Func<TriHexGrid<coord>>()( args... ); 
-		case HALFCAIRO: return Func<HalfCairoGrid<coord>>()( args... ); 
-		case BEVELHEX: return Func<BevelHexGrid<coord>>()( args... ); 
-		case OMINO: default: return Func<OminoGrid<coord>>()( args... ); 
-	} 
+		case HEX: return F.template operator()<HexGrid<coord>>(
+			std::forward<Args>(args)...);
+		case IAMOND: return F.template operator()<IamondGrid<coord>>(o
+			std::forward<Args>(args)...);
+		case KITE: return F.template operator()<KiteGrid<coord>>(
+			std::forward<Args>(args)...);
+		case DRAFTER: return F.template operator()<DrafterGrid<coord>>(
+			std::forward<Args>(args)...);
+		case ABOLO: return F.template operator()<AboloGrid<coord>>(
+			std::forward<Args>(args)...);
+		case OCTASQUARE: return F.template operator()<OctaSquareGrid<coord>>(
+			std::forward<Args>(args)...);
+		case TRIHEX: return F.template operator()<TriHexGrid<coord>>(
+			std::forward<Args>(args)...);
+		case HALFCAIRO: return F.template operator()<HalfCairoGrid<coord>>(
+			std::forward<Args>(args)...);
+		case BEVELHEX: return F.template operator()<BevelHexGrid<coord>>(
+			std::forward<Args>(args)...);
+		case OMINO: default: return F.template operator()<OminoGrid<coord>>(
+			std::forward<Args>(args)...);
+	}
 }
 
-#define GRID_WRAP( f ) \
-template<typename grid> \
-struct f##Wrapper \
-{ \
-public: \
-	template<typename... Args> \
-	auto operator()( Args ...args ) \
-	{ \
-		return f<grid>( args... ); \
-	} \
-}
-
-#define GRID_DISPATCH( f, gt, ... ) \
-	dispatchToGridType<f##Wrapper>( gt, __VA_ARGS__ )
+#define dispatchGrid(f, gt, ...) \
+    dispatchGridTypeImpl<[]<typename Grid>(auto&&... args) { \
+		f<Grid>(std::forward<decltype(args)>(args)...); \
+	}>(gt, __VA_ARGS__)
 
 // Utility structures that eat grids and spit out iterators.
 

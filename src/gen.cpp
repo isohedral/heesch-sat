@@ -142,7 +142,6 @@ static void gridMain( int )
 		ofs.close();
 	}
 }
-GRID_WRAP( gridMain );
 
 int main( int argc, char **argv )
 {
@@ -182,6 +181,6 @@ int main( int argc, char **argv )
 		++idx;
 	}
 
-	GRID_DISPATCH( gridMain, gt, 0 );
+	dispatchGrid(gridMain, gt, 0);
 	return 0;
 }

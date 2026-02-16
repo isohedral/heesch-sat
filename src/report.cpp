@@ -62,7 +62,6 @@ static bool getShapeStats( const TileInfo<grid>& tile )
 	}
 	return true;
 }
-GRID_WRAP( getShapeStats );
 
 static void printReport( ostream& os )
 {
@@ -106,9 +105,9 @@ int main( int argc, char **argv )
 
 	if( inname ) {
 		ifstream ifs { inname };
-		FOR_EACH_IN_STREAM( ifs, getShapeStats );
+		processInputStream( ifs, getShapeStats );
 	} else {
-		FOR_EACH_IN_STREAM( cin, getShapeStats );
+		processInputStream( cin, getShapeStats );
 	}
 
 	if( outname ) {

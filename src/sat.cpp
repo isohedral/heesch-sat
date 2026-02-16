@@ -21,7 +21,6 @@ static bool failsafe = false;
 static bool check_isohedral = false;
 static bool check_periodic = false;
 static bool update_only = false;
-static bool debug_levels = false;
 
 static const char *inname = nullptr;
 static const char *outname = nullptr;
@@ -56,7 +55,6 @@ static bool computeHeesch(TileInfo<grid>& info)
 
 	return true;
 }
-GRID_WRAP(computeHeesch);
 
 // An older implementation that can be used as a reference for
 // testing optimizations, for example.
@@ -97,12 +95,6 @@ static bool computeHeeschSafeMode( TileInfo<grid>& tile )
 		solver.increaseLevel();
 
 		while (true) {
-			if (debug_levels) {
-				solver.debugCurrentPatch(cur);
-				tile.setInconclusive(cur);
-				tile.write(*out);
-			}
-
 			if (solver.getLevel() > max_level) {
 				break;
 			}
@@ -144,7 +136,6 @@ static bool computeHeeschSafeMode( TileInfo<grid>& tile )
 	tile.write(*out);
 	return true;
 }
-GRID_WRAP(computeHeeschSafeMode);
 
 int main( int argc, char **argv )
 {
@@ -178,8 +169,6 @@ int main( int argc, char **argv )
 			reduce = true;
 		} else if (!strcmp(argv[idx], "-noreduce")) {
 			reduce = false;
-		} else if (!strcmp(argv[idx], "-debug")) {
-			debug_levels = true;
 		} else if (!strcmp(argv[idx], "-old")) {
 			failsafe = true;
 		} else if (!strcmp(argv[idx], "-new")) {
@@ -195,6 +184,9 @@ int main( int argc, char **argv )
 				exit(0);
 			}
 		}
+		// NOTE: Consider adding a -paranoid flag that incorporates
+		// testing cross-checks (e.g., boundary-based isohedral),
+		// but leaves those checks off by default.
 	}
 
 	if (outname) {
@@ -207,15 +199,15 @@ int main( int argc, char **argv )
 	if (inname) {
 		ifstream ifs(inname);
 		if (failsafe) {
-			FOR_EACH_IN_STREAM( ifs, computeHeeschSafeMode );
+			processInputStream(ifs, computeHeeschSafeMode);
 		} else {
-			FOR_EACH_IN_STREAM( ifs, computeHeesch );
+			processInputStream(ifs, computeHeesch);
 		}
 	} else {
 		if (failsafe) {
-			FOR_EACH_IN_STREAM( cin, computeHeeschSafeMode );
+			processInputStream(cin, computeHeeschSafeMode);
 		} else {
-			FOR_EACH_IN_STREAM( cin, computeHeesch );
+			processInputStream(cin, computeHeesch);
 		}
 	}
 

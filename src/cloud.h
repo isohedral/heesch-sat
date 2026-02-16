@@ -39,6 +39,11 @@ struct Orientation
 // shape.  Each transform can either be overlapping, cleanly adjacent, or
 // adjacent but not simply connected.
 
+// NOTE: seriously: need helper functions to test a transformed tile T
+// relative to another transformed tile S, so that we don't have to keep
+// rederiving the relationship.  Sheesh.  Actually, this may work better
+// as a method of xform.
+
 template<typename grid>
 class Cloud
 {
@@ -163,6 +168,11 @@ Cloud<grid>::Cloud( const Shape<grid>& shape, Orientations ori,
 
 	// Now try to construct all adjacencies by translating a border
 	// point of an oriented shape to a halo point of the main shape.
+
+	// NOTE: There may be some value in immediately distinguishing between
+	// Adjacencies that share a single point in common vs. adjacencies
+	// that share one or more edges.  That would in turn rely on 
+	// precomputing the shape's edge halo (see Shape::getEdgeHalo)
 	for( auto hp : halo_ ) {
 		bool found = false;
 

@@ -48,7 +48,6 @@ static bool describeNeighbours(TileInfo<grid>& tile)
 
 	return true;
 }
-GRID_WRAP(describeNeighbours);
 
 template<typename grid>
 struct SizeInfo {
@@ -269,7 +268,6 @@ static bool computeSurrounds(TileInfo<grid> & tile)
 
 	return true;
 }
-GRID_WRAP( computeSurrounds );
 
 // A cheap single-purpose algorithm that checks if a tile has a 3-surround.
 // This could probably be sped up further, and doesn't guarantee that the
@@ -359,7 +357,6 @@ static bool filter3Surround(TileInfo<grid> & tile)
 
 	return true;
 }
-GRID_WRAP(filter3Surround);
 
 int main( int argc, char **argv )
 {
@@ -393,11 +390,11 @@ int main( int argc, char **argv )
 	}
 
 	if (three) { 
-		FOR_EACH_IN_STREAM(cin, filter3Surround);
+		processInputStream(cin, filter3Surround);
 	} else if (neighs) {
-		FOR_EACH_IN_STREAM(cin, describeNeighbours);
+		processInputStream(cin, describeNeighbours);
 	} else {
-		FOR_EACH_IN_STREAM( cin, computeSurrounds );
+		processInputStream( cin, computeSurrounds );
 	}
 	return 0;
 }
