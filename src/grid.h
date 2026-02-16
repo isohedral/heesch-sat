@@ -72,7 +72,7 @@ auto dispatchGridTypeImpl(GridType gt, Args&&... args)
 	switch( gt ) {
 		case HEX: return F.template operator()<HexGrid<coord>>(
 			std::forward<Args>(args)...);
-		case IAMOND: return F.template operator()<IamondGrid<coord>>(o
+		case IAMOND: return F.template operator()<IamondGrid<coord>>(
 			std::forward<Args>(args)...);
 		case KITE: return F.template operator()<KiteGrid<coord>>(
 			std::forward<Args>(args)...);

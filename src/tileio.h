@@ -373,44 +373,7 @@ void processInputStreamImpl( std::istream& is, GridType default_gt = OMINO )
 			gt = getGridType( ch );
 		}
 
-		// FIXME This can in principle be abstracted into a nicer
-		// dispatch-like mechanism without repeating the code in 
-		// grid.h.  Investigate that.
-
-		using coord = int16_t;
-
-		switch( gt ) {
-			case HEX: 
-				mo = F.template operator()<HexGrid<coord>>(is);
-				break;
-			case IAMOND: 
-				mo = F.template operator()<IamondGrid<coord>>(is);
-				break;
-			case KITE: 
-				mo = F.template operator()<KiteGrid<coord>>(is);
-				break;
-			case DRAFTER: 
-				mo = F.template operator()<DrafterGrid<coord>>(is);
-				break;
-			case ABOLO: 
-				mo = F.template operator()<AboloGrid<coord>>(is);
-				break;
-			case OCTASQUARE: 
-				mo = F.template operator()<OctaSquareGrid<coord>>(is);
-				break;
-			case TRIHEX: 
-				mo = F.template operator()<TriHexGrid<coord>>(is);
-				break;
-			case HALFCAIRO: 
-				mo = F.template operator()<HalfCairoGrid<coord>>(is);
-				break;
-			case BEVELHEX: 
-				mo = F.template operator()<BevelHexGrid<coord>>(is);
-				break;
-			case OMINO: default: 
-				mo = F.template operator()<OminoGrid<coord>>(is);
-				break;
-		}
+		dispatchGridTypeImpl<F>(gt, is);
 
 		if( !mo ) {
 			break;
