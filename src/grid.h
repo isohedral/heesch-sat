@@ -64,6 +64,14 @@ inline GridType getGridType( int& argc, char **argv )
 	return grid;
 }
 
+// A bit of abstraction magic to bootstrap you into grid-templated code
+// based on a grid type that isn't known until runtime.  Obviously the
+// GridType value can't be a template parameter, so we need to break the
+// bootstrapping process down into cases and explicitly dispatch to each
+// grid type.  That's OK, because the types are all known in advance.
+// The type F should work for any type that has a templated call operator,
+// but is intended to be used with a templated lambda.
+
 template<auto F, typename... Args>
 auto dispatchGridTypeImpl(GridType gt, Args&&... args)
 {
@@ -92,6 +100,18 @@ auto dispatchGridTypeImpl(GridType gt, Args&&... args)
 			std::forward<Args>(args)...);
 	}
 }
+
+// We want to be able to dispatch to a templated function, like
+//   template<typename Grid> void myFunc() {...}
+// But unlike classes, functions can't resolve against a template
+// template parameter in C++.  So we use one teeny tiny macro as a
+// workaround.  It wraps your function in a templated lambda, which
+// comes with an anonymous type that *can* resolve against the F
+// parameter above.  As far as I know, there's no way to avoid 
+// macros entirely, at least if you want to be able to work with
+// functions this way.  You can work without macros if you write every
+// templated function as a static method of a templated class, but
+// I don't like that idea.
 
 #define dispatchGrid(f, gt, ...) \
     dispatchGridTypeImpl<[]<typename Grid>(auto&&... args) { \

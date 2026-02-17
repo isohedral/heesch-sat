@@ -347,16 +347,12 @@ bool processOne( std::istream& is )
 	return Func()( TileInfo<grid>( is ) );
 }
 
-// This is surprisingly tricky to get working.  The problem is that you need
-// to dispatch to one of the templated grid classes almost immediately, but
-// you don't know which class you'll need until you actually start parsing
-// the input.  Of course, that's why the grid type is the first character 
-// in the description of a tile.  Life might have been a bit easier if we
-// had mandated that the grid type is homogeneous across all polyforms in 
-// the input, but that restriction seemed annoying.
+// Similar to dispatchGridTypeImpl in grid.h, read an input stream
+// line by line and dispatch each tile shape found to the callable
+// F, bootstrapped into the correct grid type.
 
 template<auto F>
-void processInputStreamImpl( std::istream& is, GridType default_gt = OMINO )
+void processInputStreamImpl(std::istream& is, GridType default_gt = OMINO)
 {
 	while( true ) {
 		bool mo = true;
@@ -372,7 +368,9 @@ void processInputStreamImpl( std::istream& is, GridType default_gt = OMINO )
 			ch = is.get();
 			gt = getGridType( ch );
 		}
-
+		
+		// Chain to existing dispatch code (glad this can be done in
+		// a single line!)
 		dispatchGridTypeImpl<F>(gt, is);
 
 		if( !mo ) {
@@ -380,6 +378,12 @@ void processInputStreamImpl( std::istream& is, GridType default_gt = OMINO )
 		}
 	}
 }
+
+// And as with grid.h, wrap the bootstrapping process in a little
+// macro.  We can't use the same macro, because we need to construct
+// a templated TileInfo object on the way in.  (It's theoretically
+// possible to abstract over this, but it isn't worth the coding
+// effort.)
 
 // FIXME A bit awkward.  The function takes a TileInfo reference,
 // So we need to declare a local info variable in order to have an
