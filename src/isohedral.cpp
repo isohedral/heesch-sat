@@ -1,6 +1,7 @@
 #include <iostream>
 #include <functional>
 #include <iterator>
+#include <map>
 #include <set>
 
 #include "isohedral.h"

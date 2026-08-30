@@ -184,7 +184,7 @@ int main( int argc, char **argv )
 			outname = argv[idx];
 		} else if( !strcmp( argv[idx], "-nodraw" ) ) {
 			nodraw = true;
-		} else if( !strcmp( argv[idx], "-e" ) ) {
+		} else if( !strcmp( argv[idx], "-extract" ) || !strcmp(argv[idx], "-e") ) {
 			// Extract selected tile records to a separate file
 			++idx;
 			extract.open( argv[idx] );
